@@ -6,8 +6,8 @@ D = bpy.data
 # ---------------------------------------
 # ------------Initialization-------------
 # ---------------------------------------
-Domain_size = (3.0, 3.0, 3.0)
-Cloud_size = (7.0, 7.0, 7.0)
+DOMAIN_SIZE = (3.0, 3.0, 3.0)
+CLOUD_SIZE = (7.0, 7.0, 7.0)
 # Create cloud domain object
 bpy.ops.mesh.primitive_cube_add()
 obj = C.active_object
@@ -145,8 +145,8 @@ mat.node_tree.links.new(texture_coordinate.outputs["Object"],
 # --------Domain and size config---------
 # ---------------------------------------
 
-obj.scale = Domain_size
+obj.scale = DOMAIN_SIZE
 C.view_layer.objects.active = obj
 bpy.ops.object.transform_apply(location=False, rotation=False, scale=True, properties=True)
-obj.scale = Cloud_size                      
+obj.scale = CLOUD_SIZE                     
 
