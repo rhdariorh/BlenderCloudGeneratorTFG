@@ -148,5 +148,5 @@ mat.node_tree.links.new(texture_coordinate.outputs["Object"],
 obj.scale = DOMAIN_SIZE
 C.view_layer.objects.active = obj
 bpy.ops.object.transform_apply(location=False, rotation=False, scale=True, properties=True)
-obj.scale = CLOUD_SIZE                     
+obj.scale = CLOUD_SIZE
 
