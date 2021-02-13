@@ -14,6 +14,54 @@ bl_info = {
 import bpy
 from mathutils import Vector
 
+def update_cloud_size(self, context):
+    obj = context.active_object
+    domain = obj.cloud_settings.domain
+    size = obj.cloud_settings.size
+    cube_size = Vector((size.x / domain.x, size.y / domain.y, size.z / domain.z))
+    obj.scale = cube_size
+
+def update_cloud_domain(self, context):
+    obj = context.active_object
+    domain = obj.cloud_settings.domain
+    size = obj.cloud_settings.size
+
+    previous_domain = Vector(obj.cloud_settings["auxiliar_domain"].to_list())
+    obj.scale = Vector((1.0/previous_domain.x, 1.0/previous_domain.y, 1.0/previous_domain.z))
+    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True, properties=True)
+
+    obj.scale = domain
+    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True, properties=True)
+    obj.cloud_settings["auxiliar_domain"] = domain
+
+    cube_size = Vector((size.x / domain.x, size.y / domain.y, size.z / domain.z))
+    obj.scale = cube_size
+
+
+
+class CloudSettings(bpy.types.PropertyGroup):
+    is_cloud: bpy.props.BoolProperty(
+        name="Is cloud",
+        description="Indicates if the object is a cloud",
+        default=False
+    )
+
+    domain: bpy.props.FloatVectorProperty(
+        name="Cloud domain",
+        description="Render domain for the cloud object",
+        subtype="XYZ",
+        default=(4.0, 4.0, 4.0),
+        min=0.01,
+        update=update_cloud_domain
+    )
+
+    size: bpy.props.FloatVectorProperty(
+        name="Cloud size",
+        description="Size of the cloud object",
+        subtype="TRANSLATION",
+        default=(30.0, 30.0, 30.0),
+        update=update_cloud_size
+    )
 
 class OBJECT_OT_cloud(bpy.types.Operator):
     """Add a cumulus cloud"""
@@ -21,6 +69,7 @@ class OBJECT_OT_cloud(bpy.types.Operator):
     bl_label = "Generate cloud"
     bl_options = {"REGISTER", "UNDO"}
 
+    """
     domain: bpy.props.FloatVectorProperty(
         name="Domain size",
         description="Domain size where the cloud is rendered.",
@@ -34,25 +83,16 @@ class OBJECT_OT_cloud(bpy.types.Operator):
         default=(30.0, 30.0, 30.0),
         min=0
     )
-
+    """
     @classmethod
     def poll(cls, context):
         return context.area.type == "VIEW_3D"
 
     def execute(self, context):
-        generate_cloud(context, self.domain, self.size)
+        generate_cloud(context)
         return {'FINISHED'}
 
-"""
-class VIEW3D_PT_cloud(bpy.types.Panel):
-    bl_space_type = "VIEW_3D"
-    bl_region_type = "UI"
-    bl_category = "Clouds"
-    bl_label = "Cumulus"
 
-    def draw(self, context):
-        self.layout.operator("object.cloud_add")
-"""
 class OBJECT_PT_cloud(bpy.types.Panel):
     """Creates a Panel in the scene context of the properties editor"""
     bl_label = "Cloud settings"
@@ -65,8 +105,8 @@ class OBJECT_PT_cloud(bpy.types.Panel):
         layout = self.layout
         layout.use_property_split = True
         obj = context.object
-
-        if not obj.is_cloud:
+        cloud_settings = obj.cloud_settings
+        if not obj.cloud_settings.is_cloud:
             layout.label(text="The selected object is not a cloud.",
                 icon="ERROR")
         else:
@@ -75,9 +115,10 @@ class OBJECT_PT_cloud(bpy.types.Panel):
             # Create a simple row.
 
             column = layout.column()
-            column.prop(obj, "cloud_size", text="Size")
+            column.prop(cloud_settings, "size", text="Size")
             column = layout.column()
-            column.prop(obj, "cloud_domain", text="Domain")
+            column.prop(cloud_settings, "domain", text="Domain")
+            """
             layout.use_property_split = False
             # Create an row where the buttons are aligned to each other.
             layout.label(text=" Aligned Row:")
@@ -117,6 +158,7 @@ class OBJECT_PT_cloud(bpy.types.Panel):
             sub.operator("render.render")
 
             row.operator("render.render")
+            """
 
 class VIEW3D_MT_cloud_add(bpy.types.Menu):
     bl_idname = "VIEW3D_MT_cloud_add"
@@ -138,54 +180,38 @@ def add_menu_cloud(self, context):
 
 
 def register():
+    bpy.utils.register_class(CloudSettings)
     bpy.utils.register_class(OBJECT_OT_cloud)
-    # bpy.utils.register_class(VIEW3D_PT_cloud)
     bpy.utils.register_class(OBJECT_PT_cloud)
     bpy.utils.register_class(VIEW3D_MT_cloud_add)
-    bpy.types.VIEW3D_MT_add.append(add_menu_cloud)
-
-    bpy.types.Object.is_cloud = bpy.props.BoolProperty(
-        name="Is cloud",
-        description="Indicates if the object is a cloud",
-        default=False
-    )
-
-    bpy.types.Object.cloud_domain = bpy.props.FloatVectorProperty(
-        name="Cloud domain",
-        description="Render domain for the cloud object",
-        subtype="XYZ",
-        default=(1.0, 1.0, 1.0)
-    )
-
-    bpy.types.Object.cloud_size = bpy.props.FloatVectorProperty(
-        name="Cloud size",
-        description="Size of the cloud object",
-        subtype="TRANSLATION",
-        default=(1.0, 1.0, 1.0)
-    )
+    bpy.types.VIEW3D_MT_volume_add.append(add_menu_cloud)
+    
+    bpy.types.Object.cloud_settings = bpy.props.PointerProperty(type=CloudSettings)
 
 
 def unregister():
+    bpy.utils.unregister_class(CloudSettings)
     bpy.utils.unregister_class(OBJECT_OT_cloud)
-    # bpy.utils.unregister_class(VIEW3D_PT_cloud)
     bpy.utils.unregister_class(OBJECT_PT_cloud)
     bpy.utils.unregister_class(VIEW3D_MT_cloud_add)
-    bpy.types.VIEW3D_MT_add.remove(add_menu_cloud)
+    bpy.types.VIEW3D_MT_volume_add.remove(add_menu_cloud)
 
-    del bpy.types.Object.is_cloud
+    del bpy.types.Object.cloud_settings
 
-def generate_cloud(context, domain, size):
+
+def generate_cloud(context):
     C = context
     D = bpy.data
-
     # ---------------------------------------
     # ------------Initialization-------------
     # ---------------------------------------
-    # Create cloud domain object
+    # Create cloud object
     bpy.ops.mesh.primitive_cube_add()
     obj = C.active_object
     obj.name = 'Cloud'
-    obj.is_cloud = True
+    obj.cloud_settings.is_cloud = True
+    domain = obj.cloud_settings.domain
+    size = obj.cloud_settings.size
 
     # Create cloud material
     mat = D.materials.new("CloudMaterial")
@@ -317,10 +343,13 @@ def generate_cloud(context, domain, size):
     # ---------------------------------------
     # --------Domain and size config---------
     # ---------------------------------------
-    domain_vec = Vector(domain)
-    obj.scale = domain_vec / 2  # Default cube is 2 meters
+    obj.cloud_settings["auxiliar_domain"] = domain
+    obj.scale = (0.5, 0.5, 0.5) # Default cube is 2 meters
     C.view_layer.objects.active = obj
     bpy.ops.object.transform_apply(location=False, rotation=False, scale=True, properties=True)
-    cube_size = Vector((size[0] / domain[0], size[1] / domain[1], size[2] / domain[2]))
+    obj.scale = domain
+    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True, properties=True)
+    cube_size = Vector((size.x / domain.x, size.y / domain.y, size.z / domain.z))
     obj.scale = cube_size
+
 
