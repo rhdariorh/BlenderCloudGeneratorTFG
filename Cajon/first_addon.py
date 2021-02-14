@@ -23,42 +23,42 @@ class CloudErrorOperator(bpy.types.Operator):
     )
 
     def execute(self, context):
-        #if self.error_type == "MATERIAL_WRONG_NAME":
-        self.report({'WARNING'}, "The active cloud material name is not correct")
+        if self.error_type == "MATERIAL_WRONG_NAME":
+            self.report({'WARNING'}, "The active cloud material name is not correct")
         return {'FINISHED'}
 
 
-def update_cloud_size(self, context):
+def update_cloud_dimensions(self, context):
     obj = context.active_object
     domain = obj.cloud_settings.domain
     size = obj.cloud_settings.size
-    cube_size = Vector((size.x / domain.x, size.y / domain.y, size.z / domain.z))
-    obj.scale = cube_size
+    min_size = min(size.x, size.y, size.z)
 
-def update_cloud_domain(self, context):
-    obj = context.active_object
-    domain = obj.cloud_settings.domain
-    size = obj.cloud_settings.size
-
-    previous_domain = Vector(obj.cloud_settings["auxiliar_domain"].to_list())
+    # Restablecer dominio
+    previous_domain = Vector(obj.cloud_settings["auxiliar_domain_vector"].to_list())
     obj.scale = Vector((1.0/previous_domain.x, 1.0/previous_domain.y, 1.0/previous_domain.z))
     bpy.ops.object.transform_apply(location=False, rotation=False, scale=True, properties=True)
 
-    obj.scale = domain
+    # Nuevo dominio
+    adapted_domain = Vector((size.x/domain, size.y/domain, size.z/domain))
+    obj.scale = (adapted_domain.x, adapted_domain.y, adapted_domain.z)
     bpy.ops.object.transform_apply(location=False, rotation=False, scale=True, properties=True)
-    obj.cloud_settings["auxiliar_domain"] = domain
+    obj.cloud_settings["auxiliar_domain_vector"] = adapted_domain
 
-    cube_size = Vector((size.x / domain.x, size.y / domain.y, size.z / domain.z))
+    cube_size = Vector((size.x / adapted_domain.x, size.y / adapted_domain.y, size.z / adapted_domain.z))
     obj.scale = cube_size
+
 
 def update_cloud_density(self, context):
     obj = context.active_object
     density = obj.cloud_settings.density
     material = bpy.context.active_object.active_material
-    if (material.name is "Hola"):
-        print("hola")
+    if "CloudMaterial_CG" not in material.name:
+        bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
     else:
-        bpy.ops.error.cloud_error(error_type="MATERIAL_WRONG_NAME")
+        density_color_ramp = material.node_tree.nodes.get("Cloud Density ColorRamp")
+        elem = density_color_ramp.color_ramp.elements[1]
+        elem.color = (density, density, density, 1)
 
 class CloudSettings(bpy.types.PropertyGroup):
     is_cloud: bpy.props.BoolProperty(
@@ -67,21 +67,20 @@ class CloudSettings(bpy.types.PropertyGroup):
         default=False
     )
 
-    domain: bpy.props.FloatVectorProperty(
+    domain: bpy.props.FloatProperty(
         name="Cloud domain",
-        description="Render domain for the cloud object",
-        subtype="XYZ",
-        default=(4.0, 4.0, 4.0),
+        description="Render domain size for the cloud object",
+        default=4,
         min=0.01,
-        update=update_cloud_domain
+        update=update_cloud_dimensions
     )
 
     size: bpy.props.FloatVectorProperty(
         name="Cloud size",
         description="Size of the cloud object",
         subtype="TRANSLATION",
-        default=(30.0, 30.0, 30.0),
-        update=update_cloud_size
+        default=(20.0, 20.0, 20.0),
+        update=update_cloud_dimensions
     )
 
     density: bpy.props.FloatProperty(
@@ -89,7 +88,7 @@ class CloudSettings(bpy.types.PropertyGroup):
         description="Amount of light absorbed by the cloud",
         default=1.4,
         min=0.0,
-        soft_max=2.0,
+        soft_max=5.0,
         update=update_cloud_density
     )
 
@@ -99,21 +98,6 @@ class OBJECT_OT_cloud(bpy.types.Operator):
     bl_label = "Generate cloud"
     bl_options = {"REGISTER", "UNDO"}
 
-    """
-    domain: bpy.props.FloatVectorProperty(
-        name="Domain size",
-        description="Domain size where the cloud is rendered.",
-        default=(4.0, 4.0, 4.0),
-        min=0
-    )
-
-    size: bpy.props.FloatVectorProperty(
-        name="Cloud size",
-        description="Cloud size regardless of domain.",
-        default=(30.0, 30.0, 30.0),
-        min=0
-    )
-    """
     @classmethod
     def poll(cls, context):
         return context.area.type == "VIEW_3D"
@@ -151,47 +135,6 @@ class OBJECT_PT_cloud(bpy.types.Panel):
             column = layout.column()
             column.prop(cloud_settings, "density", text="Density")
 
-            """
-            layout.use_property_split = False
-            # Create an row where the buttons are aligned to each other.
-            layout.label(text=" Aligned Row:")
-
-            row = layout.row(align=True)
-            row.prop(scene, "frame_start")
-            row.prop(scene, "frame_end")
-
-            # Create two columns, by using a split layout.
-            split = layout.split()
-
-            # First column
-            col = split.column()
-            col.label(text="Column One:")
-            col.prop(scene, "frame_end")
-            col.prop(scene, "frame_start")
-
-            # Second column, aligned
-            col = split.column(align=True)
-            col.label(text="Column Two:")
-            col.prop(scene, "frame_start")
-            col.prop(scene, "frame_end")
-
-            # Big render button
-            layout.label(text="Big Button:")
-            row = layout.row()
-            row.scale_y = 3.0
-            row.operator("render.render")
-
-            # Different sizes in a row
-            layout.label(text="Different button sizes:")
-            row = layout.row(align=True)
-            row.operator("render.render")
-
-            sub = row.row()
-            sub.scale_x = 2.0
-            sub.operator("render.render")
-
-            row.operator("render.render")
-            """
 
 class VIEW3D_MT_cloud_add(bpy.types.Menu):
     bl_idname = "VIEW3D_MT_cloud_add"
@@ -249,7 +192,7 @@ def generate_cloud(context):
     size = obj.cloud_settings.size
 
     # Create cloud material
-    mat = D.materials.new("CloudMaterial")
+    mat = D.materials.new("CloudMaterial_CG")
     mat.use_nodes = True
 
     # Cleaning material
@@ -288,7 +231,7 @@ def generate_cloud(context):
     elem.color = (0, 0, 0, 1)
     elem = density_color_ramp.color_ramp.elements[1]
     elem.position = 0.4
-    elem.color = (2.163, 2.163, 2.163, 1)  # HSV -> V = 1.4
+    elem.color = (2.0, 2.0, 2.0, 1)
 
     mat.node_tree.links.new(density_color_ramp.outputs["Color"],
                             principled_volume.inputs["Density"])
@@ -390,13 +333,17 @@ def generate_cloud(context):
     # ---------------------------------------
     # --------Domain and size config---------
     # ---------------------------------------
-    obj.cloud_settings["auxiliar_domain"] = domain
     obj.scale = (0.5, 0.5, 0.5) # Default cube is 2 meters
     C.view_layer.objects.active = obj
     bpy.ops.object.transform_apply(location=False, rotation=False, scale=True, properties=True)
-    obj.scale = domain
+
+    adapted_domain = Vector((size.x/domain, size.y/domain, size.z/domain))
+    obj.scale = (adapted_domain.x, adapted_domain.y, adapted_domain.z)
     bpy.ops.object.transform_apply(location=False, rotation=False, scale=True, properties=True)
-    cube_size = Vector((size.x / domain.x, size.y / domain.y, size.z / domain.z))
+    obj.cloud_settings["auxiliar_domain_vector"] = adapted_domain
+
+    cube_size = Vector((size.x / adapted_domain.x, size.y / adapted_domain.y, size.z / adapted_domain.z))
     obj.scale = cube_size
+
 
 
