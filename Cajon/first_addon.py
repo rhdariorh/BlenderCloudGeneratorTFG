@@ -14,6 +14,20 @@ bl_info = {
 import bpy
 from mathutils import Vector
 
+class CloudErrorOperator(bpy.types.Operator):
+    bl_idname = "error.cloud_error"
+    bl_label = "Cloud Error Operator"
+
+    error_type: bpy.props.StringProperty(
+        name="Cloud error type"
+    )
+
+    def execute(self, context):
+        #if self.error_type == "MATERIAL_WRONG_NAME":
+        self.report({'WARNING'}, "The active cloud material name is not correct")
+        return {'FINISHED'}
+
+
 def update_cloud_size(self, context):
     obj = context.active_object
     domain = obj.cloud_settings.domain
@@ -37,7 +51,14 @@ def update_cloud_domain(self, context):
     cube_size = Vector((size.x / domain.x, size.y / domain.y, size.z / domain.z))
     obj.scale = cube_size
 
-
+def update_cloud_density(self, context):
+    obj = context.active_object
+    density = obj.cloud_settings.density
+    material = bpy.context.active_object.active_material
+    if (material.name is "Hola"):
+        print("hola")
+    else:
+        bpy.ops.error.cloud_error(error_type="MATERIAL_WRONG_NAME")
 
 class CloudSettings(bpy.types.PropertyGroup):
     is_cloud: bpy.props.BoolProperty(
@@ -61,6 +82,15 @@ class CloudSettings(bpy.types.PropertyGroup):
         subtype="TRANSLATION",
         default=(30.0, 30.0, 30.0),
         update=update_cloud_size
+    )
+
+    density: bpy.props.FloatProperty(
+        name="Cloud density",
+        description="Amount of light absorbed by the cloud",
+        default=1.4,
+        min=0.0,
+        soft_max=2.0,
+        update=update_cloud_density
     )
 
 class OBJECT_OT_cloud(bpy.types.Operator):
@@ -118,6 +148,9 @@ class OBJECT_PT_cloud(bpy.types.Panel):
             column.prop(cloud_settings, "size", text="Size")
             column = layout.column()
             column.prop(cloud_settings, "domain", text="Domain")
+            column = layout.column()
+            column.prop(cloud_settings, "density", text="Density")
+
             """
             layout.use_property_split = False
             # Create an row where the buttons are aligned to each other.
@@ -180,6 +213,7 @@ def add_menu_cloud(self, context):
 
 
 def register():
+    bpy.utils.register_class(CloudErrorOperator)
     bpy.utils.register_class(CloudSettings)
     bpy.utils.register_class(OBJECT_OT_cloud)
     bpy.utils.register_class(OBJECT_PT_cloud)
@@ -190,6 +224,7 @@ def register():
 
 
 def unregister():
+    bpy.utils.unregister_class(CloudErrorOperator)
     bpy.utils.unregister_class(CloudSettings)
     bpy.utils.unregister_class(OBJECT_OT_cloud)
     bpy.utils.unregister_class(OBJECT_PT_cloud)
@@ -232,9 +267,11 @@ def generate_cloud(context):
 
     # Material Output
     material_output = mat_nodes.new("ShaderNodeOutputMaterial")
+    material_output.name = "Cloud Output"
     material_output.location = (700, 0)
     # Principled Volume
     principled_volume = mat_nodes.new("ShaderNodeVolumePrincipled")
+    principled_volume.name = "Cloud Principled Volume"
     principled_volume.location = (400, 0)
     principled_volume.inputs["Color"].default_value = (1, 1, 1, 1)
 
@@ -244,6 +281,7 @@ def generate_cloud(context):
 
     # Final density Color Ramp
     density_color_ramp = mat_nodes.new("ShaderNodeValToRGB")
+    density_color_ramp.name = "Cloud Density ColorRamp"
     density_color_ramp.location = (100, 0)
     elem = density_color_ramp.color_ramp.elements[0]
     elem.position = 0.3
@@ -257,6 +295,7 @@ def generate_cloud(context):
 
     # Gradient Texture
     gradient_texture = mat_nodes.new("ShaderNodeTexGradient")
+    gradient_texture.name = "Cloud Gradient Texture"
     gradient_texture.location = (-100, 0)
     gradient_texture.gradient_type = "SPHERICAL"
 
@@ -265,6 +304,7 @@ def generate_cloud(context):
 
     # Overlay Curve and Noises
     overlay_curve_noises = mat_nodes.new("ShaderNodeMixRGB")
+    overlay_curve_noises.name = "Cloud Overlay Curve and Noises"
     overlay_curve_noises.location = (-300, 0)
     overlay_curve_noises.blend_type = "OVERLAY"
     overlay_curve_noises.inputs["Fac"].default_value = 0.23
@@ -274,6 +314,7 @@ def generate_cloud(context):
 
     # Color Ramp noises
     noise_color_ramp = mat_nodes.new("ShaderNodeValToRGB")
+    noise_color_ramp.name = "Cloud Noise ColorRamp"
     noise_color_ramp.location = (-600, -200)
     elem = noise_color_ramp.color_ramp.elements[0]
     elem.position = 0.3
@@ -287,6 +328,7 @@ def generate_cloud(context):
 
     # Vector curves
     vector_curves = mat_nodes.new("ShaderNodeVectorCurve")
+    vector_curves.name = "Cloud Vector Curves"
     vector_curves.location = (-600, 300)
     vector_curves.mapping.curves[2].points[0].location = (-0.77, -1.0)
     vector_curves.mapping.curves[2].points.new(-0.12, 0.55)
@@ -297,6 +339,7 @@ def generate_cloud(context):
 
     # Mapping
     mapping = mat_nodes.new("ShaderNodeMapping")
+    mapping.name = "Cloud Mapping"
     mapping.location = (-800, 300)
     mapping.inputs["Location"].default_value = (0.0, 0.0, -0.3)
     mapping.inputs["Scale"].default_value = (0.7, 0.6, 1.0)
@@ -306,6 +349,7 @@ def generate_cloud(context):
 
     # Overlay Voronoi and Noise Texture
     overlay_voronoi_noise = mat_nodes.new("ShaderNodeMixRGB")
+    overlay_voronoi_noise.name = "Cloud Overlay Voronoi and Noise"
     overlay_voronoi_noise.location = (-800, -350)
     overlay_voronoi_noise.blend_type = "OVERLAY"
     overlay_voronoi_noise.inputs["Fac"].default_value = 1.0
@@ -315,6 +359,7 @@ def generate_cloud(context):
 
     # Voronoi noise
     voronoi = mat_nodes.new("ShaderNodeTexVoronoi")
+    voronoi.name = "Cloud Voronoi Level 1"
     voronoi.location = (-1000, -250)
     voronoi.inputs["Scale"].default_value = 2.0
 
@@ -323,6 +368,7 @@ def generate_cloud(context):
 
     # Noise
     noise_tex = mat_nodes.new("ShaderNodeTexNoise")
+    noise_tex.name = "Cloud Noise Texture"
     noise_tex.location = (-1000, -500)
     noise_tex.inputs["Distortion"].default_value = 0.2
 
@@ -331,6 +377,7 @@ def generate_cloud(context):
 
     # Texture Coordinate
     texture_coordinate = mat_nodes.new("ShaderNodeTexCoord")
+    texture_coordinate.name = "Cloud Texture Coordinate"
     texture_coordinate.location = (-1300, 0)
 
     mat.node_tree.links.new(texture_coordinate.outputs["Object"],
