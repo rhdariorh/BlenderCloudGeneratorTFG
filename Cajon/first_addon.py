@@ -30,22 +30,21 @@ class CloudErrorOperator(bpy.types.Operator):
 
 def update_cloud_dimensions(self, context):
     obj = context.active_object
-    domain = obj.cloud_settings.domain
     size = obj.cloud_settings.size
-    min_size = min(size.x, size.y, size.z)
+    domain = obj.cloud_settings.domain
 
     # Restablecer dominio
-    previous_domain = Vector(obj.cloud_settings["auxiliar_domain_vector"].to_list())
-    obj.scale = Vector((1.0/previous_domain.x, 1.0/previous_domain.y, 1.0/previous_domain.z))
+    previous_size = Vector(obj.cloud_settings["auxiliar_size_vector"].to_list())
+    obj.scale = Vector((1.0/previous_size.x, 1.0/previous_size.y, 1.0/previous_size.z))
     bpy.ops.object.transform_apply(location=False, rotation=False, scale=True, properties=True)
 
     # Nuevo dominio
-    adapted_domain = Vector((size.x/domain, size.y/domain, size.z/domain))
-    obj.scale = (adapted_domain.x, adapted_domain.y, adapted_domain.z)
+    adapted_size = Vector((domain.x/size, domain.y/size, domain.z/size))
+    obj.scale = (adapted_size.x, adapted_size.y, adapted_size.z)
     bpy.ops.object.transform_apply(location=False, rotation=False, scale=True, properties=True)
-    obj.cloud_settings["auxiliar_domain_vector"] = adapted_domain
+    obj.cloud_settings["auxiliar_size_vector"] = adapted_size
 
-    cube_size = Vector((size.x / adapted_domain.x, size.y / adapted_domain.y, size.z / adapted_domain.z))
+    cube_size = Vector((domain.x / adapted_size.x, domain.y / adapted_size.y, domain.z / adapted_size.z))
     obj.scale = cube_size
 
 
@@ -67,17 +66,17 @@ class CloudSettings(bpy.types.PropertyGroup):
         default=False
     )
 
-    domain: bpy.props.FloatProperty(
-        name="Cloud domain",
-        description="Render domain size for the cloud object",
+    size: bpy.props.FloatProperty(
+        name="Cloud size",
+        description="Size of the cloud",
         default=4,
         min=0.01,
         update=update_cloud_dimensions
     )
 
-    size: bpy.props.FloatVectorProperty(
-        name="Cloud size",
-        description="Size of the cloud object",
+    domain: bpy.props.FloatVectorProperty(
+        name="Cloud domain size",
+        description="Size of the cloud object, therefore the rendering domain",
         subtype="TRANSLATION",
         default=(20.0, 20.0, 20.0),
         update=update_cloud_dimensions
@@ -129,11 +128,11 @@ class OBJECT_PT_cloud(bpy.types.Panel):
             # Create a simple row.
 
             column = layout.column()
+            column.prop(cloud_settings, "density", text="Density")
+            column = layout.column()
             column.prop(cloud_settings, "size", text="Size")
             column = layout.column()
             column.prop(cloud_settings, "domain", text="Domain")
-            column = layout.column()
-            column.prop(cloud_settings, "density", text="Density")
 
 
 class VIEW3D_MT_cloud_add(bpy.types.Menu):
@@ -337,12 +336,12 @@ def generate_cloud(context):
     C.view_layer.objects.active = obj
     bpy.ops.object.transform_apply(location=False, rotation=False, scale=True, properties=True)
 
-    adapted_domain = Vector((size.x/domain, size.y/domain, size.z/domain))
-    obj.scale = (adapted_domain.x, adapted_domain.y, adapted_domain.z)
+    adapted_size = Vector((domain.x/size, domain.y/size, domain.z/size))
+    obj.scale = (adapted_size.x, adapted_size.y, adapted_size.z)
     bpy.ops.object.transform_apply(location=False, rotation=False, scale=True, properties=True)
-    obj.cloud_settings["auxiliar_domain_vector"] = adapted_domain
+    obj.cloud_settings["auxiliar_size_vector"] = adapted_size
 
-    cube_size = Vector((size.x / adapted_domain.x, size.y / adapted_domain.y, size.z / adapted_domain.z))
+    cube_size = Vector((domain.x / adapted_size.x, domain.y / adapted_size.y, domain.z / adapted_size.z))
     obj.scale = cube_size
 
 
