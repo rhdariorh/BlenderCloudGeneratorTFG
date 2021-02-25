@@ -55,9 +55,53 @@ def update_cloud_density(self, context):
     if "CloudMaterial_CG" not in material.name:
         bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
     else:
-        density_color_ramp = material.node_tree.nodes.get("Cloud Density ColorRamp")
+        density_color_ramp = material.node_tree.nodes.get("ColorRamp - Cloud Density")
         elem = density_color_ramp.color_ramp.elements[1]
         elem.color = (density, density, density, 1)
+
+def update_cloud_wind(self, context):
+    obj = context.active_object
+    wind = obj.cloud_settings.wind
+    material = bpy.context.active_object.active_material
+    if "CloudMaterial_CG" not in material.name:
+        bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
+    else:
+        add_shape_wind = material.node_tree.nodes.get("RGB Add - Shape wind")
+        add_shape_wind.inputs["Fac"].default_value = wind
+
+        add_small_wind = material.node_tree.nodes.get("RGB Add - Small wind")
+        add_small_wind.inputs["Fac"].default_value = wind
+
+def update_cloud_roundness(self, context):
+    obj = context.active_object
+    roundness = obj.cloud_settings.roundness
+    material = bpy.context.active_object.active_material
+    if "CloudMaterial_CG" not in material.name:
+        bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
+    else:
+        overlay_roundness = material.node_tree.nodes.get("RGB Overlay - Roundness")
+        overlay_roundness.inputs["Fac"].default_value = roundness
+
+def update_cloud_add_shape_imperfection(self, context):
+    obj = context.active_object
+    add_shape_imperfection = obj.cloud_settings.add_shape_imperfection
+    material = bpy.context.active_object.active_material
+    if "CloudMaterial_CG" not in material.name:
+        bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
+    else:
+        add_imperfection = material.node_tree.nodes.get("RGB Add - Shape imperfection")
+        add_imperfection.inputs["Fac"].default_value = add_shape_imperfection
+
+def update_cloud_subtract_shape_imperfection(self, context):
+    obj = context.active_object
+    subtract_shape_imperfection = obj.cloud_settings.subtract_shape_imperfection
+    material = bpy.context.active_object.active_material
+    if "CloudMaterial_CG" not in material.name:
+        bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
+    else:
+        subtract_imperfection = material.node_tree.nodes.get("RGB Subtract - Shape imperfection")
+        subtract_imperfection.inputs["Fac"].default_value = subtract_shape_imperfection
+
 
 class CloudSettings(bpy.types.PropertyGroup):
     is_cloud: bpy.props.BoolProperty(
@@ -89,6 +133,42 @@ class CloudSettings(bpy.types.PropertyGroup):
         min=0.0,
         soft_max=5.0,
         update=update_cloud_density
+    )
+
+    wind: bpy.props.FloatProperty(
+        name="Cloud wind",
+        description="Wind effect",
+        default=0.4,
+        min=0.0,
+        max=1.0,
+        update=update_cloud_wind
+    )
+
+    roundness: bpy.props.FloatProperty(
+        name="Cloud roundness",
+        description="Roundness of the general shape",
+        default=0.5,
+        min=0.0,
+        max=1.0,
+        update=update_cloud_roundness
+    )
+
+    add_shape_imperfection: bpy.props.FloatProperty(
+        name="Cloud add shape imperfection",
+        description="Add imperfection to the general shape",
+        default=0.3,
+        min=0.0,
+        max=1.0,
+        update=update_cloud_add_shape_imperfection
+    )
+
+    subtract_shape_imperfection: bpy.props.FloatProperty(
+        name="Cloud subtract shape imperfection",
+        description="Subtract imperfection to the general shape",
+        default=0.1,
+        min=0.0,
+        max=1.0,
+        update=update_cloud_subtract_shape_imperfection
     )
 
 class OBJECT_OT_cloud(bpy.types.Operator):
@@ -126,13 +206,61 @@ class OBJECT_PT_cloud(bpy.types.Panel):
             scene = context.scene
 
             # Create a simple row.
+            column = layout.column()
+            column.prop(cloud_settings, "domain", text="Domain")
+            column.prop(cloud_settings, "size", text="Size")
+
+class OBJECT_PT_cloud_general(bpy.types.Panel):
+    bl_label = "General"
+    bl_parent_id = "OBJECT_PT_cloud"
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "object"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        obj = context.object
+        cloud_settings = obj.cloud_settings
+        if not obj.cloud_settings.is_cloud:
+            layout.label(text="The selected object is not a cloud.",
+                icon="ERROR")
+        else:
+            scene = context.scene
+
+            # Create a simple row.
 
             column = layout.column()
             column.prop(cloud_settings, "density", text="Density")
+            column.prop(cloud_settings, "wind", text="Wind")
+
+class OBJECT_PT_cloud_shape(bpy.types.Panel):
+    bl_label = "Shape"
+    bl_parent_id = "OBJECT_PT_cloud"
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "object"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        obj = context.object
+        cloud_settings = obj.cloud_settings
+        if not obj.cloud_settings.is_cloud:
+            layout.label(text="The selected object is not a cloud.",
+                icon="ERROR")
+        else:
+            scene = context.scene
+
+            # Create a simple row.
             column = layout.column()
-            column.prop(cloud_settings, "size", text="Size")
-            column = layout.column()
-            column.prop(cloud_settings, "domain", text="Domain")
+            column.prop(cloud_settings, "roundness", text="Roundness")
+            column.prop(cloud_settings, "add_shape_imperfection", text="Add imperfection")
+            column.prop(cloud_settings, "subtract_shape_imperfection", text="Subtract imperfection")
 
 
 class VIEW3D_MT_cloud_add(bpy.types.Menu):
@@ -158,7 +286,11 @@ def register():
     bpy.utils.register_class(CloudErrorOperator)
     bpy.utils.register_class(CloudSettings)
     bpy.utils.register_class(OBJECT_OT_cloud)
+
     bpy.utils.register_class(OBJECT_PT_cloud)
+    bpy.utils.register_class(OBJECT_PT_cloud_general)
+    bpy.utils.register_class(OBJECT_PT_cloud_shape)
+
     bpy.utils.register_class(VIEW3D_MT_cloud_add)
     bpy.types.VIEW3D_MT_volume_add.append(add_menu_cloud)
     
@@ -169,7 +301,11 @@ def unregister():
     bpy.utils.unregister_class(CloudErrorOperator)
     bpy.utils.unregister_class(CloudSettings)
     bpy.utils.unregister_class(OBJECT_OT_cloud)
+
     bpy.utils.unregister_class(OBJECT_PT_cloud)
+    bpy.utils.unregister_class(OBJECT_PT_cloud_general)
+    bpy.utils.register_class(OBJECT_PT_cloud_shape)
+    
     bpy.utils.unregister_class(VIEW3D_MT_cloud_add)
     bpy.types.VIEW3D_MT_volume_add.remove(add_menu_cloud)
 
@@ -320,11 +456,11 @@ def generate_cloud(context):
 
     # END SIMPLE CLEANER FRAME
 
-    # RGB Subtract - Big imperfection
+    # RGB Subtract - Shape imperfection
     subtract_imperfection = mat_nodes.new("ShaderNodeMixRGB")
-    subtract_imperfection.name = "RGB Subtract - Big imperfection"
-    subtract_imperfection.label = "RGB Subtract - Big imperfection"
-    subtract_imperfection.location = (-2800, 0)
+    subtract_imperfection.name = "RGB Subtract - Shape imperfection"
+    subtract_imperfection.label = "RGB Subtract - Shape imperfection"
+    subtract_imperfection.location = (-3000, 0)
     subtract_imperfection.blend_type = "SUBTRACT"
     subtract_imperfection.inputs["Fac"].default_value = 0.2
 
@@ -333,11 +469,11 @@ def generate_cloud(context):
     mat.node_tree.links.new(subtract_imperfection.outputs["Color"],
                             multiply_cleaner.inputs[0])
 
-    # RGB Add - Big imperfection
+    # RGB Add - Shape imperfection
     add_imperfection = mat_nodes.new("ShaderNodeMixRGB")
-    add_imperfection.name = "RGB Add - Big imperfection"
-    add_imperfection.label = "RGB Add - Big imperfection"
-    add_imperfection.location = (-3000, 0)
+    add_imperfection.name = "RGB Add - Shape imperfection"
+    add_imperfection.label = "RGB Add - Shape imperfection"
+    add_imperfection.location = (-3200, 0)
     add_imperfection.blend_type = "ADD"
     add_imperfection.inputs["Fac"].default_value = 0.25
 
@@ -348,7 +484,7 @@ def generate_cloud(context):
     overlay_roundness = mat_nodes.new("ShaderNodeMixRGB")
     overlay_roundness.name = "RGB Overlay - Roundness"
     overlay_roundness.label = "RGB Overlay - Roundness"
-    overlay_roundness.location = (-3200, 0)
+    overlay_roundness.location = (-3400, 0)
     overlay_roundness.blend_type = "OVERLAY"
     overlay_roundness.inputs["Fac"].default_value = 0.85
 
@@ -363,7 +499,7 @@ def generate_cloud(context):
     gradient_texture = mat_nodes.new("ShaderNodeTexGradient")
     gradient_texture.parent = frame
     gradient_texture.name = "Initial Shape Gradient Texture"
-    gradient_texture.location = (-3450, 0)
+    gradient_texture.location = (-3650, 0)
     gradient_texture.gradient_type = "SPHERICAL"
 
     mat.node_tree.links.new(gradient_texture.outputs["Color"],
@@ -372,7 +508,7 @@ def generate_cloud(context):
     vector_curves = mat_nodes.new("ShaderNodeVectorCurve")
     vector_curves.parent = frame
     vector_curves.name = "Initial Shape Vector Curves"
-    vector_curves.location = (-3750, 0)
+    vector_curves.location = (-3950, 0)
     vector_curves.mapping.curves[2].points[0].location = (-0.77, -1.0)
     vector_curves.mapping.curves[2].points.new(-0.12, 0.55)
 
@@ -383,7 +519,7 @@ def generate_cloud(context):
     mapping = mat_nodes.new("ShaderNodeMapping")
     mapping.parent = frame
     mapping.name = "Initial Shape Mapping"
-    mapping.location = (-3950, 0)
+    mapping.location = (-4150, 0)
     mapping.inputs["Location"].default_value = (0.0, 0.0, -0.3)
     mapping.inputs["Scale"].default_value = (0.7, 0.6, 0.7)
 
@@ -391,40 +527,51 @@ def generate_cloud(context):
                             vector_curves.inputs["Vector"])
     # END INITIAL SHAPE FRAME
 
-    # RGB Add - Big wind
-    add_big_wind = mat_nodes.new("ShaderNodeMixRGB")
-    add_big_wind.name = "RGB Add - Big wind"
-    add_big_wind.label = "RGB Add - Big wind"
-    add_big_wind.location = (-4250, 0)
-    add_big_wind.blend_type = "ADD"
-    add_big_wind.inputs["Fac"].default_value = 0.35
+    # RGB Add - Shape wind
+    add_shape_wind = mat_nodes.new("ShaderNodeMixRGB")
+    add_shape_wind.name = "RGB Add - Shape wind"
+    add_shape_wind.label = "RGB Add - Shape wind"
+    add_shape_wind.location = (-4450, 0)
+    add_shape_wind.blend_type = "ADD"
+    add_shape_wind.inputs["Fac"].default_value = 0.35
 
-    mat.node_tree.links.new(add_big_wind.outputs["Color"],
+    mat.node_tree.links.new(add_shape_wind.outputs["Color"],
                             mapping.inputs[0])
-    mat.node_tree.links.new(add_big_wind.outputs["Color"],
+    mat.node_tree.links.new(add_shape_wind.outputs["Color"],
                             reroute_1.inputs[0])
 
-    # Noise Tex - Big wind
-    noise_big_wind = mat_nodes.new("ShaderNodeTexNoise")
-    noise_big_wind.name = "Noise Tex - Big wind"
-    noise_big_wind.label = "Noise Tex - Big wind"
-    noise_big_wind.location = (-4450, -150)
-    noise_big_wind.inputs["Scale"].default_value = 2.2
-    noise_big_wind.inputs["Detail"].default_value = 0.0
-    noise_big_wind.inputs["Roughness"].default_value = 0.0
-    noise_big_wind.inputs["Distortion"].default_value = 3.0
+    # Vector Subtract - Shape wind domain to -0.5 to 0.5
+    domain_adjustment_shape_wind = mat_nodes.new("ShaderNodeVectorMath")
+    domain_adjustment_shape_wind.location = (-4650, -150)
+    domain_adjustment_shape_wind.name = "Vector Subtract - Shape wind domain adjustment"
+    domain_adjustment_shape_wind.label = "Vector Subtract - Shape wind domain adjustment"
+    domain_adjustment_shape_wind.operation = "SUBTRACT"
+    domain_adjustment_shape_wind.inputs[1].default_value = (0.5, 0.5, 0.5)
 
-    mat.node_tree.links.new(noise_big_wind.outputs["Fac"],
-                            add_big_wind.inputs["Color2"])
+    mat.node_tree.links.new(domain_adjustment_shape_wind.outputs["Vector"],
+                            add_shape_wind.inputs["Color2"])
+
+    # Noise Tex - Shape wind
+    noise_shape_wind = mat_nodes.new("ShaderNodeTexNoise")
+    noise_shape_wind.name = "Noise Tex - Shape wind"
+    noise_shape_wind.label = "Noise Tex - Shape wind"
+    noise_shape_wind.location = (-4850, -150)
+    noise_shape_wind.inputs["Scale"].default_value = 1.5
+    noise_shape_wind.inputs["Detail"].default_value = 0.0
+    noise_shape_wind.inputs["Roughness"].default_value = 0.0
+    noise_shape_wind.inputs["Distortion"].default_value = 3.0
+
+    mat.node_tree.links.new(noise_shape_wind.outputs["Fac"],
+                            domain_adjustment_shape_wind.inputs[0])
 
     # Texture Coordinate
     texture_coordinate = mat_nodes.new("ShaderNodeTexCoord")
-    texture_coordinate.location = (-4650, 0)
+    texture_coordinate.location = (-5150, 0)
 
     mat.node_tree.links.new(texture_coordinate.outputs["Object"],
-                            add_big_wind.inputs["Color1"])
+                            add_shape_wind.inputs["Color1"])
     mat.node_tree.links.new(texture_coordinate.outputs["Object"],
-                            noise_big_wind.inputs["Vector"])
+                            noise_shape_wind.inputs["Vector"])
     # ----------------END MAIN BRANCH----------------
 
     mat.node_tree.links.new(texture_coordinate.outputs["Object"],
@@ -586,7 +733,7 @@ def generate_cloud(context):
     # Vector Add - Bump coordinates
     add_coord_bump = mat_nodes.new("ShaderNodeVectorMath")
     add_coord_bump.parent = frame
-    add_coord_bump.location = (-2800, -800)
+    add_coord_bump.location = (-3000, -800)
     add_coord_bump.name = "Vector Add - Bump coordinates"
     add_coord_bump.label = "Vector Add - Bump coordinates"
     add_coord_bump.operation = "ADD"
@@ -594,19 +741,32 @@ def generate_cloud(context):
 
     mat.node_tree.links.new(add_coord_bump.outputs["Vector"],
                             add_small_wind.inputs["Color1"])
-
+    
+    # Vector Subtract - Small wind domain to -0.5 to 0.5
+    domain_adjustment_small_wind = mat_nodes.new("ShaderNodeVectorMath")
+    domain_adjustment_small_wind.parent = frame
+    domain_adjustment_small_wind.location = (-2800, -1100)
+    domain_adjustment_small_wind.name = "Vector Subtract - Small wind domain adjustment"
+    domain_adjustment_small_wind.label = "Vector Subtract - Small wind domain adjustment"
+    domain_adjustment_small_wind.operation = "SUBTRACT"
+    domain_adjustment_small_wind.inputs[1].default_value = (0.5, 0.5, 0.5)
+    
+    mat.node_tree.links.new(domain_adjustment_small_wind.outputs["Vector"],
+                            add_small_wind.inputs["Color2"])
+    
     # Noise Tex - Small wind
     noise_small_wind = mat_nodes.new("ShaderNodeTexNoise")
+    noise_small_wind.parent = frame
     noise_small_wind.name = "Noise Tex - Small wind"
     noise_small_wind.label = "Noise Tex - Small wind"
-    noise_small_wind.location = (-2800, -1100)
+    noise_small_wind.location = (-3000, -1100)
     noise_small_wind.inputs["Scale"].default_value = 0.7
     noise_small_wind.inputs["Detail"].default_value = 0.0
     noise_small_wind.inputs["Roughness"].default_value = 0.0
     noise_small_wind.inputs["Distortion"].default_value = 3.0
 
     mat.node_tree.links.new(noise_small_wind.outputs["Fac"],
-                            add_small_wind.inputs["Color2"])
+                            domain_adjustment_small_wind.inputs[0])
 
     mat.node_tree.links.new(reroute_3.outputs[0],
                             add_coord_bump.inputs[0])
@@ -675,7 +835,7 @@ def generate_cloud(context):
     # Invert color
     invert_color = mat_nodes.new("ShaderNodeInvert")
     invert_color.parent = frame
-    invert_color.location = (-3450, -500)
+    invert_color.location = (-3650, -500)
     mat.node_tree.links.new(invert_color.outputs["Color"],
                             overlay_roundness.inputs["Color2"])
 
@@ -684,7 +844,7 @@ def generate_cloud(context):
     voronoi_roundness.parent = frame
     voronoi_roundness.name = "Voronoi tex - Roundness"
     voronoi_roundness.label = "Voronoi tex - Roundness"
-    voronoi_roundness.location = (-3850, -500)
+    voronoi_roundness.location = (-4050, -500)
     voronoi_roundness.inputs["Scale"].default_value = 1.2
 
     mat.node_tree.links.new(voronoi_roundness.outputs["Distance"],
@@ -697,158 +857,158 @@ def generate_cloud(context):
 
     # -----BEGINNING ADD BIG IMPERFECTION BRANCH-----
     frame = mat_nodes.new(type='NodeFrame')
-    frame.name = "Add big imperfection"
-    frame.label = "Add big imperfection"
+    frame.name = "Add shape imperfection"
+    frame.label = "Add shape imperfection"
 
     # RGB Color Burn - Combine noises
     color_burn_noises = mat_nodes.new("ShaderNodeMixRGB")
     color_burn_noises.parent = frame
     color_burn_noises.name = "RGB Color Burn - Combine noises"
     color_burn_noises.label = "RGB Color Burn - Combine noises"
-    color_burn_noises.location = (-3450, -900)
+    color_burn_noises.location = (-3650, -900)
     color_burn_noises.blend_type = "BURN"
     color_burn_noises.inputs["Fac"].default_value = 1.0
 
     mat.node_tree.links.new(color_burn_noises.outputs["Color"],
                             add_imperfection.inputs["Color2"])
 
-    # Noise Tex - Add big imperfection 1
-    noise_add_big_imperfection_1 = mat_nodes.new("ShaderNodeTexNoise")
-    noise_add_big_imperfection_1.parent = frame
-    noise_add_big_imperfection_1.name = "Noise Tex - Add big imperfection 1"
-    noise_add_big_imperfection_1.label = "Noise Tex - Add big imperfection 1"
-    noise_add_big_imperfection_1.location = (-3650, -900)
-    noise_add_big_imperfection_1.inputs["Scale"].default_value = 1.9
-    noise_add_big_imperfection_1.inputs["Detail"].default_value = 0.0
-    noise_add_big_imperfection_1.inputs["Roughness"].default_value = 0.0
+    # Noise Tex - Add shape imperfection 1
+    noise_add_shape_imperfection_1 = mat_nodes.new("ShaderNodeTexNoise")
+    noise_add_shape_imperfection_1.parent = frame
+    noise_add_shape_imperfection_1.name = "Noise Tex - Add shape imperfection 1"
+    noise_add_shape_imperfection_1.label = "Noise Tex - Add shape imperfection 1"
+    noise_add_shape_imperfection_1.location = (-3850, -900)
+    noise_add_shape_imperfection_1.inputs["Scale"].default_value = 1.9
+    noise_add_shape_imperfection_1.inputs["Detail"].default_value = 0.0
+    noise_add_shape_imperfection_1.inputs["Roughness"].default_value = 0.0
 
-    mat.node_tree.links.new(noise_add_big_imperfection_1.outputs["Fac"],
+    mat.node_tree.links.new(noise_add_shape_imperfection_1.outputs["Fac"],
                             color_burn_noises.inputs["Color1"])
 
-    # Noise Tex - Add big imperfection 2
-    noise_add_big_imperfection_2 = mat_nodes.new("ShaderNodeTexNoise")
-    noise_add_big_imperfection_2.parent = frame
-    noise_add_big_imperfection_2.name = "Noise Tex - Add big imperfection 1"
-    noise_add_big_imperfection_2.label = "Noise Tex - Add big imperfection 1"
-    noise_add_big_imperfection_2.location = (-3650, -1150)
-    noise_add_big_imperfection_2.inputs["Scale"].default_value = 1.9
-    noise_add_big_imperfection_2.inputs["Detail"].default_value = 16.0
-    noise_add_big_imperfection_2.inputs["Roughness"].default_value = 0.0
-    noise_add_big_imperfection_2.inputs["Distortion"].default_value = 0.0
+    # Noise Tex - Add shape imperfection 2
+    noise_add_shape_imperfection_2 = mat_nodes.new("ShaderNodeTexNoise")
+    noise_add_shape_imperfection_2.parent = frame
+    noise_add_shape_imperfection_2.name = "Noise Tex - Add shape imperfection 1"
+    noise_add_shape_imperfection_2.label = "Noise Tex - Add shape imperfection 1"
+    noise_add_shape_imperfection_2.location = (-3850, -1150)
+    noise_add_shape_imperfection_2.inputs["Scale"].default_value = 1.9
+    noise_add_shape_imperfection_2.inputs["Detail"].default_value = 16.0
+    noise_add_shape_imperfection_2.inputs["Roughness"].default_value = 0.0
+    noise_add_shape_imperfection_2.inputs["Distortion"].default_value = 0.0
 
-    mat.node_tree.links.new(noise_add_big_imperfection_2.outputs["Fac"],
+    mat.node_tree.links.new(noise_add_shape_imperfection_2.outputs["Fac"],
                             color_burn_noises.inputs["Color2"])
 
-    # Vector Add - Add big imperfection 1
-    add_big_imperfection_1 = mat_nodes.new("ShaderNodeVectorMath")
-    add_big_imperfection_1.parent = frame
-    add_big_imperfection_1.location = (-3850, -900)
-    add_big_imperfection_1.name = "Vector Add - Add big imperfection 1"
-    add_big_imperfection_1.label = "Vector Add - Add big imperfection 1"
-    add_big_imperfection_1.operation = "ADD"
+    # Vector Add - Add shape imperfection 1
+    add_shape_imperfection_1 = mat_nodes.new("ShaderNodeVectorMath")
+    add_shape_imperfection_1.parent = frame
+    add_shape_imperfection_1.location = (-4050, -900)
+    add_shape_imperfection_1.name = "Vector Add - Add shape imperfection 1"
+    add_shape_imperfection_1.label = "Vector Add - Add shape imperfection 1"
+    add_shape_imperfection_1.operation = "ADD"
 
-    mat.node_tree.links.new(add_big_imperfection_1.outputs["Vector"],
-                            noise_add_big_imperfection_1.inputs["Vector"])
+    mat.node_tree.links.new(add_shape_imperfection_1.outputs["Vector"],
+                            noise_add_shape_imperfection_1.inputs["Vector"])
     mat.node_tree.links.new(reroute_1.outputs[0],
-                            add_big_imperfection_1.inputs["Vector"])
+                            add_shape_imperfection_1.inputs["Vector"])
 
-    # Vector Add - Add big imperfection 1
-    add_big_imperfection_2 = mat_nodes.new("ShaderNodeVectorMath")
-    add_big_imperfection_2.parent = frame
-    add_big_imperfection_2.location = (-3850, -1150)
-    add_big_imperfection_2.name = "Vector Add - Add big imperfection 2"
-    add_big_imperfection_2.label = "Vector Add - Add big imperfection 2"
-    add_big_imperfection_2.operation = "ADD"
-    add_big_imperfection_2.inputs[1].default_value = (5.0, 5.0, 5.0)
+    # Vector Add - Add shape imperfection 2
+    add_shape_imperfection_2 = mat_nodes.new("ShaderNodeVectorMath")
+    add_shape_imperfection_2.parent = frame
+    add_shape_imperfection_2.location = (-4050, -1150)
+    add_shape_imperfection_2.name = "Vector Add - Add shape imperfection 2"
+    add_shape_imperfection_2.label = "Vector Add - Add shape imperfection 2"
+    add_shape_imperfection_2.operation = "ADD"
+    add_shape_imperfection_2.inputs[1].default_value = (5.0, 5.0, 5.0)
 
-    mat.node_tree.links.new(add_big_imperfection_2.outputs["Vector"],
-                            noise_add_big_imperfection_2.inputs["Vector"])
+    mat.node_tree.links.new(add_shape_imperfection_2.outputs["Vector"],
+                            noise_add_shape_imperfection_2.inputs["Vector"])
     mat.node_tree.links.new(reroute_1.outputs[0],
-                            add_big_imperfection_2.inputs["Vector"])
+                            add_shape_imperfection_2.inputs["Vector"])
     # --------END ADD BIG IMPERFECTION BRANCH--------
 
 
     # --BEGINNING SUBTRACT BIG IMPERFECTION BRANCH---
     frame = mat_nodes.new(type='NodeFrame')
-    frame.name = "Subtract big imperfection"
-    frame.label = "Subtract big imperfection"
+    frame.name = "Subtract shape imperfection"
+    frame.label = "Subtract shape imperfection"
 
     # RGB Color Burn - Combine noises
     color_burn_noises = mat_nodes.new("ShaderNodeMixRGB")
     color_burn_noises.parent = frame
     color_burn_noises.name = "RGB Color Burn - Combine noises"
     color_burn_noises.label = "RGB Color Burn - Combine noises"
-    color_burn_noises.location = (-3450, -1500)
+    color_burn_noises.location = (-3650, -1500)
     color_burn_noises.blend_type = "BURN"
     color_burn_noises.inputs["Fac"].default_value = 1.0
 
     mat.node_tree.links.new(color_burn_noises.outputs["Color"],
                             subtract_imperfection.inputs["Color2"])
 
-    # Noise Tex - Subtract big imperfection 1
-    noise_subtract_big_imperfection_1 = mat_nodes.new("ShaderNodeTexNoise")
-    noise_subtract_big_imperfection_1.parent = frame
-    noise_subtract_big_imperfection_1.name = "Noise Tex - Subtract big imperfection 1"
-    noise_subtract_big_imperfection_1.label = "Noise Tex - Subtract big imperfection 1"
-    noise_subtract_big_imperfection_1.location = (-3650, -1500)
-    noise_subtract_big_imperfection_1.inputs["Scale"].default_value = 1.9
-    noise_subtract_big_imperfection_1.inputs["Detail"].default_value = 0.0
-    noise_subtract_big_imperfection_1.inputs["Roughness"].default_value = 0.0
+    # Noise Tex - Subtract shape imperfection 1
+    noise_subtract_shape_imperfection_1 = mat_nodes.new("ShaderNodeTexNoise")
+    noise_subtract_shape_imperfection_1.parent = frame
+    noise_subtract_shape_imperfection_1.name = "Noise Tex - Subtract shape imperfection 1"
+    noise_subtract_shape_imperfection_1.label = "Noise Tex - Subtract shape imperfection 1"
+    noise_subtract_shape_imperfection_1.location = (-3850, -1500)
+    noise_subtract_shape_imperfection_1.inputs["Scale"].default_value = 1.9
+    noise_subtract_shape_imperfection_1.inputs["Detail"].default_value = 0.0
+    noise_subtract_shape_imperfection_1.inputs["Roughness"].default_value = 0.0
 
-    mat.node_tree.links.new(noise_subtract_big_imperfection_1.outputs["Fac"],
+    mat.node_tree.links.new(noise_subtract_shape_imperfection_1.outputs["Fac"],
                             color_burn_noises.inputs["Color1"])
 
-    # Noise Tex - Subtract big imperfection 2
-    noise_subtract_big_imperfection_2 = mat_nodes.new("ShaderNodeTexNoise")
-    noise_subtract_big_imperfection_2.parent = frame
-    noise_subtract_big_imperfection_2.name = "Noise Tex - Subtract big imperfection 1"
-    noise_subtract_big_imperfection_2.label = "Noise Tex - Subtract big imperfection 1"
-    noise_subtract_big_imperfection_2.location = (-3650, -1750)
-    noise_subtract_big_imperfection_2.inputs["Scale"].default_value = 1.9
-    noise_subtract_big_imperfection_2.inputs["Detail"].default_value = 16.0
-    noise_subtract_big_imperfection_2.inputs["Roughness"].default_value = 0.0
-    noise_subtract_big_imperfection_2.inputs["Distortion"].default_value = 0.0
+    # Noise Tex - Subtract shape imperfection 2
+    noise_subtract_shape_imperfection_2 = mat_nodes.new("ShaderNodeTexNoise")
+    noise_subtract_shape_imperfection_2.parent = frame
+    noise_subtract_shape_imperfection_2.name = "Noise Tex - Subtract shape imperfection 1"
+    noise_subtract_shape_imperfection_2.label = "Noise Tex - Subtract shape imperfection 1"
+    noise_subtract_shape_imperfection_2.location = (-3850, -1750)
+    noise_subtract_shape_imperfection_2.inputs["Scale"].default_value = 1.9
+    noise_subtract_shape_imperfection_2.inputs["Detail"].default_value = 16.0
+    noise_subtract_shape_imperfection_2.inputs["Roughness"].default_value = 0.0
+    noise_subtract_shape_imperfection_2.inputs["Distortion"].default_value = 0.0
 
-    mat.node_tree.links.new(noise_subtract_big_imperfection_2.outputs["Fac"],
+    mat.node_tree.links.new(noise_subtract_shape_imperfection_2.outputs["Fac"],
                             color_burn_noises.inputs["Color2"])
 
-    # Vector Add - Add big imperfection 1
-    subtract_big_imperfection_1 = mat_nodes.new("ShaderNodeVectorMath")
-    subtract_big_imperfection_1.parent = frame
-    subtract_big_imperfection_1.location = (-3850, -1500)
-    subtract_big_imperfection_1.name = "Vector Add - Subtract big imperfection 1"
-    subtract_big_imperfection_1.label = "Vector Add - Subtract big imperfection 1"
-    subtract_big_imperfection_1.operation = "ADD"
-    subtract_big_imperfection_1.inputs[1].default_value = (13.1, 4.4, 8.7)
+    # Vector Add - Add shape imperfection 1
+    subtract_shape_imperfection_1 = mat_nodes.new("ShaderNodeVectorMath")
+    subtract_shape_imperfection_1.parent = frame
+    subtract_shape_imperfection_1.location = (-4050, -1500)
+    subtract_shape_imperfection_1.name = "Vector Add - Subtract shape imperfection 1"
+    subtract_shape_imperfection_1.label = "Vector Add - Subtract shape imperfection 1"
+    subtract_shape_imperfection_1.operation = "ADD"
+    subtract_shape_imperfection_1.inputs[1].default_value = (13.1, 4.4, 8.7)
 
-    mat.node_tree.links.new(subtract_big_imperfection_1.outputs["Vector"],
-                            noise_subtract_big_imperfection_1.inputs["Vector"])
+    mat.node_tree.links.new(subtract_shape_imperfection_1.outputs["Vector"],
+                            noise_subtract_shape_imperfection_1.inputs["Vector"])
     mat.node_tree.links.new(reroute_1.outputs[0],
-                            subtract_big_imperfection_1.inputs["Vector"])
+                            subtract_shape_imperfection_1.inputs["Vector"])
 
-    # Vector Add - Add big imperfection 1
-    subtract_big_imperfection_2 = mat_nodes.new("ShaderNodeVectorMath")
-    subtract_big_imperfection_2.parent = frame
-    subtract_big_imperfection_2.location = (-3850, -1750)
-    subtract_big_imperfection_2.name = "Vector Add - Subtract big imperfection 2"
-    subtract_big_imperfection_2.label = "Vector Add - Subtract big imperfection 2"
-    subtract_big_imperfection_2.operation = "ADD"
-    subtract_big_imperfection_2.inputs[1].default_value = (5.0, 5.0, 5.0)
+    # Vector Add - Add shape imperfection 1
+    subtract_shape_imperfection_2 = mat_nodes.new("ShaderNodeVectorMath")
+    subtract_shape_imperfection_2.parent = frame
+    subtract_shape_imperfection_2.location = (-4050, -1750)
+    subtract_shape_imperfection_2.name = "Vector Add - Subtract shape imperfection 2"
+    subtract_shape_imperfection_2.label = "Vector Add - Subtract shape imperfection 2"
+    subtract_shape_imperfection_2.operation = "ADD"
+    subtract_shape_imperfection_2.inputs[1].default_value = (5.0, 5.0, 5.0)
 
-    mat.node_tree.links.new(subtract_big_imperfection_2.outputs["Vector"],
-                            noise_subtract_big_imperfection_2.inputs["Vector"])
+    mat.node_tree.links.new(subtract_shape_imperfection_2.outputs["Vector"],
+                            noise_subtract_shape_imperfection_2.inputs["Vector"])
     mat.node_tree.links.new(reroute_1.outputs[0],
-                            subtract_big_imperfection_2.inputs["Vector"])
+                            subtract_shape_imperfection_2.inputs["Vector"])
     # -----END SUBTRACT BIG IMPERFECTION BRANCH------
 
-    turbulence_big_imperfection = mat_nodes.new("ShaderNodeValue")
-    turbulence_big_imperfection.location = (-3950, -1400)
-    turbulence_big_imperfection.outputs[0].default_value = 0.0
+    turbulence_shape_imperfection = mat_nodes.new("ShaderNodeValue")
+    turbulence_shape_imperfection.location = (-4150, -1400)
+    turbulence_shape_imperfection.outputs[0].default_value = 0.0
 
-    mat.node_tree.links.new(turbulence_big_imperfection.outputs["Value"],
-                            noise_add_big_imperfection_1.inputs["Distortion"])
-    mat.node_tree.links.new(turbulence_big_imperfection.outputs["Value"],
-                            noise_subtract_big_imperfection_1.inputs["Distortion"])
+    mat.node_tree.links.new(turbulence_shape_imperfection.outputs["Value"],
+                            noise_add_shape_imperfection_1.inputs["Distortion"])
+    mat.node_tree.links.new(turbulence_shape_imperfection.outputs["Value"],
+                            noise_subtract_shape_imperfection_1.inputs["Distortion"])
 
     # ---------------------------------------
     # --------Domain and size config---------
