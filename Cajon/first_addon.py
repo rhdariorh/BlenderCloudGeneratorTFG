@@ -102,6 +102,47 @@ def update_cloud_subtract_shape_imperfection(self, context):
         subtract_imperfection = material.node_tree.nodes.get("RGB Subtract - Shape imperfection")
         subtract_imperfection.inputs["Fac"].default_value = subtract_shape_imperfection
 
+def update_cloud_detail_bump_strength(self, context):
+    obj = context.active_object
+    detail_bump_strength = obj.cloud_settings.detail_bump_strength
+    material = bpy.context.active_object.active_material
+    if "CloudMaterial_CG" not in material.name:
+        bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
+    else:
+        multiply_bump = material.node_tree.nodes.get("RGB Multiply - Bump")
+        multiply_bump.inputs["Fac"].default_value = detail_bump_strength
+
+def update_cloud_detail_bump_levels(self, context):
+    obj = context.active_object
+    detail_bump_levels = obj.cloud_settings.detail_bump_levels
+    material = bpy.context.active_object.active_material
+    if "CloudMaterial_CG" not in material.name:
+        bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
+    elif detail_bump_levels == 1:
+        overlay_bump_2 = material.node_tree.nodes.get("RGB Overlay - Bump level 2")
+        overlay_bump_2.inputs["Fac"].default_value = 0
+        overlay_bump_3 = material.node_tree.nodes.get("RGB Overlay - Bump level 3")
+        overlay_bump_3.inputs["Fac"].default_value = 0
+    elif detail_bump_levels == 2:
+        overlay_bump_2 = material.node_tree.nodes.get("RGB Overlay - Bump level 2")
+        overlay_bump_2.inputs["Fac"].default_value = 1
+        overlay_bump_3 = material.node_tree.nodes.get("RGB Overlay - Bump level 3")
+        overlay_bump_3.inputs["Fac"].default_value = 0
+    elif detail_bump_levels == 3:
+        overlay_bump_2 = material.node_tree.nodes.get("RGB Overlay - Bump level 2")
+        overlay_bump_2.inputs["Fac"].default_value = 1
+        overlay_bump_3 = material.node_tree.nodes.get("RGB Overlay - Bump level 3")
+        overlay_bump_3.inputs["Fac"].default_value = 1
+
+def update_cloud_detail_noise(self, context):
+    obj = context.active_object
+    detail_noise = obj.cloud_settings.detail_noise
+    material = bpy.context.active_object.active_material
+    if "CloudMaterial_CG" not in material.name:
+        bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
+    else:
+        overlay_detail_noise = material.node_tree.nodes.get("RGB Overlay - Noise")
+        overlay_detail_noise.inputs["Fac"].default_value = detail_noise
 
 class CloudSettings(bpy.types.PropertyGroup):
     is_cloud: bpy.props.BoolProperty(
@@ -113,7 +154,7 @@ class CloudSettings(bpy.types.PropertyGroup):
     size: bpy.props.FloatProperty(
         name="Cloud size",
         description="Size of the cloud",
-        default=4,
+        default=10,
         min=0.01,
         update=update_cloud_dimensions
     )
@@ -122,7 +163,7 @@ class CloudSettings(bpy.types.PropertyGroup):
         name="Cloud domain size",
         description="Size of the cloud object, therefore the rendering domain",
         subtype="TRANSLATION",
-        default=(20.0, 20.0, 20.0),
+        default=(30.0, 30.0, 30.0),
         update=update_cloud_dimensions
     )
 
@@ -138,7 +179,7 @@ class CloudSettings(bpy.types.PropertyGroup):
     wind: bpy.props.FloatProperty(
         name="Cloud wind",
         description="Wind effect",
-        default=0.4,
+        default=0.1,
         min=0.0,
         max=1.0,
         update=update_cloud_wind
@@ -169,6 +210,33 @@ class CloudSettings(bpy.types.PropertyGroup):
         min=0.0,
         max=1.0,
         update=update_cloud_subtract_shape_imperfection
+    )
+
+    detail_bump_strength: bpy.props.FloatProperty(
+        name="Cloud detail bump strength",
+        description="Amount of bump effect applied",
+        default=0.3,
+        min=0.0,
+        max=1.0,
+        update=update_cloud_detail_bump_strength
+    )
+
+    detail_bump_levels: bpy.props.IntProperty(
+        name="Cloud detail bump LOD",
+        description="Number of bump levels",
+        default=1,
+        min=1,
+        max=3,
+        update=update_cloud_detail_bump_levels
+    )
+
+    detail_noise: bpy.props.FloatProperty(
+        name="Detail noise",
+        description="Amount of detail noise effect applied",
+        default=0.05,
+        min=0.0,
+        max=1.0,
+        update=update_cloud_detail_noise
     )
 
 class OBJECT_OT_cloud(bpy.types.Operator):
@@ -262,6 +330,32 @@ class OBJECT_PT_cloud_shape(bpy.types.Panel):
             column.prop(cloud_settings, "add_shape_imperfection", text="Add imperfection")
             column.prop(cloud_settings, "subtract_shape_imperfection", text="Subtract imperfection")
 
+class OBJECT_PT_cloud_detail(bpy.types.Panel):
+    bl_label = "Detail"
+    bl_parent_id = "OBJECT_PT_cloud"
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "object"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        obj = context.object
+        cloud_settings = obj.cloud_settings
+        if not obj.cloud_settings.is_cloud:
+            layout.label(text="The selected object is not a cloud.",
+                icon="ERROR")
+        else:
+            scene = context.scene
+
+            # Create a simple row.
+            column = layout.column()
+            column.prop(cloud_settings, "detail_bump_strength", text="Bump strength")
+            column.prop(cloud_settings, "detail_bump_levels", text="Bump levels")
+            column.prop(cloud_settings, "detail_noise", text="Noise")
+
 
 class VIEW3D_MT_cloud_add(bpy.types.Menu):
     bl_idname = "VIEW3D_MT_cloud_add"
@@ -290,6 +384,7 @@ def register():
     bpy.utils.register_class(OBJECT_PT_cloud)
     bpy.utils.register_class(OBJECT_PT_cloud_general)
     bpy.utils.register_class(OBJECT_PT_cloud_shape)
+    bpy.utils.register_class(OBJECT_PT_cloud_detail)
 
     bpy.utils.register_class(VIEW3D_MT_cloud_add)
     bpy.types.VIEW3D_MT_volume_add.append(add_menu_cloud)
@@ -304,7 +399,8 @@ def unregister():
 
     bpy.utils.unregister_class(OBJECT_PT_cloud)
     bpy.utils.unregister_class(OBJECT_PT_cloud_general)
-    bpy.utils.register_class(OBJECT_PT_cloud_shape)
+    bpy.utils.unregister_class(OBJECT_PT_cloud_shape)
+    bpy.utils.unregister_class(OBJECT_PT_cloud_detail)
     
     bpy.utils.unregister_class(VIEW3D_MT_cloud_add)
     bpy.types.VIEW3D_MT_volume_add.remove(add_menu_cloud)
@@ -345,7 +441,7 @@ def generate_cloud(context):
 
     # Reroutes
     reroute_1 = mat_nodes.new(type='NodeReroute')
-    reroute_1.location = (-4050, -1500)
+    reroute_1.location = (-4250, -1500)
 
     reroute_2 = mat_nodes.new(type='NodeReroute')
     reroute_2.location = (-4050, -2300)
@@ -383,7 +479,8 @@ def generate_cloud(context):
     elem.color = (0, 0, 0, 1)
     elem = color_ramp_density.color_ramp.elements[1]
     elem.position = 0.3
-    elem.color = (2.0, 2.0, 2.0, 1)
+    density = obj.cloud_settings.density
+    elem.color = (density, density, density, 1)
 
     mat.node_tree.links.new(color_ramp_density.outputs["Color"],
                             principled_volume.inputs["Density"])
@@ -405,7 +502,8 @@ def generate_cloud(context):
     overlay_detail_noise.label = "RGB Overlay - Noise"
     overlay_detail_noise.location = (-1300, 0)
     overlay_detail_noise.blend_type = "OVERLAY"
-    overlay_detail_noise.inputs["Fac"].default_value = 0.2
+    detail_noise = obj.cloud_settings.detail_noise
+    overlay_detail_noise.inputs["Fac"].default_value = detail_noise
 
     mat.node_tree.links.new(overlay_detail_noise.outputs["Color"],
                             subtract_final_cleaner.inputs["Color1"])
@@ -416,7 +514,8 @@ def generate_cloud(context):
     multiply_bump.label = "RGB Multiply - Bump"
     multiply_bump.location = (-1500, 0)
     multiply_bump.blend_type = "MULTIPLY"
-    multiply_bump.inputs["Fac"].default_value = 0.3
+    detail_bump_strength = obj.cloud_settings.detail_bump_strength
+    multiply_bump.inputs["Fac"].default_value = detail_bump_strength
 
     mat.node_tree.links.new(multiply_bump.outputs["Color"],
                             overlay_detail_noise.inputs["Color1"])
@@ -462,7 +561,8 @@ def generate_cloud(context):
     subtract_imperfection.label = "RGB Subtract - Shape imperfection"
     subtract_imperfection.location = (-3000, 0)
     subtract_imperfection.blend_type = "SUBTRACT"
-    subtract_imperfection.inputs["Fac"].default_value = 0.2
+    subtract_shape_imperfection = obj.cloud_settings.subtract_shape_imperfection
+    subtract_imperfection.inputs["Fac"].default_value = subtract_shape_imperfection
 
     mat.node_tree.links.new(subtract_imperfection.outputs["Color"],
                             lenght.inputs[0])
@@ -475,7 +575,8 @@ def generate_cloud(context):
     add_imperfection.label = "RGB Add - Shape imperfection"
     add_imperfection.location = (-3200, 0)
     add_imperfection.blend_type = "ADD"
-    add_imperfection.inputs["Fac"].default_value = 0.25
+    add_shape_imperfection = obj.cloud_settings.add_shape_imperfection
+    add_imperfection.inputs["Fac"].default_value = add_shape_imperfection
 
     mat.node_tree.links.new(add_imperfection.outputs["Color"],
                             subtract_imperfection.inputs["Color1"])
@@ -486,7 +587,8 @@ def generate_cloud(context):
     overlay_roundness.label = "RGB Overlay - Roundness"
     overlay_roundness.location = (-3400, 0)
     overlay_roundness.blend_type = "OVERLAY"
-    overlay_roundness.inputs["Fac"].default_value = 0.85
+    roundness = obj.cloud_settings.roundness
+    overlay_roundness.inputs["Fac"].default_value = roundness
 
     mat.node_tree.links.new(overlay_roundness.outputs["Color"],
                             add_imperfection.inputs["Color1"])
@@ -533,7 +635,8 @@ def generate_cloud(context):
     add_shape_wind.label = "RGB Add - Shape wind"
     add_shape_wind.location = (-4450, 0)
     add_shape_wind.blend_type = "ADD"
-    add_shape_wind.inputs["Fac"].default_value = 0.35
+    wind = obj.cloud_settings.wind
+    add_shape_wind.inputs["Fac"].default_value = wind
 
     mat.node_tree.links.new(add_shape_wind.outputs["Color"],
                             mapping.inputs[0])
@@ -665,7 +768,6 @@ def generate_cloud(context):
     overlay_bump_3.label = "RGB Overlay - Bump level 3"
     overlay_bump_3.location = (-2000, -500)
     overlay_bump_3.blend_type = "OVERLAY"
-    overlay_bump_3.inputs["Fac"].default_value = 1.0
 
     mat.node_tree.links.new(overlay_bump_3.outputs["Color"],
                             invert_color.inputs["Color"])
@@ -677,10 +779,20 @@ def generate_cloud(context):
     overlay_bump_2.label = "RGB Overlay - Bump level 2"
     overlay_bump_2.location = (-2200, -500)
     overlay_bump_2.blend_type = "OVERLAY"
-    overlay_bump_2.inputs["Fac"].default_value = 1.0
 
     mat.node_tree.links.new(overlay_bump_2.outputs["Color"],
                             overlay_bump_3.inputs["Color1"])
+
+    detail_bump_levels = obj.cloud_settings.detail_bump_levels
+    if detail_bump_levels == 1:
+        overlay_bump_2.inputs["Fac"].default_value = 0
+        overlay_bump_3.inputs["Fac"].default_value = 0
+    elif detail_bump_levels == 2:
+        overlay_bump_2.inputs["Fac"].default_value = 1
+        overlay_bump_3.inputs["Fac"].default_value = 0
+    elif detail_bump_levels == 3:
+        overlay_bump_2.inputs["Fac"].default_value = 1
+        overlay_bump_3.inputs["Fac"].default_value = 1
                             
     # Voronoi tex - Bump level 1
     voronoi_bump_1 = mat_nodes.new("ShaderNodeTexVoronoi")
@@ -721,7 +833,8 @@ def generate_cloud(context):
     add_small_wind.label = "RGB Add - Small wind"
     add_small_wind.location = (-2600, -950)
     add_small_wind.blend_type = "ADD"
-    add_small_wind.inputs["Fac"].default_value = 0.35
+    wind = obj.cloud_settings.wind
+    add_small_wind.inputs["Fac"].default_value = wind
 
     mat.node_tree.links.new(add_small_wind.outputs["Color"],
                             voronoi_bump_1.inputs["Vector"])
@@ -844,14 +957,26 @@ def generate_cloud(context):
     voronoi_roundness.parent = frame
     voronoi_roundness.name = "Voronoi tex - Roundness"
     voronoi_roundness.label = "Voronoi tex - Roundness"
-    voronoi_roundness.location = (-4050, -500)
+    voronoi_roundness.location = (-3850, -500)
     voronoi_roundness.inputs["Scale"].default_value = 1.2
 
     mat.node_tree.links.new(voronoi_roundness.outputs["Distance"],
                             invert_color.inputs["Color"])
+    
+    # Vector Add - Roundness coord
+    add_coord_roundness = mat_nodes.new("ShaderNodeVectorMath")
+    add_coord_roundness.parent = frame
+    add_coord_roundness.location = (-4050, -500)
+    add_coord_roundness.name = "Vector Add - Roundness coord"
+    add_coord_roundness.label = "Vector Add - Roundness coord"
+    add_coord_roundness.operation = "ADD"
+    add_coord_roundness.inputs[1].default_value = (5.0, 5.0, 5.0)
+
+    mat.node_tree.links.new(add_coord_roundness.outputs["Vector"],
+                            voronoi_roundness.inputs["Vector"])
 
     mat.node_tree.links.new(reroute_1.outputs[0],
-                            voronoi_roundness.inputs["Vector"])
+                            add_coord_roundness.inputs[0])
     # -------------END ROUNDNESS BRANCH--------------
 
 
@@ -900,31 +1025,31 @@ def generate_cloud(context):
                             color_burn_noises.inputs["Color2"])
 
     # Vector Add - Add shape imperfection 1
-    add_shape_imperfection_1 = mat_nodes.new("ShaderNodeVectorMath")
-    add_shape_imperfection_1.parent = frame
-    add_shape_imperfection_1.location = (-4050, -900)
-    add_shape_imperfection_1.name = "Vector Add - Add shape imperfection 1"
-    add_shape_imperfection_1.label = "Vector Add - Add shape imperfection 1"
-    add_shape_imperfection_1.operation = "ADD"
+    add_coord_shape_imperfection_1 = mat_nodes.new("ShaderNodeVectorMath")
+    add_coord_shape_imperfection_1.parent = frame
+    add_coord_shape_imperfection_1.location = (-4050, -900)
+    add_coord_shape_imperfection_1.name = "Vector Add - Add coord shape imperfection 1"
+    add_coord_shape_imperfection_1.label = "Vector Add - Add coord shape imperfection 1"
+    add_coord_shape_imperfection_1.operation = "ADD"
 
-    mat.node_tree.links.new(add_shape_imperfection_1.outputs["Vector"],
+    mat.node_tree.links.new(add_coord_shape_imperfection_1.outputs["Vector"],
                             noise_add_shape_imperfection_1.inputs["Vector"])
     mat.node_tree.links.new(reroute_1.outputs[0],
-                            add_shape_imperfection_1.inputs["Vector"])
+                            add_coord_shape_imperfection_1.inputs["Vector"])
 
     # Vector Add - Add shape imperfection 2
-    add_shape_imperfection_2 = mat_nodes.new("ShaderNodeVectorMath")
-    add_shape_imperfection_2.parent = frame
-    add_shape_imperfection_2.location = (-4050, -1150)
-    add_shape_imperfection_2.name = "Vector Add - Add shape imperfection 2"
-    add_shape_imperfection_2.label = "Vector Add - Add shape imperfection 2"
-    add_shape_imperfection_2.operation = "ADD"
-    add_shape_imperfection_2.inputs[1].default_value = (5.0, 5.0, 5.0)
+    add_coord_shape_imperfection_2 = mat_nodes.new("ShaderNodeVectorMath")
+    add_coord_shape_imperfection_2.parent = frame
+    add_coord_shape_imperfection_2.location = (-4050, -1150)
+    add_coord_shape_imperfection_2.name = "Vector Add - Add coord shape imperfection 2"
+    add_coord_shape_imperfection_2.label = "Vector Add - Add coord shape imperfection 2"
+    add_coord_shape_imperfection_2.operation = "ADD"
+    add_coord_shape_imperfection_2.inputs[1].default_value = (5.0, 5.0, 5.0)
 
-    mat.node_tree.links.new(add_shape_imperfection_2.outputs["Vector"],
+    mat.node_tree.links.new(add_coord_shape_imperfection_2.outputs["Vector"],
                             noise_add_shape_imperfection_2.inputs["Vector"])
     mat.node_tree.links.new(reroute_1.outputs[0],
-                            add_shape_imperfection_2.inputs["Vector"])
+                            add_coord_shape_imperfection_2.inputs["Vector"])
     # --------END ADD BIG IMPERFECTION BRANCH--------
 
 
@@ -1000,15 +1125,6 @@ def generate_cloud(context):
     mat.node_tree.links.new(reroute_1.outputs[0],
                             subtract_shape_imperfection_2.inputs["Vector"])
     # -----END SUBTRACT BIG IMPERFECTION BRANCH------
-
-    turbulence_shape_imperfection = mat_nodes.new("ShaderNodeValue")
-    turbulence_shape_imperfection.location = (-4150, -1400)
-    turbulence_shape_imperfection.outputs[0].default_value = 0.0
-
-    mat.node_tree.links.new(turbulence_shape_imperfection.outputs["Value"],
-                            noise_add_shape_imperfection_1.inputs["Distortion"])
-    mat.node_tree.links.new(turbulence_shape_imperfection.outputs["Value"],
-                            noise_subtract_shape_imperfection_1.inputs["Distortion"])
 
     # ---------------------------------------
     # --------Domain and size config---------
