@@ -82,6 +82,16 @@ def update_cloud_roundness(self, context):
         overlay_roundness = material.node_tree.nodes.get("RGB Overlay - Roundness")
         overlay_roundness.inputs["Fac"].default_value = roundness
 
+def update_cloud_roundness_coords(self, context):
+    obj = context.active_object
+    roundness_coords = obj.cloud_settings.roundness_coords
+    material = bpy.context.active_object.active_material
+    if "CloudMaterial_CG" not in material.name:
+        bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
+    else:
+        add_coords_roundness = material.node_tree.nodes.get("Vector Add - Roundness coord")
+        add_coords_roundness.inputs[1].default_value = roundness_coords
+
 def update_cloud_add_shape_imperfection(self, context):
     obj = context.active_object
     add_shape_imperfection = obj.cloud_settings.add_shape_imperfection
@@ -92,6 +102,16 @@ def update_cloud_add_shape_imperfection(self, context):
         add_imperfection = material.node_tree.nodes.get("RGB Add - Shape imperfection")
         add_imperfection.inputs["Fac"].default_value = add_shape_imperfection
 
+def update_cloud_add_shape_imperfection_coords(self, context):
+    obj = context.active_object
+    add_shape_imperfection_coords = obj.cloud_settings.add_shape_imperfection_coords
+    material = bpy.context.active_object.active_material
+    if "CloudMaterial_CG" not in material.name:
+        bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
+    else:
+        coords_add_shape_imperfection_1 = material.node_tree.nodes.get("Vector Add - Coords add shape imperfection 1")
+        coords_add_shape_imperfection_1.inputs[1].default_value = add_shape_imperfection_coords
+
 def update_cloud_subtract_shape_imperfection(self, context):
     obj = context.active_object
     subtract_shape_imperfection = obj.cloud_settings.subtract_shape_imperfection
@@ -101,6 +121,16 @@ def update_cloud_subtract_shape_imperfection(self, context):
     else:
         subtract_imperfection = material.node_tree.nodes.get("RGB Subtract - Shape imperfection")
         subtract_imperfection.inputs["Fac"].default_value = subtract_shape_imperfection
+
+def update_cloud_subtract_shape_imperfection_coords(self, context):
+    obj = context.active_object
+    subtract_shape_imperfection_coords = obj.cloud_settings.subtract_shape_imperfection_coords
+    material = bpy.context.active_object.active_material
+    if "CloudMaterial_CG" not in material.name:
+        bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
+    else:
+        coords_subtract_shape_imperfection_1 = material.node_tree.nodes.get("Vector Add - Coods subtract shape imperfection 1")
+        coords_subtract_shape_imperfection_1.inputs[1].default_value = subtract_shape_imperfection_coords
 
 def update_cloud_detail_bump_strength(self, context):
     obj = context.active_object
@@ -194,6 +224,14 @@ class CloudSettings(bpy.types.PropertyGroup):
         update=update_cloud_roundness
     )
 
+    roundness_coords: bpy.props.FloatVectorProperty(
+        name="Cloud roundness coordinates",
+        description="Mapping coordinates for roundness",
+        subtype="XYZ",
+        default=(0.0, 0.0, 0.0),
+        update=update_cloud_roundness_coords
+    )
+
     add_shape_imperfection: bpy.props.FloatProperty(
         name="Cloud add shape imperfection",
         description="Add imperfection to the general shape",
@@ -203,6 +241,14 @@ class CloudSettings(bpy.types.PropertyGroup):
         update=update_cloud_add_shape_imperfection
     )
 
+    add_shape_imperfection_coords: bpy.props.FloatVectorProperty(
+        name="Cloud add shape imperfection coordinates",
+        description="Mapping coordinates for add shape imperfection ",
+        subtype="XYZ",
+        default=(0.0, 0.0, 0.0),
+        update=update_cloud_add_shape_imperfection_coords
+    )
+
     subtract_shape_imperfection: bpy.props.FloatProperty(
         name="Cloud subtract shape imperfection",
         description="Subtract imperfection to the general shape",
@@ -210,6 +256,14 @@ class CloudSettings(bpy.types.PropertyGroup):
         min=0.0,
         max=1.0,
         update=update_cloud_subtract_shape_imperfection
+    )
+
+    subtract_shape_imperfection_coords: bpy.props.FloatVectorProperty(
+        name="Cloud subtract shape imperfection coordinates",
+        description="Mapping coordinates for subtract shape imperfection ",
+        subtype="XYZ",
+        default=(0.0, 0.0, 0.0),
+        update=update_cloud_subtract_shape_imperfection_coords
     )
 
     detail_bump_strength: bpy.props.FloatProperty(
@@ -325,10 +379,82 @@ class OBJECT_PT_cloud_shape(bpy.types.Panel):
             scene = context.scene
 
             # Create a simple row.
+            #column = layout.column()
+
+class OBJECT_PT_cloud_shape_roundness(bpy.types.Panel):
+    bl_label = "Roundness"
+    bl_parent_id = "OBJECT_PT_cloud_shape"
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "object"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        obj = context.object
+        cloud_settings = obj.cloud_settings
+        if not obj.cloud_settings.is_cloud:
+            layout.label(text="The selected object is not a cloud.",
+                icon="ERROR")
+        else:
+            scene = context.scene
+
+            # Create a simple row.
             column = layout.column()
-            column.prop(cloud_settings, "roundness", text="Roundness")
-            column.prop(cloud_settings, "add_shape_imperfection", text="Add imperfection")
-            column.prop(cloud_settings, "subtract_shape_imperfection", text="Subtract imperfection")
+            column.prop(cloud_settings, "roundness", text="Strength")
+            column.prop(cloud_settings, "roundness_coords", text="Seed")
+
+class OBJECT_PT_cloud_shape_add_imperfection(bpy.types.Panel):
+    bl_label = "Add imperfection"
+    bl_parent_id = "OBJECT_PT_cloud_shape"
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "object"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        obj = context.object
+        cloud_settings = obj.cloud_settings
+        if not obj.cloud_settings.is_cloud:
+            layout.label(text="The selected object is not a cloud.",
+                icon="ERROR")
+        else:
+            scene = context.scene
+
+            # Create a simple row.
+            column = layout.column()
+            column.prop(cloud_settings, "add_shape_imperfection", text="Strength")
+            column.prop(cloud_settings, "add_shape_imperfection_coords", text="Seed")
+
+class OBJECT_PT_cloud_shape_subtract_imperfection(bpy.types.Panel):
+    bl_label = "Subtract imperfection"
+    bl_parent_id = "OBJECT_PT_cloud_shape"
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "object"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        obj = context.object
+        cloud_settings = obj.cloud_settings
+        if not obj.cloud_settings.is_cloud:
+            layout.label(text="The selected object is not a cloud.",
+                icon="ERROR")
+        else:
+            scene = context.scene
+
+            # Create a simple row.
+            column = layout.column()
+            column.prop(cloud_settings, "subtract_shape_imperfection", text="Strength")
+            column.prop(cloud_settings, "subtract_shape_imperfection_coords", text="Seed")
 
 class OBJECT_PT_cloud_detail(bpy.types.Panel):
     bl_label = "Detail"
@@ -384,6 +510,9 @@ def register():
     bpy.utils.register_class(OBJECT_PT_cloud)
     bpy.utils.register_class(OBJECT_PT_cloud_general)
     bpy.utils.register_class(OBJECT_PT_cloud_shape)
+    bpy.utils.register_class(OBJECT_PT_cloud_shape_roundness)
+    bpy.utils.register_class(OBJECT_PT_cloud_shape_add_imperfection)
+    bpy.utils.register_class(OBJECT_PT_cloud_shape_subtract_imperfection)
     bpy.utils.register_class(OBJECT_PT_cloud_detail)
 
     bpy.utils.register_class(VIEW3D_MT_cloud_add)
@@ -400,6 +529,9 @@ def unregister():
     bpy.utils.unregister_class(OBJECT_PT_cloud)
     bpy.utils.unregister_class(OBJECT_PT_cloud_general)
     bpy.utils.unregister_class(OBJECT_PT_cloud_shape)
+    bpy.utils.unregister_class(OBJECT_PT_cloud_shape_roundness)
+    bpy.utils.unregister_class(OBJECT_PT_cloud_shape_add_imperfection)
+    bpy.utils.unregister_class(OBJECT_PT_cloud_shape_subtract_imperfection)
     bpy.utils.unregister_class(OBJECT_PT_cloud_detail)
     
     bpy.utils.unregister_class(VIEW3D_MT_cloud_add)
@@ -844,15 +976,15 @@ def generate_cloud(context):
                             voronoi_bump_3.inputs["Vector"])
                             
     # Vector Add - Bump coordinates
-    add_coord_bump = mat_nodes.new("ShaderNodeVectorMath")
-    add_coord_bump.parent = frame
-    add_coord_bump.location = (-3000, -800)
-    add_coord_bump.name = "Vector Add - Bump coordinates"
-    add_coord_bump.label = "Vector Add - Bump coordinates"
-    add_coord_bump.operation = "ADD"
-    add_coord_bump.inputs[1].default_value = (5.0, 8.5, 11.0)
+    add_coords_bump = mat_nodes.new("ShaderNodeVectorMath")
+    add_coords_bump.parent = frame
+    add_coords_bump.location = (-3000, -800)
+    add_coords_bump.name = "Vector Add - Bump coordinates"
+    add_coords_bump.label = "Vector Add - Bump coordinates"
+    add_coords_bump.operation = "ADD"
+    add_coords_bump.inputs[1].default_value = (5.0, 8.5, 11.0)
 
-    mat.node_tree.links.new(add_coord_bump.outputs["Vector"],
+    mat.node_tree.links.new(add_coords_bump.outputs["Vector"],
                             add_small_wind.inputs["Color1"])
     
     # Vector Subtract - Small wind domain to -0.5 to 0.5
@@ -882,7 +1014,7 @@ def generate_cloud(context):
                             domain_adjustment_small_wind.inputs[0])
 
     mat.node_tree.links.new(reroute_3.outputs[0],
-                            add_coord_bump.inputs[0])
+                            add_coords_bump.inputs[0])
     mat.node_tree.links.new(reroute_3.outputs[0],
                             noise_small_wind.inputs[0])
     # ---------------END BUMP BRANCH-----------------
@@ -964,19 +1096,20 @@ def generate_cloud(context):
                             invert_color.inputs["Color"])
     
     # Vector Add - Roundness coord
-    add_coord_roundness = mat_nodes.new("ShaderNodeVectorMath")
-    add_coord_roundness.parent = frame
-    add_coord_roundness.location = (-4050, -500)
-    add_coord_roundness.name = "Vector Add - Roundness coord"
-    add_coord_roundness.label = "Vector Add - Roundness coord"
-    add_coord_roundness.operation = "ADD"
-    add_coord_roundness.inputs[1].default_value = (5.0, 5.0, 5.0)
+    add_coords_roundness = mat_nodes.new("ShaderNodeVectorMath")
+    add_coords_roundness.parent = frame
+    add_coords_roundness.location = (-4050, -500)
+    add_coords_roundness.name = "Vector Add - Roundness coord"
+    add_coords_roundness.label = "Vector Add - Roundness coord"
+    add_coords_roundness.operation = "ADD"
+    roundness_coords = obj.cloud_settings.roundness_coords
+    add_coords_roundness.inputs[1].default_value = roundness_coords
 
-    mat.node_tree.links.new(add_coord_roundness.outputs["Vector"],
+    mat.node_tree.links.new(add_coords_roundness.outputs["Vector"],
                             voronoi_roundness.inputs["Vector"])
 
     mat.node_tree.links.new(reroute_1.outputs[0],
-                            add_coord_roundness.inputs[0])
+                            add_coords_roundness.inputs[0])
     # -------------END ROUNDNESS BRANCH--------------
 
 
@@ -1024,32 +1157,34 @@ def generate_cloud(context):
     mat.node_tree.links.new(noise_add_shape_imperfection_2.outputs["Fac"],
                             color_burn_noises.inputs["Color2"])
 
-    # Vector Add - Add shape imperfection 1
-    add_coord_shape_imperfection_1 = mat_nodes.new("ShaderNodeVectorMath")
-    add_coord_shape_imperfection_1.parent = frame
-    add_coord_shape_imperfection_1.location = (-4050, -900)
-    add_coord_shape_imperfection_1.name = "Vector Add - Add coord shape imperfection 1"
-    add_coord_shape_imperfection_1.label = "Vector Add - Add coord shape imperfection 1"
-    add_coord_shape_imperfection_1.operation = "ADD"
+    # Vector Add - Coords add shape imperfection 1
+    coords_add_shape_imperfection_1 = mat_nodes.new("ShaderNodeVectorMath")
+    coords_add_shape_imperfection_1.parent = frame
+    coords_add_shape_imperfection_1.location = (-4050, -900)
+    coords_add_shape_imperfection_1.name = "Vector Add - Coords add shape imperfection 1"
+    coords_add_shape_imperfection_1.label = "Vector Add - Coords add shape imperfection 1"
+    coords_add_shape_imperfection_1.operation = "ADD"
+    add_shape_imperfection_coords = obj.cloud_settings.add_shape_imperfection_coords
+    coords_add_shape_imperfection_1.inputs[1].default_value = add_shape_imperfection_coords
 
-    mat.node_tree.links.new(add_coord_shape_imperfection_1.outputs["Vector"],
+    mat.node_tree.links.new(coords_add_shape_imperfection_1.outputs["Vector"],
                             noise_add_shape_imperfection_1.inputs["Vector"])
     mat.node_tree.links.new(reroute_1.outputs[0],
-                            add_coord_shape_imperfection_1.inputs["Vector"])
+                            coords_add_shape_imperfection_1.inputs["Vector"])
 
-    # Vector Add - Add shape imperfection 2
-    add_coord_shape_imperfection_2 = mat_nodes.new("ShaderNodeVectorMath")
-    add_coord_shape_imperfection_2.parent = frame
-    add_coord_shape_imperfection_2.location = (-4050, -1150)
-    add_coord_shape_imperfection_2.name = "Vector Add - Add coord shape imperfection 2"
-    add_coord_shape_imperfection_2.label = "Vector Add - Add coord shape imperfection 2"
-    add_coord_shape_imperfection_2.operation = "ADD"
-    add_coord_shape_imperfection_2.inputs[1].default_value = (5.0, 5.0, 5.0)
+    # Vector Add - Coords add shape imperfection 2
+    coords_add_shape_imperfection_2 = mat_nodes.new("ShaderNodeVectorMath")
+    coords_add_shape_imperfection_2.parent = frame
+    coords_add_shape_imperfection_2.location = (-4050, -1150)
+    coords_add_shape_imperfection_2.name = "Vector Add - Coords add shape imperfection 2"
+    coords_add_shape_imperfection_2.label = "Vector Add - Coords add shape imperfection 2"
+    coords_add_shape_imperfection_2.operation = "ADD"
+    coords_add_shape_imperfection_2.inputs[1].default_value = (5.0, 5.0, 5.0)
 
-    mat.node_tree.links.new(add_coord_shape_imperfection_2.outputs["Vector"],
+    mat.node_tree.links.new(coords_add_shape_imperfection_2.outputs["Vector"],
                             noise_add_shape_imperfection_2.inputs["Vector"])
     mat.node_tree.links.new(reroute_1.outputs[0],
-                            add_coord_shape_imperfection_2.inputs["Vector"])
+                            coords_add_shape_imperfection_2.inputs["Vector"])
     # --------END ADD BIG IMPERFECTION BRANCH--------
 
 
@@ -1097,33 +1232,34 @@ def generate_cloud(context):
     mat.node_tree.links.new(noise_subtract_shape_imperfection_2.outputs["Fac"],
                             color_burn_noises.inputs["Color2"])
 
-    # Vector Add - Add shape imperfection 1
-    subtract_shape_imperfection_1 = mat_nodes.new("ShaderNodeVectorMath")
-    subtract_shape_imperfection_1.parent = frame
-    subtract_shape_imperfection_1.location = (-4050, -1500)
-    subtract_shape_imperfection_1.name = "Vector Add - Subtract shape imperfection 1"
-    subtract_shape_imperfection_1.label = "Vector Add - Subtract shape imperfection 1"
-    subtract_shape_imperfection_1.operation = "ADD"
-    subtract_shape_imperfection_1.inputs[1].default_value = (13.1, 4.4, 8.7)
+    # Vector Add - Coods subtract shape imperfection 1
+    coords_subtract_shape_imperfection_1 = mat_nodes.new("ShaderNodeVectorMath")
+    coords_subtract_shape_imperfection_1.parent = frame
+    coords_subtract_shape_imperfection_1.location = (-4050, -1500)
+    coords_subtract_shape_imperfection_1.name = "Vector Add - Coods subtract shape imperfection 1"
+    coords_subtract_shape_imperfection_1.label = "Vector Add - Coods subtract shape imperfection 1"
+    coords_subtract_shape_imperfection_1.operation = "ADD"
+    subtract_shape_imperfection_coords = obj.cloud_settings.subtract_shape_imperfection_coords
+    coords_subtract_shape_imperfection_1.inputs[1].default_value = subtract_shape_imperfection_coords
 
-    mat.node_tree.links.new(subtract_shape_imperfection_1.outputs["Vector"],
+    mat.node_tree.links.new(coords_subtract_shape_imperfection_1.outputs["Vector"],
                             noise_subtract_shape_imperfection_1.inputs["Vector"])
     mat.node_tree.links.new(reroute_1.outputs[0],
-                            subtract_shape_imperfection_1.inputs["Vector"])
+                            coords_subtract_shape_imperfection_1.inputs["Vector"])
 
-    # Vector Add - Add shape imperfection 1
-    subtract_shape_imperfection_2 = mat_nodes.new("ShaderNodeVectorMath")
-    subtract_shape_imperfection_2.parent = frame
-    subtract_shape_imperfection_2.location = (-4050, -1750)
-    subtract_shape_imperfection_2.name = "Vector Add - Subtract shape imperfection 2"
-    subtract_shape_imperfection_2.label = "Vector Add - Subtract shape imperfection 2"
-    subtract_shape_imperfection_2.operation = "ADD"
-    subtract_shape_imperfection_2.inputs[1].default_value = (5.0, 5.0, 5.0)
+    # Vector Add - Add shape imperfection 2
+    coords_subtract_shape_imperfection_2 = mat_nodes.new("ShaderNodeVectorMath")
+    coords_subtract_shape_imperfection_2.parent = frame
+    coords_subtract_shape_imperfection_2.location = (-4050, -1750)
+    coords_subtract_shape_imperfection_2.name = "Vector Add - Coods subtract shape imperfection 2"
+    coords_subtract_shape_imperfection_2.label = "Vector Add - Coods subtract shape imperfection 2"
+    coords_subtract_shape_imperfection_2.operation = "ADD"
+    coords_subtract_shape_imperfection_2.inputs[1].default_value = (5.0, 5.0, 5.0)
 
-    mat.node_tree.links.new(subtract_shape_imperfection_2.outputs["Vector"],
+    mat.node_tree.links.new(coords_subtract_shape_imperfection_2.outputs["Vector"],
                             noise_subtract_shape_imperfection_2.inputs["Vector"])
     mat.node_tree.links.new(reroute_1.outputs[0],
-                            subtract_shape_imperfection_2.inputs["Vector"])
+                            coords_subtract_shape_imperfection_2.inputs["Vector"])
     # -----END SUBTRACT BIG IMPERFECTION BRANCH------
 
     # ---------------------------------------
