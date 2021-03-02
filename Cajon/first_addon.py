@@ -262,7 +262,7 @@ class CloudSettings(bpy.types.PropertyGroup):
         name="Cloud subtract shape imperfection coordinates",
         description="Mapping coordinates for subtract shape imperfection ",
         subtype="XYZ",
-        default=(0.0, 0.0, 0.0),
+        default=(5.0, 5.0, 5.0),
         update=update_cloud_subtract_shape_imperfection_coords
     )
 
@@ -316,15 +316,16 @@ class OBJECT_PT_cloud(bpy.types.Panel):
     bl_region_type = 'WINDOW'
     bl_context = "object"
 
+    @classmethod
+    def poll(cls, context):
+        return context.object.cloud_settings.is_cloud
+
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
         obj = context.object
         cloud_settings = obj.cloud_settings
-        if not obj.cloud_settings.is_cloud:
-            layout.label(text="The selected object is not a cloud.",
-                icon="ERROR")
-        else:
+        if obj.cloud_settings.is_cloud:
             scene = context.scene
 
             # Create a simple row.
@@ -346,10 +347,7 @@ class OBJECT_PT_cloud_general(bpy.types.Panel):
 
         obj = context.object
         cloud_settings = obj.cloud_settings
-        if not obj.cloud_settings.is_cloud:
-            layout.label(text="The selected object is not a cloud.",
-                icon="ERROR")
-        else:
+        if obj.cloud_settings.is_cloud:
             scene = context.scene
 
             # Create a simple row.
@@ -372,10 +370,7 @@ class OBJECT_PT_cloud_shape(bpy.types.Panel):
 
         obj = context.object
         cloud_settings = obj.cloud_settings
-        if not obj.cloud_settings.is_cloud:
-            layout.label(text="The selected object is not a cloud.",
-                icon="ERROR")
-        else:
+        if obj.cloud_settings.is_cloud:
             scene = context.scene
 
             # Create a simple row.
@@ -395,10 +390,7 @@ class OBJECT_PT_cloud_shape_roundness(bpy.types.Panel):
 
         obj = context.object
         cloud_settings = obj.cloud_settings
-        if not obj.cloud_settings.is_cloud:
-            layout.label(text="The selected object is not a cloud.",
-                icon="ERROR")
-        else:
+        if obj.cloud_settings.is_cloud:
             scene = context.scene
 
             # Create a simple row.
@@ -420,10 +412,7 @@ class OBJECT_PT_cloud_shape_add_imperfection(bpy.types.Panel):
 
         obj = context.object
         cloud_settings = obj.cloud_settings
-        if not obj.cloud_settings.is_cloud:
-            layout.label(text="The selected object is not a cloud.",
-                icon="ERROR")
-        else:
+        if obj.cloud_settings.is_cloud:
             scene = context.scene
 
             # Create a simple row.
@@ -445,10 +434,7 @@ class OBJECT_PT_cloud_shape_subtract_imperfection(bpy.types.Panel):
 
         obj = context.object
         cloud_settings = obj.cloud_settings
-        if not obj.cloud_settings.is_cloud:
-            layout.label(text="The selected object is not a cloud.",
-                icon="ERROR")
-        else:
+        if obj.cloud_settings.is_cloud:
             scene = context.scene
 
             # Create a simple row.
@@ -470,10 +456,7 @@ class OBJECT_PT_cloud_detail(bpy.types.Panel):
 
         obj = context.object
         cloud_settings = obj.cloud_settings
-        if not obj.cloud_settings.is_cloud:
-            layout.label(text="The selected object is not a cloud.",
-                icon="ERROR")
-        else:
+        if obj.cloud_settings.is_cloud:
             scene = context.scene
 
             # Create a simple row.
