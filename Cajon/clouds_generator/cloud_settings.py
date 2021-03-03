@@ -147,6 +147,18 @@ def update_cloud_detail_noise(self, context):
         overlay_detail_noise = material.node_tree.nodes.get("RGB Overlay - Noise")
         overlay_detail_noise.inputs["Fac"].default_value = detail_noise
 
+def update_cloud_cleaner_domain_size(self, context):
+    obj = context.active_object
+    cleaner_domain_size = obj.cloud_settings.cleaner_domain_size
+    material = bpy.context.active_object.active_material
+    if "CloudMaterial_CG" not in material.name:
+        bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
+    else:
+        color_ramp_cleaner = material.node_tree.nodes.get("Final cleaning range")
+        elem = color_ramp_cleaner.color_ramp.elements[0]
+        elem.position = 1.01 - cleaner_domain_size
+
+
 class CloudSettings(bpy.types.PropertyGroup):
     is_cloud: bpy.props.BoolProperty(
         name="Is cloud",
@@ -173,7 +185,7 @@ class CloudSettings(bpy.types.PropertyGroup):
     density: bpy.props.FloatProperty(
         name="Cloud density",
         description="Amount of light absorbed by the cloud",
-        default=1.4,
+        default=1.0,
         min=0.0,
         soft_max=5.0,
         update=update_cloud_density
@@ -182,7 +194,7 @@ class CloudSettings(bpy.types.PropertyGroup):
     wind: bpy.props.FloatProperty(
         name="Cloud wind",
         description="Wind effect",
-        default=0.1,
+        default=0.0,
         min=0.0,
         max=1.0,
         update=update_cloud_wind
@@ -208,7 +220,7 @@ class CloudSettings(bpy.types.PropertyGroup):
     add_shape_imperfection: bpy.props.FloatProperty(
         name="Cloud add shape imperfection",
         description="Add imperfection to the general shape",
-        default=0.3,
+        default=0.2,
         min=0.0,
         max=1.0,
         update=update_cloud_add_shape_imperfection
@@ -242,7 +254,7 @@ class CloudSettings(bpy.types.PropertyGroup):
     detail_bump_strength: bpy.props.FloatProperty(
         name="Cloud detail bump strength",
         description="Amount of bump effect applied",
-        default=0.3,
+        default=0.2,
         min=0.0,
         max=1.0,
         update=update_cloud_detail_bump_strength
@@ -251,7 +263,7 @@ class CloudSettings(bpy.types.PropertyGroup):
     detail_bump_levels: bpy.props.IntProperty(
         name="Cloud detail bump LOD",
         description="Number of bump levels",
-        default=1,
+        default=3,
         min=1,
         max=3,
         update=update_cloud_detail_bump_levels
@@ -264,4 +276,13 @@ class CloudSettings(bpy.types.PropertyGroup):
         min=0.0,
         max=1.0,
         update=update_cloud_detail_noise
+    )
+
+    cleaner_domain_size: bpy.props.FloatProperty(
+        name="Cleaner domain size",
+        description="Size of the domain where the cloud is cleaned",
+        default=1.0,
+        min=0.0,
+        max=1.0,
+        update=update_cloud_cleaner_domain_size
     )

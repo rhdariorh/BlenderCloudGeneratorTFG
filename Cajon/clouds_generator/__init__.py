@@ -13,6 +13,7 @@ bl_info = {
 
 import bpy
 from mathutils import Vector
+import bpy.utils.previews
 
 from . import materials
 from .cloud_settings import CloudSettings
@@ -203,6 +204,27 @@ class OBJECT_PT_cloud_detail(bpy.types.Panel):
             column.prop(cloud_settings, "detail_bump_levels", text="Bump levels")
             column.prop(cloud_settings, "detail_noise", text="Noise")
 
+class OBJECT_PT_cloud_extra(bpy.types.Panel):
+    bl_label = "Extra"
+    bl_parent_id = "OBJECT_PT_cloud"
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "object"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        obj = context.object
+        cloud_settings = obj.cloud_settings
+        if obj.cloud_settings.is_cloud:
+            scene = context.scene
+
+            # Create a simple row.
+            column = layout.column()
+            column.prop(cloud_settings, "cleaner_domain_size", text="Clean strengh")
+
 
 class VIEW3D_MT_cloud_add(bpy.types.Menu):
     bl_idname = "VIEW3D_MT_cloud_add"
@@ -235,12 +257,19 @@ def register():
     bpy.utils.register_class(OBJECT_PT_cloud_shape_add_imperfection)
     bpy.utils.register_class(OBJECT_PT_cloud_shape_subtract_imperfection)
     bpy.utils.register_class(OBJECT_PT_cloud_detail)
+    bpy.utils.register_class(OBJECT_PT_cloud_extra)
 
     bpy.utils.register_class(VIEW3D_MT_cloud_add)
     bpy.types.VIEW3D_MT_volume_add.append(add_menu_cloud)
     
     bpy.types.Object.cloud_settings = bpy.props.PointerProperty(type=CloudSettings)
 
+    """
+    preview_coll = bpy.utils.previews.new()
+    icon_dir = os.path.join(os.path.dirname(__file__), "icons")
+    preview_coll.load("mi_icono", os.path.join(icon_dir, "icon.png"), 'IMAGE')
+    preview_collections["main"] = preview_coll
+    """
 
 def unregister():
     bpy.utils.unregister_class(CloudErrorOperator)
@@ -254,6 +283,7 @@ def unregister():
     bpy.utils.unregister_class(OBJECT_PT_cloud_shape_add_imperfection)
     bpy.utils.unregister_class(OBJECT_PT_cloud_shape_subtract_imperfection)
     bpy.utils.unregister_class(OBJECT_PT_cloud_detail)
+    bpy.utils.unregister_class(OBJECT_PT_cloud_extra)
     
     bpy.utils.unregister_class(VIEW3D_MT_cloud_add)
     bpy.types.VIEW3D_MT_volume_add.remove(add_menu_cloud)

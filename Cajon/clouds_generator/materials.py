@@ -1,5 +1,6 @@
 import bpy
 from mathutils import Vector
+import random
 
 def generate_cloud(context):
     C = context
@@ -107,6 +108,7 @@ def generate_cloud(context):
     multiply_bump.label = "RGB Multiply - Bump"
     multiply_bump.location = (-1500, 0)
     multiply_bump.blend_type = "MULTIPLY"
+    obj.cloud_settings.detail_bump_strength = random.uniform(0.1, 0.5)
     detail_bump_strength = obj.cloud_settings.detail_bump_strength
     multiply_bump.inputs["Fac"].default_value = detail_bump_strength
 
@@ -154,6 +156,7 @@ def generate_cloud(context):
     subtract_imperfection.label = "RGB Subtract - Shape imperfection"
     subtract_imperfection.location = (-3000, 0)
     subtract_imperfection.blend_type = "SUBTRACT"
+    obj.cloud_settings.subtract_shape_imperfection = random.uniform(0, 1)
     subtract_shape_imperfection = obj.cloud_settings.subtract_shape_imperfection
     subtract_imperfection.inputs["Fac"].default_value = subtract_shape_imperfection
 
@@ -168,6 +171,7 @@ def generate_cloud(context):
     add_imperfection.label = "RGB Add - Shape imperfection"
     add_imperfection.location = (-3200, 0)
     add_imperfection.blend_type = "ADD"
+    obj.cloud_settings.add_shape_imperfection = random.uniform(0, 1)
     add_shape_imperfection = obj.cloud_settings.add_shape_imperfection
     add_imperfection.inputs["Fac"].default_value = add_shape_imperfection
 
@@ -180,6 +184,7 @@ def generate_cloud(context):
     overlay_roundness.label = "RGB Overlay - Roundness"
     overlay_roundness.location = (-3400, 0)
     overlay_roundness.blend_type = "OVERLAY"
+    obj.cloud_settings.roundness = random.uniform(0, 1)
     roundness = obj.cloud_settings.roundness
     overlay_roundness.inputs["Fac"].default_value = roundness
 
@@ -290,7 +295,7 @@ def generate_cloud(context):
     color_ramp_cleaner.location = (-400, -500)
     color_ramp_cleaner.color_ramp.interpolation = 'LINEAR'
     elem = color_ramp_cleaner.color_ramp.elements[0]
-    elem.position = 0.9
+    elem.position = 1.01 - obj.cloud_settings.cleaner_domain_size
     elem.color = (0, 0, 0, 1)
     elem = color_ramp_cleaner.color_ramp.elements[1]
     elem.position = 1.0
@@ -563,6 +568,7 @@ def generate_cloud(context):
     add_coords_roundness.name = "Vector Add - Roundness coord"
     add_coords_roundness.label = "Vector Add - Roundness coord"
     add_coords_roundness.operation = "ADD"
+    obj.cloud_settings.roundness_coords = (random.uniform(0, 200), random.uniform(0, 200), random.uniform(0, 200))
     roundness_coords = obj.cloud_settings.roundness_coords
     add_coords_roundness.inputs[1].default_value = roundness_coords
 
@@ -625,6 +631,7 @@ def generate_cloud(context):
     coords_add_shape_imperfection_1.name = "Vector Add - Coords add shape imperfection 1"
     coords_add_shape_imperfection_1.label = "Vector Add - Coords add shape imperfection 1"
     coords_add_shape_imperfection_1.operation = "ADD"
+    obj.cloud_settings.add_shape_imperfection_coords = (random.uniform(0, 200), random.uniform(0, 200), random.uniform(0, 200))
     add_shape_imperfection_coords = obj.cloud_settings.add_shape_imperfection_coords
     coords_add_shape_imperfection_1.inputs[1].default_value = add_shape_imperfection_coords
 
@@ -700,6 +707,7 @@ def generate_cloud(context):
     coords_subtract_shape_imperfection_1.name = "Vector Add - Coods subtract shape imperfection 1"
     coords_subtract_shape_imperfection_1.label = "Vector Add - Coods subtract shape imperfection 1"
     coords_subtract_shape_imperfection_1.operation = "ADD"
+    obj.cloud_settings.subtract_shape_imperfection_coords = (random.uniform(0, 200), random.uniform(0, 200), random.uniform(0, 200))
     subtract_shape_imperfection_coords = obj.cloud_settings.subtract_shape_imperfection_coords
     coords_subtract_shape_imperfection_1.inputs[1].default_value = subtract_shape_imperfection_coords
 
