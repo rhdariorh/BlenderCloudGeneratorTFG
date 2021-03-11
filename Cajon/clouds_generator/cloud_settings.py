@@ -68,14 +68,15 @@ def update_cloud_roundness_coords(self, context):
 
 def update_cloud_height(self, context):
     obj = context.active_object
-    height = obj.cloud_settings.height
+    height = 1 - obj.cloud_settings.height
+    angle = ((pi/2 - 0.5) * height) + 0.3
     material = bpy.context.active_object.active_material
     if "CloudMaterial_CG" not in material.name:
         bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
     else:
         direction = Vector((0, 0))
-        direction.x = 0.1*cos(height)
-        direction.y = 0.1*sin(height)
+        direction.x = 0.1*cos(angle)
+        direction.y = 0.1*sin(angle)
 
         vector_curves = material.node_tree.nodes.get("Initial Shape Vector Curves")
         join_point = vector_curves.mapping.curves[2].points[1].location
@@ -264,9 +265,9 @@ class CloudSettings(bpy.types.PropertyGroup):
     height: bpy.props.FloatProperty(
         name="Cloud height",
         description="Cloud length vertically",
-        default=pi/3,
-        min=0.3,
-        max= pi/2 - 0.3,
+        default=0.3,
+        min=0,
+        max= 1,
         update=update_cloud_height
     )
 

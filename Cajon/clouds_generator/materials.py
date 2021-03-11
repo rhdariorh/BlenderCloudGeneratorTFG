@@ -213,9 +213,11 @@ def generate_cloud(context):
     vector_curves.mapping.curves[2].points[0].location = (-0.77, -1.0)
     join_point = Vector((-0.6, -0.25))
     vector_curves.mapping.curves[2].points.new(join_point.x, join_point.y)
+    height = 1 - obj.cloud_settings.height
+    angle = ((pi/2 - 0.5) * height) + 0.3
     direction = Vector((0, 0))
-    direction.x = 0.1*cos(pi/4)
-    direction.y = 0.1*sin(pi/4)
+    direction.x = 0.1*cos(angle)
+    direction.y = 0.1*sin(angle)
     last_point = join_point + direction
     vector_curves.mapping.curves[2].points[2].location = (last_point.x, last_point.y)
 
@@ -336,9 +338,11 @@ def generate_cloud(context):
     vector_curves.mapping.curves[2].points[0].location = (-0.77, -1.0)
     join_point = Vector((-0.6, -0.25))
     vector_curves.mapping.curves[2].points.new(join_point.x, join_point.y)
+    height = 1 - obj.cloud_settings.height
+    angle = ((pi/2 - 0.5) * height) + 0.3
     direction = Vector((0, 0))
-    direction.x = 0.1*cos(pi/4)
-    direction.y = 0.1*sin(pi/4)
+    direction.x = 0.1*cos(angle)
+    direction.y = 0.1*sin(angle)
     last_point = join_point + direction
     vector_curves.mapping.curves[2].points[2].location = (last_point.x, last_point.y)
 
