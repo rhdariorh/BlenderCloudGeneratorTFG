@@ -1,5 +1,6 @@
 import bpy
 from mathutils import Vector
+from math import sin, cos, pi
 import random
 
 def generate_cloud(context):
@@ -210,7 +211,13 @@ def generate_cloud(context):
     vector_curves.name = "Initial Shape Vector Curves"
     vector_curves.location = (-3950, 0)
     vector_curves.mapping.curves[2].points[0].location = (-0.77, -1.0)
-    vector_curves.mapping.curves[2].points.new(-0.12, 0.55)
+    join_point = Vector((-0.6, -0.25))
+    vector_curves.mapping.curves[2].points.new(join_point.x, join_point.y)
+    direction = Vector((0, 0))
+    direction.x = 0.1*cos(pi/4)
+    direction.y = 0.1*sin(pi/4)
+    last_point = join_point + direction
+    vector_curves.mapping.curves[2].points[2].location = (last_point.x, last_point.y)
 
     mat.node_tree.links.new(vector_curves.outputs["Vector"],
                             gradient_texture.inputs["Vector"])
@@ -221,7 +228,7 @@ def generate_cloud(context):
     mapping.name = "Initial Shape Mapping"
     mapping.location = (-4150, 0)
     mapping.inputs["Location"].default_value = (0.0, 0.0, -0.3)
-    mapping.inputs["Scale"].default_value = (0.7, 0.6, 0.7)
+    mapping.inputs["Scale"].default_value = (0.7, 0.7, 0.7)
 
     mat.node_tree.links.new(mapping.outputs["Vector"],
                             vector_curves.inputs["Vector"])
@@ -295,7 +302,7 @@ def generate_cloud(context):
     color_ramp_cleaner.location = (-400, -500)
     color_ramp_cleaner.color_ramp.interpolation = 'LINEAR'
     elem = color_ramp_cleaner.color_ramp.elements[0]
-    elem.position = 1.01 - obj.cloud_settings.cleaner_domain_size
+    elem.position = 1.0 - obj.cloud_settings.cleaner_domain_size
     elem.color = (0, 0, 0, 1)
     elem = color_ramp_cleaner.color_ramp.elements[1]
     elem.position = 1.0
@@ -327,7 +334,13 @@ def generate_cloud(context):
     vector_curves.name = "Cleaner Vector Curves"
     vector_curves.location = (-1100, -500)
     vector_curves.mapping.curves[2].points[0].location = (-0.77, -1.0)
-    vector_curves.mapping.curves[2].points.new(-0.12, 0.55)
+    join_point = Vector((-0.6, -0.25))
+    vector_curves.mapping.curves[2].points.new(join_point.x, join_point.y)
+    direction = Vector((0, 0))
+    direction.x = 0.1*cos(pi/4)
+    direction.y = 0.1*sin(pi/4)
+    last_point = join_point + direction
+    vector_curves.mapping.curves[2].points[2].location = (last_point.x, last_point.y)
 
     mat.node_tree.links.new(vector_curves.outputs["Vector"],
                             gradient_texture.inputs["Vector"])
@@ -338,7 +351,7 @@ def generate_cloud(context):
     mapping.name = "Cleaning Mapping"
     mapping.location = (-1300, -500)
     mapping.inputs["Location"].default_value = (0.0, 0.0, -0.3)
-    mapping.inputs["Scale"].default_value = (0.7, 0.6, 0.7)
+    mapping.inputs["Scale"].default_value = (0.7, 0.7, 0.7)
 
     mat.node_tree.links.new(mapping.outputs["Vector"],
                             vector_curves.inputs["Vector"])

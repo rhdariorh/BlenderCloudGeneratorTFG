@@ -1,5 +1,6 @@
 import bpy
 from mathutils import Vector
+from math import sin, cos, pi
 
 def update_cloud_dimensions(self, context):
     obj = context.active_object
@@ -64,6 +65,49 @@ def update_cloud_roundness_coords(self, context):
     else:
         add_coords_roundness = material.node_tree.nodes.get("Vector Add - Roundness coord")
         add_coords_roundness.inputs[1].default_value = roundness_coords
+
+def update_cloud_height(self, context):
+    obj = context.active_object
+    height = obj.cloud_settings.height
+    material = bpy.context.active_object.active_material
+    if "CloudMaterial_CG" not in material.name:
+        bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
+    else:
+        direction = Vector((0, 0))
+        direction.x = 0.1*cos(height)
+        direction.y = 0.1*sin(height)
+
+        vector_curves = material.node_tree.nodes.get("Initial Shape Vector Curves")
+        join_point = vector_curves.mapping.curves[2].points[1].location
+        last_point = join_point + direction
+        vector_curves.mapping.curves[2].points[2].location = (last_point.x, last_point.y)
+        vector_curves.mapping.update()
+
+        vector_curves = material.node_tree.nodes.get("Cleaner Vector Curves")
+        join_point = vector_curves.mapping.curves[2].points[1].location
+        last_point = join_point + direction
+        vector_curves.mapping.curves[2].points[2].location = (last_point.x, last_point.y)
+        vector_curves.mapping.update()
+
+        # Blender is bugged and when the vector curves changes the shader is not updated
+        # so I update another property to update the shader:
+        roundness = obj.cloud_settings.roundness
+        overlay_roundness = material.node_tree.nodes.get("RGB Overlay - Roundness")
+        overlay_roundness.inputs["Fac"].default_value = roundness
+
+def update_cloud_width(self, context):
+    obj = context.active_object
+    width_x = obj.cloud_settings.width_x
+    width_y = obj.cloud_settings.width_y
+    material = bpy.context.active_object.active_material
+    if "CloudMaterial_CG" not in material.name:
+        bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
+    else:
+        mapping = material.node_tree.nodes.get("Initial Shape Mapping")
+        mapping.inputs["Scale"].default_value = (width_x, width_y, 0.7)
+
+        mapping = material.node_tree.nodes.get("Cleaning Mapping")
+        mapping.inputs["Scale"].default_value = (width_x, width_y, 0.7)
 
 def update_cloud_add_shape_imperfection(self, context):
     obj = context.active_object
@@ -216,6 +260,33 @@ class CloudSettings(bpy.types.PropertyGroup):
         default=(0.0, 0.0, 0.0),
         update=update_cloud_roundness_coords
     )
+    
+    height: bpy.props.FloatProperty(
+        name="Cloud height",
+        description="Cloud length vertically",
+        default=pi/3,
+        min=0.3,
+        max= pi/2 - 0.3,
+        update=update_cloud_height
+    )
+
+    width_x: bpy.props.FloatProperty(
+        name="Cloud X width",
+        description="Cloud length in X axis",
+        default=0.7,
+        min=0.1,
+        max= 10.0,
+        update=update_cloud_width
+    )
+
+    width_y: bpy.props.FloatProperty(
+        name="Cloud Y width",
+        description="Cloud length in Y axis",
+        default=0.7,
+        min=0.1,
+        max= 10.0,
+        update=update_cloud_width
+    )
 
     add_shape_imperfection: bpy.props.FloatProperty(
         name="Cloud add shape imperfection",
@@ -281,8 +352,8 @@ class CloudSettings(bpy.types.PropertyGroup):
     cleaner_domain_size: bpy.props.FloatProperty(
         name="Cleaner domain size",
         description="Size of the domain where the cloud is cleaned",
-        default=1.0,
-        min=0.0,
+        default=0.06,
+        min=0.001,
         max=1.0,
         update=update_cloud_cleaner_domain_size
     )

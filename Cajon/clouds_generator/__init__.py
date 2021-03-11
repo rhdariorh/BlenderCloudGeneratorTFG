@@ -65,9 +65,6 @@ class OBJECT_PT_cloud(bpy.types.Panel):
         obj = context.object
         cloud_settings = obj.cloud_settings
         if obj.cloud_settings.is_cloud:
-            scene = context.scene
-
-            # Create a simple row.
             column = layout.column()
             column.prop(cloud_settings, "domain", text="Domain")
             column.prop(cloud_settings, "size", text="Size")
@@ -87,10 +84,6 @@ class OBJECT_PT_cloud_general(bpy.types.Panel):
         obj = context.object
         cloud_settings = obj.cloud_settings
         if obj.cloud_settings.is_cloud:
-            scene = context.scene
-
-            # Create a simple row.
-
             column = layout.column()
             column.prop(cloud_settings, "density", text="Density")
             column.prop(cloud_settings, "wind", text="Wind")
@@ -110,10 +103,10 @@ class OBJECT_PT_cloud_shape(bpy.types.Panel):
         obj = context.object
         cloud_settings = obj.cloud_settings
         if obj.cloud_settings.is_cloud:
-            scene = context.scene
-
-            # Create a simple row.
-            #column = layout.column()
+            column = layout.column()
+            column.prop(cloud_settings, "height", text="Height")
+            column.prop(cloud_settings, "width_x", text="Width X")
+            column.prop(cloud_settings, "width_y", text="Width Y")
 
 class OBJECT_PT_cloud_shape_roundness(bpy.types.Panel):
     bl_label = "Roundness"
@@ -130,9 +123,6 @@ class OBJECT_PT_cloud_shape_roundness(bpy.types.Panel):
         obj = context.object
         cloud_settings = obj.cloud_settings
         if obj.cloud_settings.is_cloud:
-            scene = context.scene
-
-            # Create a simple row.
             column = layout.column()
             column.prop(cloud_settings, "roundness", text="Strength")
             column.prop(cloud_settings, "roundness_coords", text="Seed")
@@ -152,9 +142,6 @@ class OBJECT_PT_cloud_shape_add_imperfection(bpy.types.Panel):
         obj = context.object
         cloud_settings = obj.cloud_settings
         if obj.cloud_settings.is_cloud:
-            scene = context.scene
-
-            # Create a simple row.
             column = layout.column()
             column.prop(cloud_settings, "add_shape_imperfection", text="Strength")
             column.prop(cloud_settings, "add_shape_imperfection_coords", text="Seed")
@@ -174,9 +161,6 @@ class OBJECT_PT_cloud_shape_subtract_imperfection(bpy.types.Panel):
         obj = context.object
         cloud_settings = obj.cloud_settings
         if obj.cloud_settings.is_cloud:
-            scene = context.scene
-
-            # Create a simple row.
             column = layout.column()
             column.prop(cloud_settings, "subtract_shape_imperfection", text="Strength")
             column.prop(cloud_settings, "subtract_shape_imperfection_coords", text="Seed")
@@ -196,9 +180,6 @@ class OBJECT_PT_cloud_detail(bpy.types.Panel):
         obj = context.object
         cloud_settings = obj.cloud_settings
         if obj.cloud_settings.is_cloud:
-            scene = context.scene
-
-            # Create a simple row.
             column = layout.column()
             column.prop(cloud_settings, "detail_bump_strength", text="Bump strength")
             column.prop(cloud_settings, "detail_bump_levels", text="Bump levels")
@@ -219,9 +200,6 @@ class OBJECT_PT_cloud_extra(bpy.types.Panel):
         obj = context.object
         cloud_settings = obj.cloud_settings
         if obj.cloud_settings.is_cloud:
-            scene = context.scene
-
-            # Create a simple row.
             column = layout.column()
             column.prop(cloud_settings, "cleaner_domain_size", text="Clean strengh")
 
