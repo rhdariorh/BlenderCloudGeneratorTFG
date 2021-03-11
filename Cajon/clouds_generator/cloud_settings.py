@@ -75,8 +75,8 @@ def update_cloud_height(self, context):
         bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
     else:
         direction = Vector((0, 0))
-        direction.x = 0.1*cos(angle)
-        direction.y = 0.1*sin(angle)
+        direction.x = 0.3*cos(angle)
+        direction.y = 0.3*sin(angle)
 
         vector_curves = material.node_tree.nodes.get("Initial Shape Vector Curves")
         join_point = vector_curves.mapping.curves[2].points[1].location

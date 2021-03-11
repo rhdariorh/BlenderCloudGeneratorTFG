@@ -216,8 +216,8 @@ def generate_cloud(context):
     height = 1 - obj.cloud_settings.height
     angle = ((pi/2 - 0.5) * height) + 0.3
     direction = Vector((0, 0))
-    direction.x = 0.1*cos(angle)
-    direction.y = 0.1*sin(angle)
+    direction.x = 0.3*cos(angle)
+    direction.y = 0.3*sin(angle)
     last_point = join_point + direction
     vector_curves.mapping.curves[2].points[2].location = (last_point.x, last_point.y)
 
@@ -341,8 +341,8 @@ def generate_cloud(context):
     height = 1 - obj.cloud_settings.height
     angle = ((pi/2 - 0.5) * height) + 0.3
     direction = Vector((0, 0))
-    direction.x = 0.1*cos(angle)
-    direction.y = 0.1*sin(angle)
+    direction.x = 0.3*cos(angle)
+    direction.y = 0.3*sin(angle)
     last_point = join_point + direction
     vector_curves.mapping.curves[2].points[2].location = (last_point.x, last_point.y)
 
