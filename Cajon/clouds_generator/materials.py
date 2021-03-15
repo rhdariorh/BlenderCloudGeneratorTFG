@@ -3,12 +3,11 @@ from mathutils import Vector
 from math import sin, cos, pi
 import random
 
-def initial_shape(pos_x, pos_y, overlay_roundness, add_shape_wind, mat, mat_nodes, obj):
+def initial_shape_single_cumulus(pos_x, pos_y, overlay_roundness, add_shape_wind, mat, mat_nodes, obj):
     """
     overlay_roundness: nodo de salida
     add_shape_wind: nodo de entrada
     """
-    # BEGINNING INITIAL SHAPE FRAME
     frame = mat_nodes.new(type='NodeFrame')
     frame.name = "Initial shape"
     frame.label = "Initial shape"
@@ -16,7 +15,7 @@ def initial_shape(pos_x, pos_y, overlay_roundness, add_shape_wind, mat, mat_node
     gradient_texture = mat_nodes.new("ShaderNodeTexGradient")
     gradient_texture.parent = frame
     gradient_texture.name = "Initial Shape Gradient Texture"
-    gradient_texture.location = (pos_x + 1700, 0)
+    gradient_texture.location = (pos_x + 500, pos_y)
     gradient_texture.gradient_type = "SPHERICAL"
 
     mat.node_tree.links.new(gradient_texture.outputs["Color"],
@@ -25,7 +24,7 @@ def initial_shape(pos_x, pos_y, overlay_roundness, add_shape_wind, mat, mat_node
     vector_curves = mat_nodes.new("ShaderNodeVectorCurve")
     vector_curves.parent = frame
     vector_curves.name = "Initial Shape Vector Curves"
-    vector_curves.location = (pos_x + 1400, 0)
+    vector_curves.location = (pos_x + 200, pos_y)
     vector_curves.mapping.curves[2].points[0].location = (-0.77, -1.0)
     join_point = Vector((-0.6, -0.25))
     vector_curves.mapping.curves[2].points.new(join_point.x, join_point.y)
@@ -44,7 +43,7 @@ def initial_shape(pos_x, pos_y, overlay_roundness, add_shape_wind, mat, mat_node
     mapping = mat_nodes.new("ShaderNodeMapping")
     mapping.parent = frame
     mapping.name = "Initial Shape Mapping"
-    mapping.location = (pos_x + 1200, 0)
+    mapping.location = (pos_x, pos_y)
     mapping.inputs["Location"].default_value = (0.0, 0.0, -0.3)
     mapping.inputs["Scale"].default_value = (0.7, 0.7, 0.7)
 
@@ -53,9 +52,153 @@ def initial_shape(pos_x, pos_y, overlay_roundness, add_shape_wind, mat, mat_node
     mat.node_tree.links.new(add_shape_wind.outputs["Color"],
                             mapping.inputs[0])
 
-    # END INITIAL SHAPE FRAME
 
-def generate_cloud(context, pos_x, pos_y):
+def initial_shape_landscape_cumulus(pos_x, pos_y, overlay_roundness, add_shape_wind, mat, mat_nodes, obj):
+    """
+    overlay_roundness: nodo de salida
+    add_shape_wind: nodo de entrada
+    """
+    frame = mat_nodes.new(type='NodeFrame')
+    frame.name = "Initial shape"
+    frame.label = "Initial shape"
+
+    pos_y = pos_y + 1000
+
+    # RGB Subtract - Gradient and Noise
+    subtract_gradient_noise = mat_nodes.new("ShaderNodeMixRGB")
+    subtract_gradient_noise.parent = frame
+    subtract_gradient_noise.name = "RGB Subtract - Gradient and Noise"
+    subtract_gradient_noise.label = "RGB Subtract - Gradient and Noise"
+    subtract_gradient_noise.location = (pos_x + 900, pos_y - 300)
+    subtract_gradient_noise.blend_type = "SUBTRACT"
+    subtract_gradient_noise.inputs["Fac"].default_value = 0.5
+
+    mat.node_tree.links.new(subtract_gradient_noise.outputs["Color"],
+                            overlay_roundness.inputs["Color1"])
+
+    # RGB Subtract - Gradient and Gradient
+    subtract_gradient_gradient = mat_nodes.new("ShaderNodeMixRGB")
+    subtract_gradient_gradient.parent = frame
+    subtract_gradient_gradient.name = "RGB Subtract - Gradient and Gradient"
+    subtract_gradient_gradient.label = "RGB Subtract - Gradient and NoiGradientse"
+    subtract_gradient_gradient.location = (pos_x + 700, pos_y)
+    subtract_gradient_gradient.blend_type = "SUBTRACT"
+    subtract_gradient_gradient.inputs["Fac"].default_value = 1.0
+
+    mat.node_tree.links.new(subtract_gradient_gradient.outputs["Color"],
+                            subtract_gradient_noise.inputs["Color1"])
+
+    # Color Ramp - Gradient base
+    color_ramp_gradient_base = mat_nodes.new("ShaderNodeValToRGB")
+    color_ramp_gradient_base.parent = frame
+    color_ramp_gradient_base.name = "ColorRamp - Gradient Base"
+    color_ramp_gradient_base.label = "ColorRamp - Gradient Base"
+    color_ramp_gradient_base.location = (pos_x + 400, pos_y)
+    color_ramp_gradient_base.color_ramp.interpolation = 'LINEAR'
+    elem = color_ramp_gradient_base.color_ramp.elements[0]
+    elem.position = 0.0
+    elem.color = (0, 0, 0, 1)
+    elem = color_ramp_gradient_base.color_ramp.elements[1]
+    elem.position = 0.2
+    elem.color = (1, 1, 1, 1)
+
+    mat.node_tree.links.new(color_ramp_gradient_base.outputs["Color"],
+                            subtract_gradient_gradient.inputs["Color1"])
+
+    # Color Ramp - Gradient subtract
+    color_ramp_gradient_subtract = mat_nodes.new("ShaderNodeValToRGB")
+    color_ramp_gradient_subtract.parent = frame
+    color_ramp_gradient_subtract.name = "ColorRamp - Gradient Subtract"
+    color_ramp_gradient_subtract.label = "ColorRamp - Gradient Subtract"
+    color_ramp_gradient_subtract.location = (pos_x + 400, pos_y - 400)
+    color_ramp_gradient_subtract.color_ramp.interpolation = 'LINEAR'
+    elem = color_ramp_gradient_subtract.color_ramp.elements[0]
+    elem.position = 0.0
+    elem.color = (0, 0, 0, 1)
+    elem = color_ramp_gradient_subtract.color_ramp.elements[1]
+    elem.position = 0.2
+    elem.color = (1, 1, 1, 1)
+
+    mat.node_tree.links.new(color_ramp_gradient_subtract.outputs["Color"],
+                            subtract_gradient_gradient.inputs["Color2"])
+
+    # Gradient Texture base
+    gradient_texture_base = mat_nodes.new("ShaderNodeTexGradient")
+    gradient_texture_base.parent = frame
+    gradient_texture_base.name = "Initial Shape Gradient Texture Base"
+    gradient_texture_base.location = (pos_x + 200, pos_y)
+    gradient_texture_base.gradient_type = "LINEAR"
+
+    mat.node_tree.links.new(gradient_texture_base.outputs["Color"],
+                            color_ramp_gradient_base.inputs["Fac"])
+
+    # Gradient Texture subtract
+    gradient_texture_subtract = mat_nodes.new("ShaderNodeTexGradient")
+    gradient_texture_subtract.parent = frame
+    gradient_texture_subtract.name = "Initial Shape Gradient Texture Subract"
+    gradient_texture_subtract.location = (pos_x + 200, pos_y - 400)
+    gradient_texture_subtract.gradient_type = "LINEAR"
+
+    mat.node_tree.links.new(gradient_texture_subtract.outputs["Color"],
+                            color_ramp_gradient_subtract.inputs["Fac"])
+
+    # Vector Multiply - Noise subtract
+    multiply_noise = mat_nodes.new("ShaderNodeVectorMath")
+    multiply_noise.parent = frame
+    multiply_noise.location = (pos_x + 200, pos_y - 800)
+    multiply_noise.name = "Vector Multiply - Noise subtract"
+    multiply_noise.label = "Vector Multiply - Noise subtract"
+    multiply_noise.operation = "MULTIPLY"
+
+    mat.node_tree.links.new(multiply_noise.outputs["Vector"],
+                           subtract_gradient_noise.inputs["Color2"])
+
+    # Mapping base
+    mapping_base = mat_nodes.new("ShaderNodeMapping")
+    mapping_base.parent = frame
+    mapping_base.name = "Initial Shape Mapping Base"
+    mapping_base.location = (pos_x, pos_y)
+    mapping_base.inputs["Location"].default_value = (0.0, 0.0, -0.3)
+    mapping_base.inputs["Scale"].default_value = (0.7, 0.7, 0.7)
+
+    mat.node_tree.links.new(mapping_base.outputs["Vector"],
+                           gradient_texture_base.inputs["Vector"])
+
+    # Mapping subtract
+    mapping_subtract = mat_nodes.new("ShaderNodeMapping")
+    mapping_subtract.parent = frame
+    mapping_subtract.name = "Initial Shape Mapping Subtract"
+    mapping_subtract.location = (pos_x, pos_y - 400)
+    mapping_subtract.inputs["Location"].default_value = (0.0, 0.0, -0.3)
+    mapping_subtract.inputs["Scale"].default_value = (0.7, 0.7, 0.7)
+
+    mat.node_tree.links.new(mapping_base.outputs["Vector"],
+                           gradient_texture_subtract.inputs["Vector"])
+
+    # Noise Tex - Subtract initial
+    noise_subtract= mat_nodes.new("ShaderNodeTexNoise")
+    noise_subtract.parent = frame
+    noise_subtract.name = "Subtract noise initial"
+    noise_subtract.label = "Subtract noise initial"
+    noise_subtract.location = (pos_x, pos_y - 800)
+    noise_subtract.inputs["Scale"].default_value = 1.5
+    noise_subtract.inputs["Detail"].default_value = 0.0
+    noise_subtract.inputs["Roughness"].default_value = 0.0
+    noise_subtract.inputs["Distortion"].default_value = 3.0
+
+    mat.node_tree.links.new(noise_subtract.outputs["Fac"],
+                           multiply_noise.inputs[0])
+
+
+    mat.node_tree.links.new(add_shape_wind.outputs["Color"],
+                            mapping_base.inputs[0])
+    mat.node_tree.links.new(add_shape_wind.outputs["Color"],
+                            mapping_subtract.inputs[0])
+    mat.node_tree.links.new(add_shape_wind.outputs["Color"],
+                            noise_subtract.inputs[0])
+
+
+def generate_cloud(context, pos_x, pos_y, initial_shape):
     C = context
     D = bpy.data
     # ---------------------------------------
@@ -303,7 +446,7 @@ def generate_cloud(context, pos_x, pos_y):
                             reroute_1.inputs[0])
 
     # LLAMAR FUNCION CREAR INIT SHAPE
-    initial_shape(pos_x, pos_y, overlay_roundness, add_shape_wind, mat, mat_nodes, obj)
+    initial_shape(pos_x + 1200, pos_y, overlay_roundness, add_shape_wind, mat, mat_nodes, obj)
 
     # Cleaning material
     mat_nodes = mat.node_tree.nodes

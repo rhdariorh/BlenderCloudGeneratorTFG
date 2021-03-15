@@ -17,6 +17,7 @@ import bpy.utils.previews
 
 from . import materials
 from .cloud_settings import CloudSettings
+from .materials import initial_shape_single_cumulus, initial_shape_landscape_cumulus
 
 class CloudErrorOperator(bpy.types.Operator):
     bl_idname = "error.cloud_error"
@@ -43,7 +44,7 @@ class OBJECT_OT_cloud(bpy.types.Operator):
         return context.area.type == "VIEW_3D"
 
     def execute(self, context):
-        materials.generate_cloud(context, -1000, 0)
+        materials.generate_cloud(context, -1000, 0, initial_shape_landscape_cumulus)
         return {'FINISHED'}
 
 
