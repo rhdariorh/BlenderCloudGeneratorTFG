@@ -21,6 +21,15 @@ def update_cloud_dimensions(self, context):
     cube_size = Vector((domain.x / adapted_size.x, domain.y / adapted_size.y, domain.z / adapted_size.z))
     obj.scale = cube_size
 
+def update_cloud_domain_cloud_position(self, context):
+    obj = context.active_object
+    domain_cloud_position = obj.cloud_settings.domain_cloud_position
+    material = bpy.context.active_object.active_material
+    if "CloudMaterial_CG" not in material.name:
+        bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
+    else:
+        initial_mapping = material.node_tree.nodes.get("Initial mapping")
+        initial_mapping.inputs["Location"].default_value = domain_cloud_position
 
 def update_cloud_density(self, context):
     obj = context.active_object
@@ -225,6 +234,14 @@ class CloudSettings(bpy.types.PropertyGroup):
         subtype="TRANSLATION",
         default=(30.0, 30.0, 30.0),
         update=update_cloud_dimensions
+    )
+
+    domain_cloud_position: bpy.props.FloatVectorProperty(
+        name="Position in domain",
+        description="Position of the cloud inside de domain",
+        subtype="XYZ",
+        default=(0.0, 0.0, 0.0),
+        update=update_cloud_domain_cloud_position
     )
 
     density: bpy.props.FloatProperty(

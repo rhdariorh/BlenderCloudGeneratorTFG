@@ -43,7 +43,7 @@ class OBJECT_OT_cloud(bpy.types.Operator):
         return context.area.type == "VIEW_3D"
 
     def execute(self, context):
-        materials.generate_cloud(context)
+        materials.generate_cloud(context, -1000, 0)
         return {'FINISHED'}
 
 
@@ -202,6 +202,7 @@ class OBJECT_PT_cloud_extra(bpy.types.Panel):
         if obj.cloud_settings.is_cloud:
             column = layout.column()
             column.prop(cloud_settings, "cleaner_domain_size", text="Clean strengh")
+            column.prop(cloud_settings, "domain_cloud_position", text="Cloud position")
 
 
 class VIEW3D_MT_cloud_add(bpy.types.Menu):
@@ -211,9 +212,9 @@ class VIEW3D_MT_cloud_add(bpy.types.Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("object.cloud_add", text="Cumulus", icon="OUTLINER_DATA_VOLUME")
-        layout.operator("object.cloud_add", text="Cumulunimbus", icon="OUTLINER_DATA_VOLUME")
-        layout.operator("object.cloud_add", text="Cirrus", icon="MOD_OCEAN")
+        layout.operator("object.cloud_add", text="Simple cumulus", icon="OUTLINER_DATA_VOLUME")
+        layout.operator("object.cloud_add", text="Landscape cumulus", icon="MOD_OCEAN")
+        layout.operator("object.cloud_add", text="Cirrus", icon="OUTLINER_DATA_VOLUME")
         layout.operator("object.cloud_add", text="Cirrocumulus", icon="OUTLINER_DATA_VOLUME")
         layout.operator("object.cloud_add", text="Stratus", icon="OUTLINER_DATA_VOLUME")
 
