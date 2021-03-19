@@ -33,10 +33,24 @@ class CloudErrorOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class OBJECT_OT_cloud(bpy.types.Operator):
-    """Add a cumulus cloud"""
-    bl_idname = "object.cloud_add"
-    bl_label = "Generate cloud"
+class OBJECT_OT_cloud_single_cumulus(bpy.types.Operator):
+    """Add a single cumulus cloud"""
+    bl_idname = "object.cloud_add_single_cumulus"
+    bl_label = "Generate single cumulus"
+    bl_options = {"REGISTER", "UNDO"}
+
+    @classmethod
+    def poll(cls, context):
+        return context.area.type == "VIEW_3D"
+
+    def execute(self, context):
+        materials.generate_cloud(context, -1000, 0, initial_shape_single_cumulus)
+        return {'FINISHED'}
+
+class OBJECT_OT_cloud_landscape_cumulus(bpy.types.Operator):
+    """Add a cumulus landscape"""
+    bl_idname = "object.cloud_add_landscape_cumulus"
+    bl_label = "Generate cumulus landscape"
     bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
@@ -88,6 +102,9 @@ class OBJECT_PT_cloud_general(bpy.types.Panel):
             column = layout.column()
             column.prop(cloud_settings, "density", text="Density")
             column.prop(cloud_settings, "wind", text="Wind")
+            if cloud_settings.cloud_type == "LANDSCAPE_CUMULUS":
+                column.prop(cloud_settings, "amount_of_clouds", text="Amount of clouds")
+                column.prop(cloud_settings, "landscape_noise_coords", text="Seed")
 
 class OBJECT_PT_cloud_shape(bpy.types.Panel):
     bl_label = "Shape"
@@ -105,9 +122,10 @@ class OBJECT_PT_cloud_shape(bpy.types.Panel):
         cloud_settings = obj.cloud_settings
         if obj.cloud_settings.is_cloud:
             column = layout.column()
-            column.prop(cloud_settings, "height", text="Height")
-            column.prop(cloud_settings, "width_x", text="Width X")
-            column.prop(cloud_settings, "width_y", text="Width Y")
+            if (cloud_settings.cloud_type == "SINGLE_CUMULUS"):
+                column.prop(cloud_settings, "height", text="Height")
+                column.prop(cloud_settings, "width_x", text="Width X")
+                column.prop(cloud_settings, "width_y", text="Width Y")
 
 class OBJECT_PT_cloud_shape_roundness(bpy.types.Panel):
     bl_label = "Roundness"
@@ -213,11 +231,11 @@ class VIEW3D_MT_cloud_add(bpy.types.Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("object.cloud_add", text="Simple cumulus", icon="OUTLINER_DATA_VOLUME")
-        layout.operator("object.cloud_add", text="Landscape cumulus", icon="MOD_OCEAN")
-        layout.operator("object.cloud_add", text="Cirrus", icon="OUTLINER_DATA_VOLUME")
-        layout.operator("object.cloud_add", text="Cirrocumulus", icon="OUTLINER_DATA_VOLUME")
-        layout.operator("object.cloud_add", text="Stratus", icon="OUTLINER_DATA_VOLUME")
+        layout.operator("object.cloud_add_single_cumulus", text="Simple cumulus", icon="OUTLINER_DATA_VOLUME")
+        layout.operator("object.cloud_add_landscape_cumulus", text="Landscape cumulus", icon="MOD_OCEAN")
+        layout.operator("object.cloud_add_single_cumulus", text="Cirrus", icon="OUTLINER_DATA_VOLUME")
+        layout.operator("object.cloud_add_single_cumulus", text="Cirrocumulus", icon="OUTLINER_DATA_VOLUME")
+        layout.operator("object.cloud_add_single_cumulus", text="Stratus", icon="OUTLINER_DATA_VOLUME")
 
 
 def add_menu_cloud(self, context):
@@ -228,7 +246,8 @@ def add_menu_cloud(self, context):
 def register():
     bpy.utils.register_class(CloudErrorOperator)
     bpy.utils.register_class(CloudSettings)
-    bpy.utils.register_class(OBJECT_OT_cloud)
+    bpy.utils.register_class(OBJECT_OT_cloud_single_cumulus) 
+    bpy.utils.register_class(OBJECT_OT_cloud_landscape_cumulus)
 
     bpy.utils.register_class(OBJECT_PT_cloud)
     bpy.utils.register_class(OBJECT_PT_cloud_general)
@@ -254,7 +273,8 @@ def register():
 def unregister():
     bpy.utils.unregister_class(CloudErrorOperator)
     bpy.utils.unregister_class(CloudSettings)
-    bpy.utils.unregister_class(OBJECT_OT_cloud)
+    bpy.utils.unregister_class(OBJECT_OT_cloud_single_cumulus)
+    bpy.utils.unregister_class(OBJECT_OT_cloud_landscape_cumulus)
 
     bpy.utils.unregister_class(OBJECT_PT_cloud)
     bpy.utils.unregister_class(OBJECT_PT_cloud_general)
