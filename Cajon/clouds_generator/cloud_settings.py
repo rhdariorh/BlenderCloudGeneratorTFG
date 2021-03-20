@@ -55,6 +55,16 @@ def update_cloud_wind(self, context):
         add_small_wind = material.node_tree.nodes.get("RGB Add - Small wind")
         add_small_wind.inputs["Fac"].default_value = wind
 
+def update_cloud_color(self, context):
+    obj = context.active_object
+    color = obj.cloud_settings.color
+    material = bpy.context.active_object.active_material
+    if "CloudMaterial_CG" not in material.name:
+        bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
+    else:
+        principled_volume = material.node_tree.nodes.get("Cloud Principled Volume")
+        principled_volume.inputs["Color"].default_value = color
+
 def update_cloud_roundness(self, context):
     obj = context.active_object
     roundness = obj.cloud_settings.roundness
@@ -226,6 +236,18 @@ def update_cloud_amount_of_clouds(self, context):
         subtract_gradient_noise = material.node_tree.nodes.get("RGB Subtract - Gradient and Noise Final Cleaner")
         subtract_gradient_noise.inputs["Fac"].default_value = amount_of_clouds
 
+def update_cloud_landscape_cloud_size(self, context):
+    obj = context.active_object
+    landscape_cloud_size = 10.1 - obj.cloud_settings.landscape_cloud_size
+    material = bpy.context.active_object.active_material
+    if "CloudMaterial_CG" not in material.name:
+        bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
+    else:
+        noise_subtract = material.node_tree.nodes.get("Noise Tex - Subtract initial")
+        noise_subtract.inputs["Scale"].default_value = landscape_cloud_size
+        noise_subtract = material.node_tree.nodes.get("Noise Tex - Subtract initial Final Cleaner")
+        noise_subtract.inputs["Scale"].default_value = landscape_cloud_size
+
 def update_cloud_landscape_noise_coords(self, context):
     obj = context.active_object
     cloud_type = obj.cloud_settings.cloud_type
@@ -240,11 +262,34 @@ def update_cloud_landscape_noise_coords(self, context):
         mapping_noise = material.node_tree.nodes.get("Final Cleaner Mapping Noise")
         mapping_noise.inputs["Location"].default_value = landscape_noise_coords
 
+def update_cloud_height_landscape(self, context):
+    obj = context.active_object
+    cloud_type = obj.cloud_settings.cloud_type
+    height_landscape = obj.cloud_settings.height_landscape
+    material = bpy.context.active_object.active_material
+    if "CloudMaterial_CG" not in material.name:
+        bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
+    elif (cloud_type == "LANDSCAPE_CUMULUS"):
+        mapping_subtract = material.node_tree.nodes.get("Initial Shape Mapping Subtract")
+        mapping_subtract.inputs["Location"].default_value = (-height_landscape ,0.0, 0.0)
+
+        mapping_subtract = material.node_tree.nodes.get("Final Cleaner Mapping Subtract")
+        mapping_subtract.inputs["Location"].default_value = (-height_landscape ,0.0, 0.0)
+
 class CloudSettings(bpy.types.PropertyGroup):
     is_cloud: bpy.props.BoolProperty(
         name="Is cloud",
         description="Indicates if the object is a cloud",
         default=False
+    )
+
+    color: bpy.props.FloatVectorProperty(
+        name="Cloud color",
+        description="Color of the cloud volume",
+        subtype="COLOR",
+        size=4,
+        default=(1.0, 1.0, 1.0, 1.0),
+        update=update_cloud_color
     )
 
     cloud_type: bpy.props.StringProperty(
@@ -273,7 +318,7 @@ class CloudSettings(bpy.types.PropertyGroup):
         name="Position in domain",
         description="Position of the cloud inside the domain",
         subtype="XYZ",
-        default=(0.0, 0.0, 0.5),
+        default=(0.0, 0.0, 0.0),
         update=update_cloud_domain_cloud_position
     )
 
@@ -416,6 +461,24 @@ class CloudSettings(bpy.types.PropertyGroup):
         min=0.0,
         max=1.0,
         update=update_cloud_amount_of_clouds
+    )
+
+    height_landscape: bpy.props.FloatProperty(
+        name="Landscape cloud height",
+        description="Landscape length vertically",
+        default=1.2,
+        min=0.0,
+        soft_max=10.0,
+        update=update_cloud_height_landscape
+    )
+
+    landscape_cloud_size: bpy.props.FloatProperty(
+        name="Landscape cloud size",
+        description="Size of the clouds in the landscape",
+        default=8.5,
+        min=0.0,
+        max=10.0,
+        update=update_cloud_landscape_cloud_size
     )
 
     landscape_noise_coords: bpy.props.FloatVectorProperty(

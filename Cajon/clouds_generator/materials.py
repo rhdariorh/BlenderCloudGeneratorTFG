@@ -103,6 +103,8 @@ def initial_shape_landscape_cumulus(pos_x, pos_y, out_node, in_node, mat, mat_no
     out_node: nodo de salida
     in_node: nodo de entrada
     """
+    obj.cloud_settings.domain_cloud_position = (0.0, 0.0, 1.0)
+
     obj.cloud_settings.cloud_type = "LANDSCAPE_CUMULUS"
     frame = mat_nodes.new(type='NodeFrame')
     frame.name = "Initial shape"
@@ -306,7 +308,8 @@ def initial_shape_landscape_cumulus(pos_x, pos_y, out_node, in_node, mat, mat_no
     else:
         mapping_subtract.name = "Initial Shape Mapping Subtract"
     mapping_subtract.location = (pos_x, pos_y - 400)
-    mapping_subtract.inputs["Location"].default_value = (-0.5, 0.0, 0.0)
+    height_landscape = obj.cloud_settings.height_landscape
+    mapping_subtract.inputs["Location"].default_value = (-height_landscape, 0.0, 0.0)
     mapping_subtract.inputs["Rotation"].default_value = (0, pi/2, 0)
     mapping_subtract.inputs["Scale"].default_value = (1, 1, 1)
 
@@ -336,7 +339,8 @@ def initial_shape_landscape_cumulus(pos_x, pos_y, out_node, in_node, mat, mat_no
         noise_subtract.name = "Noise Tex - Subtract initial"
         noise_subtract.label = "Noise Tex - Subtract initial"
     noise_subtract.location = (pos_x + 200, pos_y - 800)
-    noise_subtract.inputs["Scale"].default_value = 1.5
+    landscape_cloud_size = 10.1 - obj.cloud_settings.landscape_cloud_size
+    noise_subtract.inputs["Scale"].default_value = landscape_cloud_size
     noise_subtract.inputs["Detail"].default_value = 0.0
     noise_subtract.inputs["Roughness"].default_value = 0.0
     noise_subtract.inputs["Distortion"].default_value = 0.0
@@ -394,6 +398,17 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
 
     # Assign
     obj.active_material = mat
+
+    # Initialization
+    obj.cloud_settings.amount_of_clouds = random.uniform(0.2, 0.6)
+    obj.cloud_settings.detail_bump_strength = random.uniform(0.1, 0.5)
+    obj.cloud_settings.subtract_shape_imperfection = random.uniform(0, 1)
+    obj.cloud_settings.add_shape_imperfection = random.uniform(0, 0.6)
+    obj.cloud_settings.roundness = random.uniform(0, 1)
+    obj.cloud_settings.roundness_coords = (random.uniform(0, 200), random.uniform(0, 200), random.uniform(0, 200))
+    obj.cloud_settings.add_shape_imperfection_coords = (random.uniform(0, 200), random.uniform(0, 200), random.uniform(0, 200))
+    obj.cloud_settings.subtract_shape_imperfection_coords = (random.uniform(0, 200), random.uniform(0, 200), random.uniform(0, 200))
+    obj.cloud_settings.landscape_noise_coords = (random.uniform(0, 200), random.uniform(0, 200), random.uniform(0, 200))
 
     # -----------------------------------------------
     # -------------Material construction-------------
@@ -475,7 +490,6 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     multiply_bump.label = "RGB Multiply - Bump"
     multiply_bump.location = (pos_x + 3850, 0)
     multiply_bump.blend_type = "MULTIPLY"
-    obj.cloud_settings.detail_bump_strength = random.uniform(0.1, 0.5)
     detail_bump_strength = obj.cloud_settings.detail_bump_strength
     multiply_bump.inputs["Fac"].default_value = detail_bump_strength
 
@@ -523,7 +537,6 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     subtract_imperfection.label = "RGB Subtract - Shape imperfection"
     subtract_imperfection.location = (pos_x + 2350, 0)
     subtract_imperfection.blend_type = "SUBTRACT"
-    obj.cloud_settings.subtract_shape_imperfection = random.uniform(0, 1)
     subtract_shape_imperfection = obj.cloud_settings.subtract_shape_imperfection
     subtract_imperfection.inputs["Fac"].default_value = subtract_shape_imperfection
 
@@ -538,7 +551,6 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     add_imperfection.label = "RGB Add - Shape imperfection"
     add_imperfection.location = (pos_x + 2150, 0)
     add_imperfection.blend_type = "ADD"
-    obj.cloud_settings.add_shape_imperfection = random.uniform(0, 0.6)
     add_shape_imperfection = obj.cloud_settings.add_shape_imperfection
     add_imperfection.inputs["Fac"].default_value = add_shape_imperfection
 
@@ -551,7 +563,6 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     overlay_roundness.label = "RGB Overlay - Roundness"
     overlay_roundness.location = (pos_x + 1950, 0)
     overlay_roundness.blend_type = "OVERLAY"
-    obj.cloud_settings.roundness = random.uniform(0, 1)
     roundness = obj.cloud_settings.roundness
     overlay_roundness.inputs["Fac"].default_value = roundness
 
@@ -645,6 +656,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     mat.node_tree.links.new(noise_shape_wind.outputs["Fac"],
                             domain_adjustment_shape_wind.inputs[0])
 
+    # Initial mapping
     initial_mapping = mat_nodes.new("ShaderNodeMapping")
     initial_mapping.name = "Initial mapping"
     initial_mapping.location = (pos_x + 200, 0)
@@ -956,7 +968,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     voronoi_roundness.name = "Voronoi tex - Roundness"
     voronoi_roundness.label = "Voronoi tex - Roundness"
     voronoi_roundness.location = (pos_x + 1500, -500)
-    voronoi_roundness.inputs["Scale"].default_value = 1.2
+    voronoi_roundness.inputs["Scale"].default_value = 2.0
 
     mat.node_tree.links.new(voronoi_roundness.outputs["Distance"],
                             invert_color.inputs["Color"])
@@ -968,7 +980,6 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     add_coords_roundness.name = "Vector Add - Roundness coord"
     add_coords_roundness.label = "Vector Add - Roundness coord"
     add_coords_roundness.operation = "ADD"
-    obj.cloud_settings.roundness_coords = (random.uniform(0, 200), random.uniform(0, 200), random.uniform(0, 200))
     roundness_coords = obj.cloud_settings.roundness_coords
     add_coords_roundness.inputs[1].default_value = roundness_coords
 
@@ -1031,7 +1042,6 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     coords_add_shape_imperfection_1.name = "Vector Add - Coords add shape imperfection 1"
     coords_add_shape_imperfection_1.label = "Vector Add - Coords add shape imperfection 1"
     coords_add_shape_imperfection_1.operation = "ADD"
-    obj.cloud_settings.add_shape_imperfection_coords = (random.uniform(0, 200), random.uniform(0, 200), random.uniform(0, 200))
     add_shape_imperfection_coords = obj.cloud_settings.add_shape_imperfection_coords
     coords_add_shape_imperfection_1.inputs[1].default_value = add_shape_imperfection_coords
 
@@ -1107,7 +1117,6 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     coords_subtract_shape_imperfection_1.name = "Vector Add - Coods subtract shape imperfection 1"
     coords_subtract_shape_imperfection_1.label = "Vector Add - Coods subtract shape imperfection 1"
     coords_subtract_shape_imperfection_1.operation = "ADD"
-    obj.cloud_settings.subtract_shape_imperfection_coords = (random.uniform(0, 200), random.uniform(0, 200), random.uniform(0, 200))
     subtract_shape_imperfection_coords = obj.cloud_settings.subtract_shape_imperfection_coords
     coords_subtract_shape_imperfection_1.inputs[1].default_value = subtract_shape_imperfection_coords
 

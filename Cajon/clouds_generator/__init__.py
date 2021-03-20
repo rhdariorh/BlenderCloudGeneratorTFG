@@ -104,6 +104,7 @@ class OBJECT_PT_cloud_general(bpy.types.Panel):
             column.prop(cloud_settings, "wind", text="Wind")
             if cloud_settings.cloud_type == "LANDSCAPE_CUMULUS":
                 column.prop(cloud_settings, "amount_of_clouds", text="Amount of clouds")
+                column.prop(cloud_settings, "landscape_cloud_size", text="Clouds size")
                 column.prop(cloud_settings, "landscape_noise_coords", text="Seed")
 
 class OBJECT_PT_cloud_shape(bpy.types.Panel):
@@ -123,9 +124,11 @@ class OBJECT_PT_cloud_shape(bpy.types.Panel):
         if obj.cloud_settings.is_cloud:
             column = layout.column()
             if (cloud_settings.cloud_type == "SINGLE_CUMULUS"):
-                column.prop(cloud_settings, "height", text="Height")
+                column.prop(cloud_settings, "height_single", text="Height")
                 column.prop(cloud_settings, "width_x", text="Width X")
                 column.prop(cloud_settings, "width_y", text="Width Y")
+            elif(cloud_settings.cloud_type == "LANDSCAPE_CUMULUS"):
+                column.prop(cloud_settings, "height_landscape", text="Height")
 
 class OBJECT_PT_cloud_shape_roundness(bpy.types.Panel):
     bl_label = "Roundness"
@@ -220,8 +223,9 @@ class OBJECT_PT_cloud_extra(bpy.types.Panel):
         cloud_settings = obj.cloud_settings
         if obj.cloud_settings.is_cloud:
             column = layout.column()
-            column.prop(cloud_settings, "cleaner_domain_size", text="Clean strengh")
+            column.prop(cloud_settings, "color", text="Color")
             column.prop(cloud_settings, "domain_cloud_position", text="Cloud position")
+            column.prop(cloud_settings, "cleaner_domain_size", text="Clean strengh")
 
 
 class VIEW3D_MT_cloud_add(bpy.types.Menu):
