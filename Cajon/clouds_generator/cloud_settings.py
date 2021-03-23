@@ -2,7 +2,25 @@ import bpy
 from mathutils import Vector
 from math import sin, cos, pi
 
+"""Small description.
+
+Large description...
+
+Args:
+    arg_name:
+    argument description.
+
+Returns:
+    Description.
+"""
+
 def update_cloud_dimensions(self, context):
+    """Cloud dimensions update function.
+
+    It is responsible for transforming and applying transformations according
+    to the size and domain custom properties of the cloud.
+    """
+
     obj = context.active_object
     size = obj.cloud_settings.size
     domain = obj.cloud_settings.domain
@@ -21,7 +39,14 @@ def update_cloud_dimensions(self, context):
     cube_size = Vector((domain.x / adapted_size.x, domain.y / adapted_size.y, domain.z / adapted_size.z))
     obj.scale = cube_size
 
+
 def update_cloud_domain_cloud_position(self, context):
+    """Cloud position update function.
+
+    Change the position of the cloud within the domain based on
+    the domain_cloud_position custom property.
+    """
+
     obj = context.active_object
     domain_cloud_position = obj.cloud_settings.domain_cloud_position
     material = bpy.context.active_object.active_material
@@ -31,7 +56,13 @@ def update_cloud_domain_cloud_position(self, context):
         initial_mapping = material.node_tree.nodes.get("Initial mapping")
         initial_mapping.inputs["Location"].default_value = domain_cloud_position
 
+
 def update_cloud_density(self, context):
+    """Cloud density update function.
+
+    Change the cloud density according to the density custom property.
+    """
+
     obj = context.active_object
     density = obj.cloud_settings.density
     material = bpy.context.active_object.active_material
@@ -42,7 +73,13 @@ def update_cloud_density(self, context):
         elem = density_color_ramp.color_ramp.elements[1]
         elem.color = (density, density, density, 1)
 
+
 def update_cloud_wind(self, context):
+    """Cloud wind update function.
+
+    Change the cloud wind according to the wind custom property.
+    """
+
     obj = context.active_object
     wind = obj.cloud_settings.wind
     material = bpy.context.active_object.active_material
@@ -55,7 +92,13 @@ def update_cloud_wind(self, context):
         add_small_wind = material.node_tree.nodes.get("RGB Add - Small wind")
         add_small_wind.inputs["Fac"].default_value = wind
 
+
 def update_cloud_color(self, context):
+    """Cloud color update function.
+
+    Change the cloud color according to the color custom property.
+    """
+
     obj = context.active_object
     color = obj.cloud_settings.color
     material = bpy.context.active_object.active_material
@@ -65,7 +108,13 @@ def update_cloud_color(self, context):
         principled_volume = material.node_tree.nodes.get("Cloud Principled Volume")
         principled_volume.inputs["Color"].default_value = color
 
+
 def update_cloud_roundness(self, context):
+    """Cloud roundness update function.
+
+    Change the cloud roundness according to the roundness custom property.
+    """
+
     obj = context.active_object
     roundness = obj.cloud_settings.roundness
     material = bpy.context.active_object.active_material
@@ -75,7 +124,14 @@ def update_cloud_roundness(self, context):
         overlay_roundness = material.node_tree.nodes.get("RGB Overlay - Roundness")
         overlay_roundness.inputs["Fac"].default_value = roundness
 
+
 def update_cloud_roundness_coords(self, context):
+    """Cloud roundness coords (seed) update function.
+
+    Change the cloud roundness coordinates according to the roundness_coords custom property.
+    The coordinates act as the seed of the voronoi noise that creates the roundness.
+    """
+
     obj = context.active_object
     roundness_coords = obj.cloud_settings.roundness_coords
     material = bpy.context.active_object.active_material
@@ -85,10 +141,18 @@ def update_cloud_roundness_coords(self, context):
         add_coords_roundness = material.node_tree.nodes.get("Vector Add - Roundness coord")
         add_coords_roundness.inputs[1].default_value = roundness_coords
 
+
 def update_cloud_height_single(self, context):
+    """Cloud height for single cloud update function.
+
+    Change the cloud height in single clouds according
+    to the height_single custom property.
+    """
+
     obj = context.active_object
     cloud_type = obj.cloud_settings.cloud_type
     height_single = 1 - obj.cloud_settings.height_single
+    # Angle formed with the join point of the curve
     angle = ((pi/2 - 0.5) * height_single) + 0.3
     material = bpy.context.active_object.active_material
     if "CloudMaterial_CG" not in material.name:
@@ -116,7 +180,14 @@ def update_cloud_height_single(self, context):
         overlay_roundness = material.node_tree.nodes.get("RGB Overlay - Roundness")
         overlay_roundness.inputs["Fac"].default_value = roundness
 
+
 def update_cloud_width(self, context):
+    """Cloud width for single cloud update function.
+
+    Change the cloud width in single clouds according
+    to the width_x and width_y custom properties.
+    """
+
     obj = context.active_object
     cloud_type = obj.cloud_settings.cloud_type
     width_x = obj.cloud_settings.width_x
@@ -131,7 +202,14 @@ def update_cloud_width(self, context):
         mapping = material.node_tree.nodes.get("Final Cleaner Shape Mapping")
         mapping.inputs["Scale"].default_value = (width_x, width_y, 0.7)
 
+
 def update_cloud_add_shape_imperfection(self, context):
+    """Cloud shape imperfection addition update function.
+
+    Change the cloud shape imperfection addition according
+    to the add_shape_imperfection custom property.
+    """
+
     obj = context.active_object
     add_shape_imperfection = obj.cloud_settings.add_shape_imperfection
     material = bpy.context.active_object.active_material
@@ -141,7 +219,15 @@ def update_cloud_add_shape_imperfection(self, context):
         add_imperfection = material.node_tree.nodes.get("RGB Add - Shape imperfection")
         add_imperfection.inputs["Fac"].default_value = add_shape_imperfection
 
+
 def update_cloud_add_shape_imperfection_coords(self, context):
+    """Cloud shape imperfection addition coords (seed) update function.
+
+    Change the cloud shape imperfection addition coordinates according
+    to the add_shape_imperfection_coords custom property.
+    The coordinates act as the seed of the noise that is added to the volume.
+    """
+
     obj = context.active_object
     add_shape_imperfection_coords = obj.cloud_settings.add_shape_imperfection_coords
     material = bpy.context.active_object.active_material
@@ -151,7 +237,14 @@ def update_cloud_add_shape_imperfection_coords(self, context):
         coords_add_shape_imperfection_1 = material.node_tree.nodes.get("Vector Add - Coords add shape imperfection 1")
         coords_add_shape_imperfection_1.inputs[1].default_value = add_shape_imperfection_coords
 
+
 def update_cloud_subtract_shape_imperfection(self, context):
+    """Cloud shape imperfection subtract update function.
+
+    Change the cloud shape imperfection subtract according
+    to the subtract_shape_imperfection custom property.
+    """
+
     obj = context.active_object
     subtract_shape_imperfection = obj.cloud_settings.subtract_shape_imperfection
     material = bpy.context.active_object.active_material
@@ -161,7 +254,16 @@ def update_cloud_subtract_shape_imperfection(self, context):
         subtract_imperfection = material.node_tree.nodes.get("RGB Subtract - Shape imperfection")
         subtract_imperfection.inputs["Fac"].default_value = subtract_shape_imperfection
 
+
 def update_cloud_subtract_shape_imperfection_coords(self, context):
+    """Cloud shape imperfection subtract coords (seed) update function.
+
+    Change the cloud shape imperfection subtract coordinates according
+    to the subtract_shape_imperfection_coords custom property.
+    The coordinates act as the seed of the noise that is subtracted to
+    the volume.
+    """
+
     obj = context.active_object
     subtract_shape_imperfection_coords = obj.cloud_settings.subtract_shape_imperfection_coords
     material = bpy.context.active_object.active_material
@@ -171,7 +273,14 @@ def update_cloud_subtract_shape_imperfection_coords(self, context):
         coords_subtract_shape_imperfection_1 = material.node_tree.nodes.get("Vector Add - Coods subtract shape imperfection 1")
         coords_subtract_shape_imperfection_1.inputs[1].default_value = subtract_shape_imperfection_coords
 
+
 def update_cloud_detail_bump_strength(self, context):
+    """Cloud detail bump strength update function.
+
+    Change the cloud detail bump strength according
+    to the detail_bump_strength custom property.
+    """
+
     obj = context.active_object
     detail_bump_strength = obj.cloud_settings.detail_bump_strength
     material = bpy.context.active_object.active_material
@@ -181,7 +290,14 @@ def update_cloud_detail_bump_strength(self, context):
         multiply_bump = material.node_tree.nodes.get("RGB Multiply - Bump")
         multiply_bump.inputs["Fac"].default_value = detail_bump_strength
 
+
 def update_cloud_detail_bump_levels(self, context):
+    """Cloud detail bump levels update function.
+
+    Change the cloud detail bump levels according
+    to the detail_bump_levels custom property.
+    """
+
     obj = context.active_object
     detail_bump_levels = obj.cloud_settings.detail_bump_levels
     material = bpy.context.active_object.active_material
@@ -203,7 +319,14 @@ def update_cloud_detail_bump_levels(self, context):
         overlay_bump_3 = material.node_tree.nodes.get("RGB Overlay - Bump level 3")
         overlay_bump_3.inputs["Fac"].default_value = 1
 
+
 def update_cloud_detail_noise(self, context):
+    """Cloud detail noise update function.
+
+    Change the cloud detail noise according
+    to the detail_noise custom property.
+    """
+
     obj = context.active_object
     detail_noise = obj.cloud_settings.detail_noise
     material = bpy.context.active_object.active_material
@@ -213,7 +336,14 @@ def update_cloud_detail_noise(self, context):
         overlay_detail_noise = material.node_tree.nodes.get("RGB Overlay - Noise")
         overlay_detail_noise.inputs["Fac"].default_value = detail_noise
 
+
 def update_cloud_cleaner_domain_size(self, context):
+    """Cloud cleaner domain size function.
+
+    Change the cloud cleaner domain size according
+    to the cleaner_domain_size custom property.
+    """
+
     obj = context.active_object
     cleaner_domain_size = obj.cloud_settings.cleaner_domain_size
     material = bpy.context.active_object.active_material
@@ -224,7 +354,14 @@ def update_cloud_cleaner_domain_size(self, context):
         elem = color_ramp_cleaner.color_ramp.elements[0]
         elem.position = 1.01 - cleaner_domain_size
 
+
 def update_cloud_amount_of_clouds(self, context):
+    """Amount of clouds in cloudscape update function.
+
+    Change the amount of clouds in cloudscape according
+    to the amount_of_clouds custom property.
+    """
+
     obj = context.active_object
     amount_of_clouds = 1 - obj.cloud_settings.amount_of_clouds
     material = bpy.context.active_object.active_material
@@ -236,47 +373,99 @@ def update_cloud_amount_of_clouds(self, context):
         subtract_gradient_noise = material.node_tree.nodes.get("RGB Subtract - Gradient and Noise Final Cleaner")
         subtract_gradient_noise.inputs["Fac"].default_value = amount_of_clouds
 
-def update_cloud_landscape_cloud_size(self, context):
+
+def update_cloud_cloudscape_cloud_size(self, context):
+    """Cloudscape cloud size update function.
+
+    Change the size of the clouds in the cloudscape according
+    to the cloudscape_cloud_size custom property.
+    """
+
     obj = context.active_object
-    landscape_cloud_size = 10.1 - obj.cloud_settings.landscape_cloud_size
+    cloudscape_cloud_size = 10.1 - obj.cloud_settings.cloudscape_cloud_size
     material = bpy.context.active_object.active_material
     if "CloudMaterial_CG" not in material.name:
         bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
     else:
         noise_subtract = material.node_tree.nodes.get("Noise Tex - Subtract initial")
-        noise_subtract.inputs["Scale"].default_value = landscape_cloud_size
+        noise_subtract.inputs["Scale"].default_value = cloudscape_cloud_size
         noise_subtract = material.node_tree.nodes.get("Noise Tex - Subtract initial Final Cleaner")
-        noise_subtract.inputs["Scale"].default_value = landscape_cloud_size
+        noise_subtract.inputs["Scale"].default_value = cloudscape_cloud_size
 
-def update_cloud_landscape_noise_coords(self, context):
+
+def update_cloud_cloudscape_noise_coords(self, context):
+    """Cloudscape noise coords update function.
+
+    Change the cloudscape noise coords coordinates according
+    to the cloudscape_noise_coords custom property.
+    The coordinates act as the seed of the clodscape.
+    """
+
     obj = context.active_object
     cloud_type = obj.cloud_settings.cloud_type
-    landscape_noise_coords = obj.cloud_settings.landscape_noise_coords
+    cloudscape_noise_coords = obj.cloud_settings.cloudscape_noise_coords
     material = bpy.context.active_object.active_material
     if "CloudMaterial_CG" not in material.name:
         bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
-    elif (cloud_type == "LANDSCAPE_CUMULUS"):
+    elif (cloud_type == "CLOUDSCAPE_CUMULUS"):
         mapping_noise = material.node_tree.nodes.get("Initial Shape Mapping Noise")
-        mapping_noise.inputs["Location"].default_value = landscape_noise_coords
+        mapping_noise.inputs["Location"].default_value = cloudscape_noise_coords
 
         mapping_noise = material.node_tree.nodes.get("Final Cleaner Mapping Noise")
-        mapping_noise.inputs["Location"].default_value = landscape_noise_coords
+        mapping_noise.inputs["Location"].default_value = cloudscape_noise_coords
 
-def update_cloud_height_landscape(self, context):
+
+def update_cloud_height_cloudscape(self, context):
+    """Cloudscape height update function.
+
+    Change the cloudscape height according
+    to the height_cloudscape custom property.
+    """
+
     obj = context.active_object
     cloud_type = obj.cloud_settings.cloud_type
-    height_landscape = obj.cloud_settings.height_landscape
+    height_cloudscape = obj.cloud_settings.height_cloudscape
     material = bpy.context.active_object.active_material
     if "CloudMaterial_CG" not in material.name:
         bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
-    elif (cloud_type == "LANDSCAPE_CUMULUS"):
+    elif (cloud_type == "CLOUDSCAPE_CUMULUS"):
         mapping_subtract = material.node_tree.nodes.get("Initial Shape Mapping Subtract")
-        mapping_subtract.inputs["Location"].default_value = (-height_landscape ,0.0, 0.0)
+        mapping_subtract.inputs["Location"].default_value = (-height_cloudscape, 0.0, 0.0)
 
         mapping_subtract = material.node_tree.nodes.get("Final Cleaner Mapping Subtract")
-        mapping_subtract.inputs["Location"].default_value = (-height_landscape ,0.0, 0.0)
+        mapping_subtract.inputs["Location"].default_value = (-height_cloudscape, 0.0, 0.0)
+
 
 class CloudSettings(bpy.types.PropertyGroup):
+    """Custom properties for clouds
+
+    Attributes:
+        is_cloud: blabla
+        color:
+        cloud_type:
+        size:
+        domain:
+        domain_cloud_position:
+        density:
+        wind:
+        roundness:
+        roundness_coords:
+        height_single:
+        width_x:
+        width_y:
+        add_shape_imperfection:
+        add_shape_imperfection_coords:
+        subtract_shape_imperfection:
+        subtract_shape_imperfection_coords:
+        detail_bump_strength:
+        detail_bump_levels:
+        detail_noise:
+        cleaner_domain_size:
+        amount_of_clouds:
+        height_cloudscape:
+        cloudscape_cloud_size:
+        cloudscape_noise_coords:
+    """
     is_cloud: bpy.props.BoolProperty(
         name="Is cloud",
         description="Indicates if the object is a cloud",
@@ -362,7 +551,7 @@ class CloudSettings(bpy.types.PropertyGroup):
         description="Cloud length vertically",
         default=0.3,
         min=0,
-        max= 1,
+        max=1,
         update=update_cloud_height_single
     )
 
@@ -371,7 +560,7 @@ class CloudSettings(bpy.types.PropertyGroup):
         description="Cloud length in X axis for single clouds",
         default=0.7,
         min=0.1,
-        max= 10.0,
+        max=10.0,
         update=update_cloud_width
     )
 
@@ -380,7 +569,7 @@ class CloudSettings(bpy.types.PropertyGroup):
         description="Cloud length in Y axis for single clouds",
         default=0.7,
         min=0.1,
-        max= 10.0,
+        max=10.0,
         update=update_cloud_width
     )
 
@@ -447,7 +636,7 @@ class CloudSettings(bpy.types.PropertyGroup):
 
     cleaner_domain_size: bpy.props.FloatProperty(
         name="Cleaner domain size",
-        description="Size of the domain where the cloud is cleaned",
+        description="Clean the outsides of the cloud",
         default=0.06,
         min=0.001,
         max=1.0,
@@ -456,35 +645,35 @@ class CloudSettings(bpy.types.PropertyGroup):
 
     amount_of_clouds: bpy.props.FloatProperty(
         name="Amount of clouds",
-        description="Amount of clouds in landscape clouds",
+        description="Amount of clouds in cloudscape clouds",
         default=0.4,
         min=0.0,
         max=1.0,
         update=update_cloud_amount_of_clouds
     )
 
-    height_landscape: bpy.props.FloatProperty(
-        name="Landscape cloud height",
-        description="Landscape length vertically",
+    height_cloudscape: bpy.props.FloatProperty(
+        name="Cloudscape cloud height",
+        description="Cloudscape length vertically",
         default=1.2,
         min=0.0,
         soft_max=10.0,
-        update=update_cloud_height_landscape
+        update=update_cloud_height_cloudscape
     )
 
-    landscape_cloud_size: bpy.props.FloatProperty(
-        name="Landscape cloud size",
-        description="Size of the clouds in the landscape",
+    cloudscape_cloud_size: bpy.props.FloatProperty(
+        name="Cloudscape cloud size",
+        description="Size of the clouds in the cloudscape",
         default=8.5,
         min=0.0,
         max=10.0,
-        update=update_cloud_landscape_cloud_size
+        update=update_cloud_cloudscape_cloud_size
     )
 
-    landscape_noise_coords: bpy.props.FloatVectorProperty(
-        name="Cloud landscape noise coordinates",
-        description="Mapping coordinates for landscape noise coordinates",
+    cloudscape_noise_coords: bpy.props.FloatVectorProperty(
+        name="Cloud cloudscape noise coordinates",
+        description="Mapping coordinates for cloudscape noise coordinates",
         subtype="XYZ",
         default=(0.0, 0.0, 0.0),
-        update=update_cloud_landscape_noise_coords
+        update=update_cloud_cloudscape_noise_coords
     )

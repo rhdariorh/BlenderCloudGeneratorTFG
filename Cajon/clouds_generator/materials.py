@@ -3,6 +3,7 @@ from mathutils import Vector
 from math import sin, cos, pi
 import random
 
+
 def initial_shape_single_cumulus(pos_x, pos_y, out_node, in_node, mat, mat_nodes, obj, cleaner):
     """
     out_node: nodo de salida
@@ -98,14 +99,14 @@ def initial_shape_single_cumulus(pos_x, pos_y, out_node, in_node, mat, mat_nodes
                                 mapping.inputs[0])
 
 
-def initial_shape_landscape_cumulus(pos_x, pos_y, out_node, in_node, mat, mat_nodes, obj, cleaner):
+def initial_shape_cloudscape_cumulus(pos_x, pos_y, out_node, in_node, mat, mat_nodes, obj, cleaner):
     """
     out_node: nodo de salida
     in_node: nodo de entrada
     """
     obj.cloud_settings.domain_cloud_position = (0.0, 0.0, 1.0)
 
-    obj.cloud_settings.cloud_type = "LANDSCAPE_CUMULUS"
+    obj.cloud_settings.cloud_type = "CLOUDSCAPE_CUMULUS"
     frame = mat_nodes.new(type='NodeFrame')
     frame.name = "Initial shape"
     frame.label = "Initial shape"
@@ -163,8 +164,6 @@ def initial_shape_landscape_cumulus(pos_x, pos_y, out_node, in_node, mat, mat_no
     amount_of_clouds = 1 - obj.cloud_settings.amount_of_clouds
     subtract_gradient_noise.inputs["Fac"].default_value = amount_of_clouds
 
-    
-    
     if cleaner:
         mat.node_tree.links.new(subtract_gradient_noise.outputs["Color"],
                                 invert_color.inputs["Color"])
@@ -181,8 +180,6 @@ def initial_shape_landscape_cumulus(pos_x, pos_y, out_node, in_node, mat, mat_no
                                 reroute_1.inputs[0])
         mat.node_tree.links.new(subtract_gradient_noise.outputs["Color"],
                                 reroute_2.inputs[0])
-
-
 
     # RGB Subtract - Gradient and Gradient
     subtract_gradient_gradient = mat_nodes.new("ShaderNodeMixRGB")
@@ -283,7 +280,7 @@ def initial_shape_landscape_cumulus(pos_x, pos_y, out_node, in_node, mat, mat_no
     multiply_noise.inputs[1].default_value = (3.0, 3.0, 3.0)
 
     mat.node_tree.links.new(multiply_noise.outputs["Vector"],
-                           subtract_gradient_noise.inputs["Color2"])
+                            subtract_gradient_noise.inputs["Color2"])
 
     # Mapping base
     mapping_base = mat_nodes.new("ShaderNodeMapping")
@@ -298,7 +295,7 @@ def initial_shape_landscape_cumulus(pos_x, pos_y, out_node, in_node, mat, mat_no
     mapping_base.inputs["Scale"].default_value = (1, 1, 1)
 
     mat.node_tree.links.new(mapping_base.outputs["Vector"],
-                           gradient_texture_base.inputs["Vector"])
+                            gradient_texture_base.inputs["Vector"])
 
     # Mapping subtract
     mapping_subtract = mat_nodes.new("ShaderNodeMapping")
@@ -308,13 +305,13 @@ def initial_shape_landscape_cumulus(pos_x, pos_y, out_node, in_node, mat, mat_no
     else:
         mapping_subtract.name = "Initial Shape Mapping Subtract"
     mapping_subtract.location = (pos_x, pos_y - 400)
-    height_landscape = obj.cloud_settings.height_landscape
-    mapping_subtract.inputs["Location"].default_value = (-height_landscape, 0.0, 0.0)
+    height_cloudscape = obj.cloud_settings.height_cloudscape
+    mapping_subtract.inputs["Location"].default_value = (-height_cloudscape, 0.0, 0.0)
     mapping_subtract.inputs["Rotation"].default_value = (0, pi/2, 0)
     mapping_subtract.inputs["Scale"].default_value = (1, 1, 1)
 
     mat.node_tree.links.new(mapping_subtract.outputs["Vector"],
-                           gradient_texture_subtract.inputs["Vector"])
+                            gradient_texture_subtract.inputs["Vector"])
     
     # Mapping noise
     mapping_noise = mat_nodes.new("ShaderNodeMapping")
@@ -324,13 +321,13 @@ def initial_shape_landscape_cumulus(pos_x, pos_y, out_node, in_node, mat, mat_no
     else:
         mapping_noise.name = "Initial Shape Mapping Noise"
     mapping_noise.location = (pos_x, pos_y - 800)
-    landscape_noise_coords = obj.cloud_settings.landscape_noise_coords
-    mapping_noise.inputs["Location"].default_value = landscape_noise_coords
+    cloudscape_noise_coords = obj.cloud_settings.cloudscape_noise_coords
+    mapping_noise.inputs["Location"].default_value = cloudscape_noise_coords
     mapping_noise.inputs["Rotation"].default_value = (0, 0, 0)
     mapping_noise.inputs["Scale"].default_value = (1, 1, 1)
 
     # Noise Tex - Subtract initial
-    noise_subtract= mat_nodes.new("ShaderNodeTexNoise")
+    noise_subtract = mat_nodes.new("ShaderNodeTexNoise")
     noise_subtract.parent = frame
     if cleaner:
         noise_subtract.name = "Noise Tex - Subtract initial Final Cleaner"
@@ -339,14 +336,14 @@ def initial_shape_landscape_cumulus(pos_x, pos_y, out_node, in_node, mat, mat_no
         noise_subtract.name = "Noise Tex - Subtract initial"
         noise_subtract.label = "Noise Tex - Subtract initial"
     noise_subtract.location = (pos_x + 200, pos_y - 800)
-    landscape_cloud_size = 10.1 - obj.cloud_settings.landscape_cloud_size
-    noise_subtract.inputs["Scale"].default_value = landscape_cloud_size
+    cloudscape_cloud_size = 10.1 - obj.cloud_settings.cloudscape_cloud_size
+    noise_subtract.inputs["Scale"].default_value = cloudscape_cloud_size
     noise_subtract.inputs["Detail"].default_value = 0.0
     noise_subtract.inputs["Roughness"].default_value = 0.0
     noise_subtract.inputs["Distortion"].default_value = 0.0
 
     mat.node_tree.links.new(noise_subtract.outputs["Fac"],
-                           multiply_noise.inputs[0])
+                            multiply_noise.inputs[0])
 
     reroute_3 = mat_nodes.new(type='NodeReroute')
     reroute_3.location = (pos_x - 100, pos_y - 1300)
@@ -361,7 +358,7 @@ def initial_shape_landscape_cumulus(pos_x, pos_y, out_node, in_node, mat, mat_no
         reroute_4 = mat_nodes.new(type='NodeReroute')
         reroute_4.location = (pos_x + 100, pos_y - 1300)
         mat.node_tree.links.new(reroute_4.outputs[0],
-                            reroute_3.inputs[0])
+                                reroute_3.inputs[0])
         mat.node_tree.links.new(in_node.outputs["Color"],
                                 reroute_4.inputs[0])
 
@@ -405,10 +402,26 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     obj.cloud_settings.subtract_shape_imperfection = random.uniform(0, 1)
     obj.cloud_settings.add_shape_imperfection = random.uniform(0, 0.6)
     obj.cloud_settings.roundness = random.uniform(0, 1)
-    obj.cloud_settings.roundness_coords = (random.uniform(0, 200), random.uniform(0, 200), random.uniform(0, 200))
-    obj.cloud_settings.add_shape_imperfection_coords = (random.uniform(0, 200), random.uniform(0, 200), random.uniform(0, 200))
-    obj.cloud_settings.subtract_shape_imperfection_coords = (random.uniform(0, 200), random.uniform(0, 200), random.uniform(0, 200))
-    obj.cloud_settings.landscape_noise_coords = (random.uniform(0, 200), random.uniform(0, 200), random.uniform(0, 200))
+    obj.cloud_settings.roundness_coords = (
+                                            random.uniform(0, 200),
+                                            random.uniform(0, 200),
+                                            random.uniform(0, 200)
+                                        )
+    obj.cloud_settings.add_shape_imperfection_coords = (
+                                                        random.uniform(0, 200),
+                                                        random.uniform(0, 200),
+                                                        random.uniform(0, 200)
+                                                        )
+    obj.cloud_settings.subtract_shape_imperfection_coords = (
+                                                                random.uniform(0, 200),
+                                                                random.uniform(0, 200),
+                                                                random.uniform(0, 200)
+                                                            )
+    obj.cloud_settings.cloudscape_noise_coords = (
+                                                    random.uniform(0, 200),
+                                                    random.uniform(0, 200),
+                                                    random.uniform(0, 200)
+                                                )
 
     # -----------------------------------------------
     # -------------Material construction-------------
@@ -569,52 +582,6 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     mat.node_tree.links.new(overlay_roundness.outputs["Color"],
                             add_imperfection.inputs["Color1"])
 
-    """
-    # BEGINNING INITIAL SHAPE FRAME
-    frame = mat_nodes.new(type='NodeFrame')
-    frame.name = "Initial shape"
-    frame.label = "Initial shape"
-    # Gradient Texture
-    gradient_texture = mat_nodes.new("ShaderNodeTexGradient")
-    gradient_texture.parent = frame
-    gradient_texture.name = "Initial Shape Gradient Texture"
-    gradient_texture.location = (-3650, 0)
-    gradient_texture.gradient_type = "SPHERICAL"
-
-    mat.node_tree.links.new(gradient_texture.outputs["Color"],
-                            overlay_roundness.inputs["Color1"])
-    # Vector curves
-    vector_curves = mat_nodes.new("ShaderNodeVectorCurve")
-    vector_curves.parent = frame
-    vector_curves.name = "Initial Shape Vector Curves"
-    vector_curves.location = (-3950, 0)
-    vector_curves.mapping.curves[2].points[0].location = (-0.77, -1.0)
-    join_point = Vector((-0.6, -0.25))
-    vector_curves.mapping.curves[2].points.new(join_point.x, join_point.y)
-    height_single = 1 - obj.cloud_settings.height_single
-    angle = ((pi/2 - 0.5) * height_single) + 0.3
-    direction = Vector((0, 0))
-    direction.x = 0.3*cos(angle)
-    direction.y = 0.3*sin(angle)
-    last_point = join_point + direction
-    vector_curves.mapping.curves[2].points[2].location = (last_point.x, last_point.y)
-
-    mat.node_tree.links.new(vector_curves.outputs["Vector"],
-                            gradient_texture.inputs["Vector"])
-
-    # Mapping
-    mapping = mat_nodes.new("ShaderNodeMapping")
-    mapping.parent = frame
-    mapping.name = "Initial Shape Mapping"
-    mapping.location = (-4150, 0)
-    mapping.inputs["Location"].default_value = (0.0, 0.0, -0.3)
-    mapping.inputs["Scale"].default_value = (0.7, 0.7, 0.7)
-
-    mat.node_tree.links.new(mapping.outputs["Vector"],
-                            vector_curves.inputs["Vector"])
-    # END INITIAL SHAPE FRAME
-    """
-
     # RGB Add - Shape wind
     add_shape_wind = mat_nodes.new("ShaderNodeMixRGB")
     add_shape_wind.name = "RGB Add - Shape wind"
@@ -684,81 +651,8 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
                             reroute_4.inputs[0])
 
     # --------BEGINNING FINAL CLEANER BRANCH---------
-    """
-    frame = mat_nodes.new(type='NodeFrame')
-    frame.name = "Final cleaner"
-    frame.label = "Final cleaner"
-
-    # Color Ramp
-    color_ramp_cleaner = mat_nodes.new("ShaderNodeValToRGB")
-    color_ramp_cleaner.parent = frame
-    color_ramp_cleaner.name = "Final cleaning range"
-    color_ramp_cleaner.label = "Final cleaning range"
-    color_ramp_cleaner.location = (pos_x + 4950, -500)
-    color_ramp_cleaner.color_ramp.interpolation = 'LINEAR'
-    elem = color_ramp_cleaner.color_ramp.elements[0]
-    elem.position = 1.0 - obj.cloud_settings.cleaner_domain_size
-    elem.color = (0, 0, 0, 1)
-    elem = color_ramp_cleaner.color_ramp.elements[1]
-    elem.position = 1.0
-    elem.color = (1.0, 1.0, 1.0, 1)
-
-    mat.node_tree.links.new(color_ramp_cleaner.outputs["Color"],
-                            subtract_final_cleaner.inputs["Color2"])
-
-    # Invert color
-    invert_color = mat_nodes.new("ShaderNodeInvert")
-    invert_color.parent = frame
-    invert_color.location = (pos_x + 4750, -500)
-    mat.node_tree.links.new(invert_color.outputs["Color"],
-                            color_ramp_cleaner.inputs["Fac"])
-
-    # Gradient Texture
-    gradient_texture = mat_nodes.new("ShaderNodeTexGradient")
-    gradient_texture.parent = frame
-    gradient_texture.name = "Final Cleaner Gradient Texture"
-    gradient_texture.location = (pos_x + 4550, -500)
-    gradient_texture.gradient_type = "SPHERICAL"
-
-    mat.node_tree.links.new(gradient_texture.outputs["Color"],
-                            invert_color.inputs["Color"])
-
-    # Vector curves coordinates for cleaner
-    vector_curves = mat_nodes.new("ShaderNodeVectorCurve")
-    vector_curves.parent = frame
-    vector_curves.name = "Cleaner Vector Curves"
-    vector_curves.location = (pos_x + 4250, -500)
-    vector_curves.mapping.curves[2].points[0].location = (-0.77, -1.0)
-    join_point = Vector((-0.6, -0.25))
-    vector_curves.mapping.curves[2].points.new(join_point.x, join_point.y)
-    height_single = 1 - obj.cloud_settings.height_single
-    angle = ((pi/2 - 0.5) * height_single) + 0.3
-    direction = Vector((0, 0))
-    direction.x = 0.3*cos(angle)
-    direction.y = 0.3*sin(angle)
-    last_point = join_point + direction
-    vector_curves.mapping.curves[2].points[2].location = (last_point.x, last_point.y)
-
-    mat.node_tree.links.new(vector_curves.outputs["Vector"],
-                            gradient_texture.inputs["Vector"])
-
-    # Mapping coordinates for cleaner
-    mapping = mat_nodes.new("ShaderNodeMapping")
-    mapping.parent = frame
-    mapping.name = "Cleaning Mapping"
-    mapping.location = (pos_x + 4050, -500)
-    mapping.inputs["Location"].default_value = (0.0, 0.0, 0.0)
-    mapping.inputs["Scale"].default_value = (0.7, 0.7, 0.7)
-
-    mat.node_tree.links.new(mapping.outputs["Vector"],
-                            vector_curves.inputs["Vector"])
-
-    mat.node_tree.links.new(reroute_4.outputs[0],
-                            mapping.inputs["Vector"])
-    """
-    # -----------END FINAL CLEANER BRANCH------------
     initial_shape(pos_x + 4050, -500, subtract_final_cleaner, reroute_4, mat, mat_nodes, obj, True)
-
+    # -----------END FINAL CLEANER BRANCH------------
 
     # -------------BEGINNING BUMP BRANCH-------------
     frame = mat_nodes.new(type='NodeFrame')
@@ -835,7 +729,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
 
     mat.node_tree.links.new(voronoi_bump_3.outputs["Distance"],
                             overlay_bump_3.inputs["Color2"])
-                            
+
     # RGB Add - Small wind
     add_small_wind = mat_nodes.new("ShaderNodeMixRGB")
     add_small_wind.parent = frame
@@ -852,7 +746,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
                             voronoi_bump_2.inputs["Vector"])
     mat.node_tree.links.new(add_small_wind.outputs["Color"],
                             voronoi_bump_3.inputs["Vector"])
-                            
+
     # Vector Add - Bump coordinates
     add_coords_bump = mat_nodes.new("ShaderNodeVectorMath")
     add_coords_bump.parent = frame
@@ -864,7 +758,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
 
     mat.node_tree.links.new(add_coords_bump.outputs["Vector"],
                             add_small_wind.inputs["Color1"])
-    
+
     # Vector Subtract - Small wind domain to -0.5 to 0.5
     domain_adjustment_small_wind = mat_nodes.new("ShaderNodeVectorMath")
     domain_adjustment_small_wind.parent = frame
@@ -873,10 +767,10 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     domain_adjustment_small_wind.label = "Vector Subtract - Small wind domain adjustment"
     domain_adjustment_small_wind.operation = "SUBTRACT"
     domain_adjustment_small_wind.inputs[1].default_value = (0.5, 0.5, 0.5)
-    
+
     mat.node_tree.links.new(domain_adjustment_small_wind.outputs["Vector"],
                             add_small_wind.inputs["Color2"])
-    
+
     # Noise Tex - Small wind
     noise_small_wind = mat_nodes.new("ShaderNodeTexNoise")
     noise_small_wind.parent = frame
@@ -896,7 +790,6 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     mat.node_tree.links.new(reroute_3.outputs[0],
                             noise_small_wind.inputs[0])
     # ---------------END BUMP BRANCH-----------------
-
 
     # --------BEGINNING DETAIL NOISE BRANCH----------
     frame = mat_nodes.new(type='NodeFrame')
@@ -949,7 +842,6 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
                             detetail_noise_level_2.inputs["Vector"])
     # -----------END DETAIL NOISE BRANCH-------------
 
-
     # ----------BEGINNING ROUNDNESS BRANCH-----------
     frame = mat_nodes.new(type='NodeFrame')
     frame.name = "Roundness"
@@ -972,7 +864,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
 
     mat.node_tree.links.new(voronoi_roundness.outputs["Distance"],
                             invert_color.inputs["Color"])
-    
+
     # Vector Add - Roundness coord
     add_coords_roundness = mat_nodes.new("ShaderNodeVectorMath")
     add_coords_roundness.parent = frame
@@ -989,7 +881,6 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     mat.node_tree.links.new(reroute_1.outputs[0],
                             add_coords_roundness.inputs[0])
     # -------------END ROUNDNESS BRANCH--------------
-
 
     # -----BEGINNING ADD BIG IMPERFECTION BRANCH-----
     frame = mat_nodes.new(type='NodeFrame')
@@ -1143,7 +1034,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     # ---------------------------------------
     # --------Domain and size config---------
     # ---------------------------------------
-    obj.scale = (0.5, 0.5, 0.5) # Default cube is 2 meters
+    obj.scale = (0.5, 0.5, 0.5)  # Default cube is 2 meters
     C.view_layer.objects.active = obj
     bpy.ops.object.transform_apply(location=False, rotation=False, scale=True, properties=True)
 
@@ -1154,4 +1045,3 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
 
     cube_size = Vector((domain.x / adapted_size.x, domain.y / adapted_size.y, domain.z / adapted_size.z))
     obj.scale = cube_size
-
