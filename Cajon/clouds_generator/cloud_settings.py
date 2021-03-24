@@ -440,31 +440,72 @@ class CloudSettings(bpy.types.PropertyGroup):
     """Custom properties for clouds
 
     Attributes:
-        is_cloud: blabla
-        color:
-        cloud_type:
-        size:
-        domain:
-        domain_cloud_position:
-        density:
-        wind:
-        roundness:
-        roundness_coords:
-        height_single:
-        width_x:
-        width_y:
-        add_shape_imperfection:
-        add_shape_imperfection_coords:
-        subtract_shape_imperfection:
-        subtract_shape_imperfection_coords:
-        detail_bump_strength:
-        detail_bump_levels:
-        detail_noise:
-        cleaner_domain_size:
-        amount_of_clouds:
-        height_cloudscape:
-        cloudscape_cloud_size:
-        cloudscape_noise_coords:
+        is_cloud: The object is a cloud or not. Useful for displaying elements
+            in the interface.
+
+        color: Color of the cloud volume.
+
+        cloud_type: Specific cloud type
+
+        size: Size of the cloud within the domain.
+
+        domain: Size of the domain where the cloud is render.
+            It corresponds to the size of the object.
+
+        domain_cloud_position: Position of the cloud within the domain.
+
+        density: Density of the cloud volume.
+
+        wind: Wind effect strength.
+
+        roundness: Strength of the effect of roughly rounded shapes in
+            the cloud.
+
+        roundness_coords: Mapping coordinates for roundness.
+            Useful to change the shape of roundness, it is used as a seed.
+
+        height_single: Vertical length of cloud for single clouds.
+
+        width_x: Cloud length in X axis for single clouds.
+
+        width_y: Cloud length in Y axis for single clouds.
+
+        add_shape_imperfection: Amount of imperfectons added to the general
+            shape of the cloud.
+
+        add_shape_imperfection_coords: Mapping coordinates for add shape
+            imperfection. Useful to change the shape of imperfections,
+            it is used as a seed.
+
+        subtract_shape_imperfection: Amount of imperfectons subtracted to
+            the general shape of the cloud.
+
+        subtract_shape_imperfection_coords: Mapping coordinates for subtract
+            shape imperfection. Useful to change the shape of imperfections,
+            it is used as a seed.
+
+        detail_bump_strength: Strength of bump rounded effect. Similar to
+            the roundness effect but on a smaller scale to add detail to
+            the cloud.
+
+        detail_bump_levels: Number of bump levels. Each level adds a
+            smaller bump.
+
+        detail_noise: Amount of noise added to the entire cloud.
+
+        cleaner_domain_size: Cleaning domain size. 
+            Useful to clean unwanted noise from areas outside the cloud.
+
+        amount_of_clouds: Amount of clouds in a cloudscape. The less amount
+            of clouds, the more noise is subtracted from the volume.
+
+        height_cloudscape: Vertical length of clouds for cloudscapes.
+
+        cloudscape_cloud_size: Size of the clouds in the cloudscape.
+
+        cloudscape_noise_coords: Mapping coordinates for cloudscape shape.
+            Used as a seed for the noise that shapes the cloudscaoe.
+
     """
     is_cloud: bpy.props.BoolProperty(
         name="Is cloud",
@@ -489,7 +530,7 @@ class CloudSettings(bpy.types.PropertyGroup):
 
     size: bpy.props.FloatProperty(
         name="Cloud size",
-        description="Size of the cloud",
+        description="Size of the cloud within the domain",
         default=10,
         min=0.01,
         update=update_cloud_dimensions
@@ -497,7 +538,8 @@ class CloudSettings(bpy.types.PropertyGroup):
 
     domain: bpy.props.FloatVectorProperty(
         name="Cloud domain size",
-        description="Size of the cloud object, therefore the rendering domain",
+        description="Size of the domain where the cloud is render. " +
+                    "It corresponds to the size of the object",
         subtype="TRANSLATION",
         default=(30.0, 30.0, 30.0),
         update=update_cloud_dimensions
@@ -505,7 +547,7 @@ class CloudSettings(bpy.types.PropertyGroup):
 
     domain_cloud_position: bpy.props.FloatVectorProperty(
         name="Position in domain",
-        description="Position of the cloud inside the domain",
+        description="Position of the cloud within the domain",
         subtype="XYZ",
         default=(0.0, 0.0, 0.0),
         update=update_cloud_domain_cloud_position
@@ -522,7 +564,7 @@ class CloudSettings(bpy.types.PropertyGroup):
 
     wind: bpy.props.FloatProperty(
         name="Cloud wind",
-        description="Wind effect",
+        description="Wind effect strength",
         default=0.0,
         min=0.0,
         max=1.0,
@@ -531,7 +573,8 @@ class CloudSettings(bpy.types.PropertyGroup):
 
     roundness: bpy.props.FloatProperty(
         name="Cloud roundness",
-        description="Roundness of the general shape",
+        description="Strength of the effect of roughly rounded shapes " +
+                    "in the cloud",
         default=0.5,
         min=0.0,
         max=1.0,
@@ -540,7 +583,9 @@ class CloudSettings(bpy.types.PropertyGroup):
 
     roundness_coords: bpy.props.FloatVectorProperty(
         name="Cloud roundness coordinates",
-        description="Mapping coordinates for roundness",
+        description="Mapping coordinates for roundness. " +
+                    "Useful to change the shape of roundness, " +
+                    "it is used as a seed.",
         subtype="XYZ",
         default=(0.0, 0.0, 0.0),
         update=update_cloud_roundness_coords
@@ -548,7 +593,7 @@ class CloudSettings(bpy.types.PropertyGroup):
 
     height_single: bpy.props.FloatProperty(
         name="Cloud height",
-        description="Cloud length vertically",
+        description="Vertical length of cloud for single clouds",
         default=0.3,
         min=0,
         max=1,
@@ -575,7 +620,8 @@ class CloudSettings(bpy.types.PropertyGroup):
 
     add_shape_imperfection: bpy.props.FloatProperty(
         name="Cloud add shape imperfection",
-        description="Add imperfection to the general shape",
+        description="Amount of imperfectons added to the general shape " +
+                    "of the cloud",
         default=0.2,
         min=0.0,
         max=1.0,
@@ -584,7 +630,9 @@ class CloudSettings(bpy.types.PropertyGroup):
 
     add_shape_imperfection_coords: bpy.props.FloatVectorProperty(
         name="Cloud add shape imperfection coordinates",
-        description="Mapping coordinates for add shape imperfection ",
+        description="Mapping coordinates for add shape imperfection. " +
+                    "Useful to change the shape of imperfections, " +
+                    "it is used as a seed.",
         subtype="XYZ",
         default=(0.0, 0.0, 0.0),
         update=update_cloud_add_shape_imperfection_coords
@@ -592,7 +640,8 @@ class CloudSettings(bpy.types.PropertyGroup):
 
     subtract_shape_imperfection: bpy.props.FloatProperty(
         name="Cloud subtract shape imperfection",
-        description="Subtract imperfection to the general shape",
+        description="Amount of imperfectons subtracted to the general shape " +
+                    "of the cloud",
         default=0.1,
         min=0.0,
         max=1.0,
@@ -601,7 +650,9 @@ class CloudSettings(bpy.types.PropertyGroup):
 
     subtract_shape_imperfection_coords: bpy.props.FloatVectorProperty(
         name="Cloud subtract shape imperfection coordinates",
-        description="Mapping coordinates for subtract shape imperfection ",
+        description="Mapping coordinates for subtract shape imperfection. " +
+                    "Useful to change the shape of imperfections, " +
+                    "it is used as a seed.",
         subtype="XYZ",
         default=(5.0, 5.0, 5.0),
         update=update_cloud_subtract_shape_imperfection_coords
@@ -609,7 +660,9 @@ class CloudSettings(bpy.types.PropertyGroup):
 
     detail_bump_strength: bpy.props.FloatProperty(
         name="Cloud detail bump strength",
-        description="Amount of bump effect applied",
+        description="Strength of bump rounded effect. Similar to the " +
+                    "roundness effect but on a smaller scale to add detail " +
+                    "to the cloud",
         default=0.2,
         min=0.0,
         max=1.0,
@@ -618,7 +671,7 @@ class CloudSettings(bpy.types.PropertyGroup):
 
     detail_bump_levels: bpy.props.IntProperty(
         name="Cloud detail bump LOD",
-        description="Number of bump levels",
+        description="Number of bump levels. Each level adds a smaller bump",
         default=3,
         min=1,
         max=3,
@@ -627,7 +680,7 @@ class CloudSettings(bpy.types.PropertyGroup):
 
     detail_noise: bpy.props.FloatProperty(
         name="Detail noise",
-        description="Amount of detail noise effect applied",
+        description="Amount of noise added to the entire cloud",
         default=0.05,
         min=0.0,
         max=1.0,
@@ -636,7 +689,8 @@ class CloudSettings(bpy.types.PropertyGroup):
 
     cleaner_domain_size: bpy.props.FloatProperty(
         name="Cleaner domain size",
-        description="Clean the outsides of the cloud",
+        description="Cleaning domain size. Useful to clean unwanted " +
+                    "noise from areas outside the cloud",
         default=0.06,
         min=0.001,
         max=1.0,
@@ -645,7 +699,8 @@ class CloudSettings(bpy.types.PropertyGroup):
 
     amount_of_clouds: bpy.props.FloatProperty(
         name="Amount of clouds",
-        description="Amount of clouds in cloudscape clouds",
+        description="Amount of clouds in a cloudscape. The less amount " +
+                    "of clouds, the more noise is subtracted from the volume.",
         default=0.4,
         min=0.0,
         max=1.0,
@@ -654,7 +709,7 @@ class CloudSettings(bpy.types.PropertyGroup):
 
     height_cloudscape: bpy.props.FloatProperty(
         name="Cloudscape cloud height",
-        description="Cloudscape length vertically",
+        description="Vertical length of clouds for cloudscapes",
         default=1.2,
         min=0.0,
         soft_max=10.0,
@@ -672,7 +727,8 @@ class CloudSettings(bpy.types.PropertyGroup):
 
     cloudscape_noise_coords: bpy.props.FloatVectorProperty(
         name="Cloud cloudscape noise coordinates",
-        description="Mapping coordinates for cloudscape noise coordinates",
+        description="Mapping coordinates for cloudscape shape. " +
+                    "Used as a seed for the noise that shapes the cloudscaoe.",
         subtype="XYZ",
         default=(0.0, 0.0, 0.0),
         update=update_cloud_cloudscape_noise_coords
