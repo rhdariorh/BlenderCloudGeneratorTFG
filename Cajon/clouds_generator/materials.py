@@ -312,7 +312,7 @@ def initial_shape_cloudscape_cumulus(pos_x, pos_y, out_node, in_node, mat, mat_n
 
     mat.node_tree.links.new(mapping_subtract.outputs["Vector"],
                             gradient_texture_subtract.inputs["Vector"])
-    
+
     # Mapping noise
     mapping_noise = mat_nodes.new("ShaderNodeMapping")
     mapping_noise.parent = frame
@@ -1036,12 +1036,18 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     # ---------------------------------------
     obj.scale = (0.5, 0.5, 0.5)  # Default cube is 2 meters
     C.view_layer.objects.active = obj
-    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True, properties=True)
+    bpy.ops.object.transform_apply(location=False,
+                                   rotation=False,
+                                   scale=True,
+                                   properties=True)
 
     adapted_size = Vector((domain.x/size, domain.y/size, domain.z/size))
     obj.scale = (adapted_size.x, adapted_size.y, adapted_size.z)
-    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True, properties=True)
+    bpy.ops.object.transform_apply(location=False, rotation=False,
+                                   scale=True, properties=True)
     obj.cloud_settings["auxiliar_size_vector"] = adapted_size
 
-    cube_size = Vector((domain.x / adapted_size.x, domain.y / adapted_size.y, domain.z / adapted_size.z))
+    cube_size = Vector((domain.x / adapted_size.x,
+                        domain.y / adapted_size.y,
+                        domain.z / adapted_size.z))
     obj.scale = cube_size

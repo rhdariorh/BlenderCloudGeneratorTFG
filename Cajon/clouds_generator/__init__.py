@@ -21,6 +21,12 @@ bl_info = {
 
 
 class CloudErrorOperator(bpy.types.Operator):
+    """Operator that throws custom errors for clouds.
+
+    Attributes:
+        error_type: Name of the error to be executed.
+    """
+
     bl_idname = "error.cloud_error"
     bl_label = "Cloud Error Operator"
 
@@ -35,7 +41,8 @@ class CloudErrorOperator(bpy.types.Operator):
 
 
 class OBJECT_OT_cloud_single_cumulus(bpy.types.Operator):
-    """Add a single cumulus cloud"""
+    """Operator that generates and add a single cumulus cloud to the scene."""
+
     bl_idname = "object.cloud_add_single_cumulus"
     bl_label = "Generate single cumulus"
     bl_options = {"REGISTER", "UNDO"}
@@ -50,7 +57,8 @@ class OBJECT_OT_cloud_single_cumulus(bpy.types.Operator):
 
 
 class OBJECT_OT_cloud_cloudscape_cumulus(bpy.types.Operator):
-    """Add a cumulus cloudscape"""
+    """Operator that generates and add a cumulus cloudscape to the scene."""
+
     bl_idname = "object.cloud_add_cloudscape_cumulus"
     bl_label = "Generate cumulus cloudscape"
     bl_options = {"REGISTER", "UNDO"}
@@ -65,7 +73,12 @@ class OBJECT_OT_cloud_cloudscape_cumulus(bpy.types.Operator):
 
 
 class OBJECT_PT_cloud(bpy.types.Panel):
-    """Creates a Panel in the scene context of the properties editor"""
+    """Creates a Panel in the scene context of the properties editor.
+
+    It allows the user to modify the different properties of the clouds
+    from the Blender inerface. Inside contains some properties to modify
+    and subpanels. Only displayed for cloud objects.
+    """
     bl_label = "Cloud settings"
     bl_idname = "OBJECT_PT_cloud"
     bl_space_type = 'PROPERTIES'
@@ -88,6 +101,9 @@ class OBJECT_PT_cloud(bpy.types.Panel):
 
 
 class OBJECT_PT_cloud_general(bpy.types.Panel):
+    """Creates a subpanel within cloud panel to modify general properties
+    of the cloud."""
+
     bl_label = "General"
     bl_parent_id = "OBJECT_PT_cloud"
     bl_space_type = 'PROPERTIES'
@@ -112,6 +128,10 @@ class OBJECT_PT_cloud_general(bpy.types.Panel):
 
 
 class OBJECT_PT_cloud_shape(bpy.types.Panel):
+    """Creates a subpanel within cloud panel to modify shape
+    properties of the cloud.
+    """
+
     bl_label = "Shape"
     bl_parent_id = "OBJECT_PT_cloud"
     bl_space_type = 'PROPERTIES'
@@ -136,6 +156,10 @@ class OBJECT_PT_cloud_shape(bpy.types.Panel):
 
 
 class OBJECT_PT_cloud_shape_roundness(bpy.types.Panel):
+    """Creates a subpanel within shape panel to modify roundness
+    properties of the cloud.
+    """
+
     bl_label = "Roundness"
     bl_parent_id = "OBJECT_PT_cloud_shape"
     bl_space_type = 'PROPERTIES'
@@ -156,6 +180,10 @@ class OBJECT_PT_cloud_shape_roundness(bpy.types.Panel):
 
 
 class OBJECT_PT_cloud_shape_add_imperfection(bpy.types.Panel):
+    """Creates a subpanel within shape panel to modify the addition
+    of imperfection properties of the cloud.
+    """
+
     bl_label = "Add imperfection"
     bl_parent_id = "OBJECT_PT_cloud_shape"
     bl_space_type = 'PROPERTIES'
@@ -176,6 +204,10 @@ class OBJECT_PT_cloud_shape_add_imperfection(bpy.types.Panel):
 
 
 class OBJECT_PT_cloud_shape_subtract_imperfection(bpy.types.Panel):
+    """Creates a subpanel within shape panel to modify the subtraction
+    of imperfection properties of the cloud.
+    """
+
     bl_label = "Subtract imperfection"
     bl_parent_id = "OBJECT_PT_cloud_shape"
     bl_space_type = 'PROPERTIES'
@@ -196,6 +228,10 @@ class OBJECT_PT_cloud_shape_subtract_imperfection(bpy.types.Panel):
 
 
 class OBJECT_PT_cloud_detail(bpy.types.Panel):
+    """Creates a subpanel within cloud panel to modify detail shapes
+    properties of the cloud.
+    """
+
     bl_label = "Detail"
     bl_parent_id = "OBJECT_PT_cloud"
     bl_space_type = 'PROPERTIES'
@@ -217,6 +253,12 @@ class OBJECT_PT_cloud_detail(bpy.types.Panel):
 
 
 class OBJECT_PT_cloud_extra(bpy.types.Panel):
+    """Creates a subpanel within cloud panel to modify extra
+    properties of the cloud.
+
+    The properties displayed in this panel do not fit in the rest
+    ot the panels.
+    """
     bl_label = "Extra"
     bl_parent_id = "OBJECT_PT_cloud"
     bl_space_type = 'PROPERTIES'
@@ -238,6 +280,10 @@ class OBJECT_PT_cloud_extra(bpy.types.Panel):
 
 
 class VIEW3D_MT_cloud_add(bpy.types.Menu):
+    """Add operator buttons in the 'View 3D -> add -> Volume' menu.
+
+    Allows the user to add any type of cloud in a direct way.
+    """
     bl_idname = "VIEW3D_MT_cloud_add"
     bl_label = "Cloud"
 
@@ -252,11 +298,13 @@ class VIEW3D_MT_cloud_add(bpy.types.Menu):
 
 
 def add_menu_cloud(self, context):
+    """Adds a submenu Cloud"""
     self.layout.separator()
     self.layout.menu("VIEW3D_MT_cloud_add", text="Cloud", icon="OUTLINER_OB_VOLUME")
 
 
 def register():
+    """Register classes and do other necessary tasks when registering the Addon."""
     bpy.utils.register_class(CloudErrorOperator)
     bpy.utils.register_class(CloudSettings)
     bpy.utils.register_class(OBJECT_OT_cloud_single_cumulus) 
@@ -285,6 +333,9 @@ def register():
 
 
 def unregister():
+    """Unregister classes and do other necessary tasks when unregistering
+    the Addon.
+    """
     bpy.utils.unregister_class(CloudErrorOperator)
     bpy.utils.unregister_class(CloudSettings)
     bpy.utils.unregister_class(OBJECT_OT_cloud_single_cumulus)
