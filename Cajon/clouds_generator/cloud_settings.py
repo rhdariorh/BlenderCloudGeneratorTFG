@@ -2,17 +2,6 @@ import bpy
 from mathutils import Vector
 from math import sin, cos, pi
 
-"""Small description.
-
-Large description...
-
-Args:
-    arg_name:
-    argument description.
-
-Returns:
-    Description.
-"""
 
 def update_cloud_dimensions(self, context):
     """Cloud dimensions update function.
@@ -151,13 +140,13 @@ def update_cloud_height_single(self, context):
 
     obj = context.active_object
     cloud_type = obj.cloud_settings.cloud_type
-    height_single = 1 - obj.cloud_settings.height_single
-    # Angle formed with the join point of the curve
-    angle = ((pi/2 - 0.5) * height_single) + 0.3
     material = bpy.context.active_object.active_material
     if "CloudMaterial_CG" not in material.name:
         bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
     elif (cloud_type == "SINGLE_CUMULUS"):
+        height_single = 1 - obj.cloud_settings.height_single
+        # Angle formed with the join point of the curve
+        angle = ((pi/2 - 0.5) * height_single) + 0.3
         direction = Vector((0, 0))
         direction.x = 0.3*cos(angle)
         direction.y = 0.3*sin(angle)
@@ -403,11 +392,11 @@ def update_cloud_cloudscape_noise_coords(self, context):
 
     obj = context.active_object
     cloud_type = obj.cloud_settings.cloud_type
-    cloudscape_noise_coords = obj.cloud_settings.cloudscape_noise_coords
     material = bpy.context.active_object.active_material
     if "CloudMaterial_CG" not in material.name:
         bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
     elif (cloud_type == "CLOUDSCAPE_CUMULUS"):
+        cloudscape_noise_coords = obj.cloud_settings.cloudscape_noise_coords
         mapping_noise = material.node_tree.nodes.get("Initial Shape Mapping Noise")
         mapping_noise.inputs["Location"].default_value = cloudscape_noise_coords
 
@@ -424,17 +413,59 @@ def update_cloud_height_cloudscape(self, context):
 
     obj = context.active_object
     cloud_type = obj.cloud_settings.cloud_type
-    height_cloudscape = obj.cloud_settings.height_cloudscape
     material = bpy.context.active_object.active_material
     if "CloudMaterial_CG" not in material.name:
         bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
     elif (cloud_type == "CLOUDSCAPE_CUMULUS"):
+        height_cloudscape = obj.cloud_settings.height_cloudscape
         mapping_subtract = material.node_tree.nodes.get("Initial Shape Mapping Subtract")
         mapping_subtract.inputs["Location"].default_value = (-height_cloudscape, 0.0, 0.0)
 
         mapping_subtract = material.node_tree.nodes.get("Final Cleaner Mapping Subtract")
         mapping_subtract.inputs["Location"].default_value = (-height_cloudscape, 0.0, 0.0)
 
+
+def update_cloud_use_shape_texture(self, context):
+    """Use image texture shape update function.
+
+    Changes needed if a image texture is to be used or not
+    to shape a cloudscape.
+    """
+
+    obj = context.active_object
+    cloud_type = obj.cloud_settings.cloud_type
+    material = bpy.context.active_object.active_material
+    if "CloudMaterial_CG" not in material.name:
+        bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
+    elif (cloud_type == "CLOUDSCAPE_CUMULUS"):
+        use_shape_texture = obj.cloud_settings.use_shape_texture
+        texture_image_shape_multiply_cl = material.node_tree.nodes.get("RGB Multiply - Texture image shape Final Cleaner")
+        texture_image_shape_multiply = material.node_tree.nodes.get("RGB Multiply - Texture image shape")
+        if use_shape_texture:
+            texture_image_shape_multiply_cl.inputs["Fac"].default_value = 1.0
+            texture_image_shape_multiply.inputs["Fac"].default_value = 1.0
+        else:
+            texture_image_shape_multiply_cl.inputs["Fac"].default_value = 0.0
+            texture_image_shape_multiply.inputs["Fac"].default_value = 0.0
+
+def update_cloud_shape_texture_image(self, context):
+    """Image for shape cloudscape update function.
+
+    Changes needed if the image texture to shape a cloudscape
+    is modified.
+    """
+
+    obj = context.active_object
+    cloud_type = obj.cloud_settings.cloud_type
+    material = bpy.context.active_object.active_material
+    if "CloudMaterial_CG" not in material.name:
+        bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
+    elif (cloud_type == "CLOUDSCAPE_CUMULUS"):
+        shape_texture_image = obj.cloud_settings.shape_texture_image
+        image_texture_shape = material.node_tree.nodes.get("Image texture - Shape of cloud")
+        image_texture_shape.image = shape_texture_image
+        image_texture_shape = material.node_tree.nodes.get("Image texture - Shape of cloud Final Cleaner")
+        image_texture_shape.image = shape_texture_image
 
 class CloudSettings(bpy.types.PropertyGroup):
     """Custom properties for clouds
@@ -505,6 +536,11 @@ class CloudSettings(bpy.types.PropertyGroup):
 
         cloudscape_noise_coords: Mapping coordinates for cloudscape shape.
             Used as a seed for the noise that shapes the cloudscaoe.
+
+        use_shape_texture: Indicates if a image texture is used to shape
+            the cloudscape.
+
+        shape_texture_image: Image used to shape a cloud with a Image Texture.
 
     """
     is_cloud: bpy.props.BoolProperty(
@@ -728,8 +764,23 @@ class CloudSettings(bpy.types.PropertyGroup):
     cloudscape_noise_coords: bpy.props.FloatVectorProperty(
         name="Cloud cloudscape noise coordinates",
         description="Mapping coordinates for cloudscape shape. " +
-                    "Used as a seed for the noise that shapes the cloudscaoe.",
+                    "Used as a seed for the noise that shapes the cloudscape",
         subtype="XYZ",
         default=(0.0, 0.0, 0.0),
         update=update_cloud_cloudscape_noise_coords
+    )
+
+    use_shape_texture: bpy.props.BoolProperty(
+        name="To use texture shape",
+        description="Indicates if a image texture is used to shape " +
+        "the cloudscape",
+        default=False,
+        update=update_cloud_use_shape_texture
+    )
+
+    shape_texture_image: bpy.props.PointerProperty(
+        name="Shape texture image",
+        description="Image used to shape a cloud with a Image Texture",
+        type=bpy.types.Image,
+        update=update_cloud_shape_texture_image
     )

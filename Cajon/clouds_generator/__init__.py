@@ -153,6 +153,9 @@ class OBJECT_PT_cloud_shape(bpy.types.Panel):
                 column.prop(cloud_settings, "width_y", text="Width Y")
             elif(cloud_settings.cloud_type == "CLOUDSCAPE_CUMULUS"):
                 column.prop(cloud_settings, "height_cloudscape", text="Height")
+                column.prop(cloud_settings, "use_shape_texture", text="Use shape texture")
+                if cloud_settings.use_shape_texture:
+                    column.template_ID(cloud_settings, "shape_texture_image", new="image.new", open="image.open")
 
 
 class OBJECT_PT_cloud_shape_roundness(bpy.types.Panel):
