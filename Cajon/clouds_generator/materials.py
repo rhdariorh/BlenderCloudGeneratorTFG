@@ -477,27 +477,27 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
 
     # Reroutes
     reroute_1 = mat_nodes.new(type='NodeReroute')
-    reroute_1.location = (pos_x + 1100, pos_y - 1500)
+    reroute_1.location = (pos_x + 1400, pos_y - 1500)
 
     reroute_2 = mat_nodes.new(type='NodeReroute')
-    reroute_2.location = (pos_x + 1300, pos_y - 2300)
+    reroute_2.location = (pos_x + 1400, pos_y - 2300)
 
     reroute_3 = mat_nodes.new(type='NodeReroute')
-    reroute_3.location = (pos_x + 2300, pos_y - 2300)
+    reroute_3.location = (pos_x + 2600, pos_y - 2300)
 
     reroute_4 = mat_nodes.new(type='NodeReroute')
-    reroute_4.location = (pos_x + 3800, pos_y - 2300)
+    reroute_4.location = (pos_x + 4100, pos_y - 2300)
 
     # -------------BEGINNING MAIN BRANCH-------------
     # Material Output
     material_output = mat_nodes.new("ShaderNodeOutputMaterial")
     material_output.name = "Cloud Output"
-    material_output.location = (pos_x + 6050, pos_y)
+    material_output.location = (pos_x + 6350, pos_y)
 
     # Principled Volume
     principled_volume = mat_nodes.new("ShaderNodeVolumePrincipled")
     principled_volume.name = "Cloud Principled Volume"
-    principled_volume.location = (pos_x + 5750, pos_y)
+    principled_volume.location = (pos_x + 6050, pos_y)
     principled_volume.inputs["Color"].default_value = (1, 1, 1, 1)
 
     # Connection between Principled Volume and Material Output.
@@ -508,7 +508,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     color_ramp_density = mat_nodes.new("ShaderNodeValToRGB")
     color_ramp_density.name = "ColorRamp - Cloud Density"
     color_ramp_density.label = "ColorRamp - Cloud Density"
-    color_ramp_density.location = (pos_x + 5450, pos_y)
+    color_ramp_density.location = (pos_x + 5750, pos_y)
     color_ramp_density.color_ramp.interpolation = 'CONSTANT'
     elem = color_ramp_density.color_ramp.elements[0]
     elem.position = 0.2
@@ -525,7 +525,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     subtract_final_cleaner = mat_nodes.new("ShaderNodeMixRGB")
     subtract_final_cleaner.name = "RGB Subtract - Final Cleaner"
     subtract_final_cleaner.label = "RGB Subtract - Final Cleaner"
-    subtract_final_cleaner.location = (pos_x + 5250, pos_y)
+    subtract_final_cleaner.location = (pos_x + 5550, pos_y)
     subtract_final_cleaner.blend_type = "SUBTRACT"
     subtract_final_cleaner.inputs["Fac"].default_value = 1.0
 
@@ -536,7 +536,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     overlay_detail_noise = mat_nodes.new("ShaderNodeMixRGB")
     overlay_detail_noise.name = "RGB Overlay - Noise"
     overlay_detail_noise.label = "RGB Overlay - Noise"
-    overlay_detail_noise.location = (pos_x + 4050, pos_y)
+    overlay_detail_noise.location = (pos_x + 4350, pos_y)
     overlay_detail_noise.blend_type = "OVERLAY"
     detail_noise = obj.cloud_settings.detail_noise
     overlay_detail_noise.inputs["Fac"].default_value = detail_noise
@@ -548,7 +548,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     multiply_bump = mat_nodes.new("ShaderNodeMixRGB")
     multiply_bump.name = "RGB Multiply - Bump"
     multiply_bump.label = "RGB Multiply - Bump"
-    multiply_bump.location = (pos_x + 3850, pos_y)
+    multiply_bump.location = (pos_x + 4150, pos_y)
     multiply_bump.blend_type = "MULTIPLY"
     detail_bump_strength = obj.cloud_settings.detail_bump_strength
     multiply_bump.inputs["Fac"].default_value = detail_bump_strength
@@ -558,7 +558,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
 
     # Vector Multiply - Simple cleaner
     multiply_cleaner = mat_nodes.new("ShaderNodeVectorMath")
-    multiply_cleaner.location = (pos_x + 3200, pos_y)
+    multiply_cleaner.location = (pos_x + 3500, pos_y)
     multiply_cleaner.name = "Vector Multiply - Simple cleaner"
     multiply_cleaner.label = "Vector Multiply - Simple cleaner"
     multiply_cleaner.operation = "MULTIPLY"
@@ -574,7 +574,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     # Greater Than
     length_greater_than = mat_nodes.new("ShaderNodeMath")
     length_greater_than.parent = frame
-    length_greater_than.location = (pos_x + 2950, pos_y - 200)
+    length_greater_than.location = (pos_x + 3250, pos_y - 200)
     length_greater_than.operation = "GREATER_THAN"
     length_greater_than.inputs[1].default_value = 0.520
 
@@ -583,7 +583,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     # Vector Length
     lenght = mat_nodes.new("ShaderNodeVectorMath")
     lenght.parent = frame
-    lenght.location = (pos_x + 2750, pos_y - 200)
+    lenght.location = (pos_x + 3050, pos_y - 200)
     lenght.operation = "LENGTH"
 
     mat.node_tree.links.new(lenght.outputs["Value"],
@@ -595,7 +595,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     subtract_imperfection = mat_nodes.new("ShaderNodeMixRGB")
     subtract_imperfection.name = "RGB Subtract - Shape imperfection"
     subtract_imperfection.label = "RGB Subtract - Shape imperfection"
-    subtract_imperfection.location = (pos_x + 2350, pos_y)
+    subtract_imperfection.location = (pos_x + 2650, pos_y)
     subtract_imperfection.blend_type = "SUBTRACT"
     subtract_shape_imperfection = obj.cloud_settings.subtract_shape_imperfection
     subtract_imperfection.inputs["Fac"].default_value = subtract_shape_imperfection
@@ -609,7 +609,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     add_imperfection = mat_nodes.new("ShaderNodeMixRGB")
     add_imperfection.name = "RGB Add - Shape imperfection"
     add_imperfection.label = "RGB Add - Shape imperfection"
-    add_imperfection.location = (pos_x + 2150, pos_y)
+    add_imperfection.location = (pos_x + 2450, pos_y)
     add_imperfection.blend_type = "ADD"
     add_shape_imperfection = obj.cloud_settings.add_shape_imperfection
     add_imperfection.inputs["Fac"].default_value = add_shape_imperfection
@@ -621,7 +621,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     overlay_roundness = mat_nodes.new("ShaderNodeMixRGB")
     overlay_roundness.name = "RGB Overlay - Roundness"
     overlay_roundness.label = "RGB Overlay - Roundness"
-    overlay_roundness.location = (pos_x + 1950, pos_y)
+    overlay_roundness.location = (pos_x + 2250, pos_y)
     overlay_roundness.blend_type = "OVERLAY"
     roundness = obj.cloud_settings.roundness
     overlay_roundness.inputs["Fac"].default_value = roundness
@@ -629,38 +629,44 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     mat.node_tree.links.new(overlay_roundness.outputs["Color"],
                             add_imperfection.inputs["Color1"])
 
-    # RGB Add - Shape wind
-    add_shape_wind = mat_nodes.new("ShaderNodeMixRGB")
-    add_shape_wind.name = "RGB Add - Shape wind"
-    add_shape_wind.label = "RGB Add - Shape wind"
-    add_shape_wind.location = (pos_x + 900, pos_y)
-    add_shape_wind.blend_type = "ADD"
-    wind = obj.cloud_settings.wind
-    add_shape_wind.inputs["Fac"].default_value = wind
-
-    mat.node_tree.links.new(add_shape_wind.outputs["Color"],
-                            reroute_1.inputs[0])
-
     # Following the order here, the initial_shape function should be here
     # but it is called after "Texture Coordinate" because this is needed.
 
-    # Cleaning material
-    mat_nodes = mat.node_tree.nodes
-    # Vector Subtract - Shape wind domain to -0.5 to 0.5
+    # BEGINNING WIND FRAME
+    frame = mat_nodes.new(type='NodeFrame')
+    frame.name = "Wind"
+    frame.label = "Wind"
+
+    # RGB Add - Shape wind small turbulence
+    add_shape_wind_small = mat_nodes.new("ShaderNodeMixRGB")
+    add_shape_wind_small.parent = frame
+    add_shape_wind_small.name = "RGB Add - Shape wind small turbulence"
+    add_shape_wind_small.label = "RGB Add - Shape wind small turbulence"
+    add_shape_wind_small.location = (pos_x + 900, pos_y)
+    add_shape_wind_small.blend_type = "ADD"
+    wind = obj.cloud_settings.wind
+    add_shape_wind_small.inputs["Fac"].default_value = wind
+
+    mat.node_tree.links.new(add_shape_wind_small.outputs["Color"],
+                            reroute_1.inputs[0])
+
+    # Vector Subtract - Shape wind small turbulence domain to -0.5 to 0.5
     domain_adjustment_shape_wind = mat_nodes.new("ShaderNodeVectorMath")
+    domain_adjustment_shape_wind.parent = frame
     domain_adjustment_shape_wind.location = (pos_x + 700, pos_y - 150)
-    domain_adjustment_shape_wind.name = "Vector Subtract - Shape wind domain adjustment"
-    domain_adjustment_shape_wind.label = "Vector Subtract - Shape wind domain adjustment"
+    domain_adjustment_shape_wind.name = "Vector Subtract - Shape wind small turbulence domain adjustment"
+    domain_adjustment_shape_wind.label = "Vector Subtract - Shape wind small turbulence domain adjustment"
     domain_adjustment_shape_wind.operation = "SUBTRACT"
     domain_adjustment_shape_wind.inputs[1].default_value = (0.5, 0.5, 0.5)
 
     mat.node_tree.links.new(domain_adjustment_shape_wind.outputs["Vector"],
-                            add_shape_wind.inputs["Color2"])
+                            add_shape_wind_small.inputs["Color2"])
 
-    # Noise Tex - Shape wind
+    # Noise Tex - Shape wind small turbulence 
     noise_shape_wind = mat_nodes.new("ShaderNodeTexNoise")
-    noise_shape_wind.name = "Noise Tex - Shape wind"
-    noise_shape_wind.label = "Noise Tex - Shape wind"
+    noise_shape_wind.parent = frame
+    noise_shape_wind.name = "Noise Tex - Shape wind small turbulence"
+    noise_shape_wind.label = "Noise Tex - Shape wind small turbulence"
     noise_shape_wind.location = (pos_x + 500, pos_y - 150)
     noise_shape_wind.inputs["Scale"].default_value = 1.5
     noise_shape_wind.inputs["Detail"].default_value = 0.0
@@ -670,6 +676,8 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     mat.node_tree.links.new(noise_shape_wind.outputs["Fac"],
                             domain_adjustment_shape_wind.inputs[0])
 
+    # END WIND FRAME
+
     # Initial mapping
     initial_mapping = mat_nodes.new("ShaderNodeMapping")
     initial_mapping.name = "Initial mapping"
@@ -678,21 +686,21 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     initial_mapping.inputs["Location"].default_value = domain_cloud_position
 
     mat.node_tree.links.new(initial_mapping.outputs["Vector"],
-                            add_shape_wind.inputs["Color1"])
+                            add_shape_wind_small.inputs["Color1"])
     mat.node_tree.links.new(initial_mapping.outputs["Vector"],
                             noise_shape_wind.inputs["Vector"])
 
     # Texture Coordinate
     texture_coordinate = mat_nodes.new("ShaderNodeTexCoord")
-    texture_coordinate.location = (pos_x + 0, pos_y)
+    texture_coordinate.location = (pos_x, pos_y)
     mat.node_tree.links.new(texture_coordinate.outputs["Object"],
                             initial_mapping.inputs["Vector"])
 
-    initial_shape(pos_x + 1200, pos_y + 200, texture_coordinate, overlay_roundness, add_shape_wind, mat, mat_nodes, obj, False)
+    initial_shape(pos_x + 1500, pos_y + 200, texture_coordinate, overlay_roundness, add_shape_wind_small, mat, mat_nodes, obj, False)
 
     # ----------------END MAIN BRANCH----------------
 
-    mat.node_tree.links.new(initial_mapping.outputs["Vector"],
+    mat.node_tree.links.new(add_shape_wind_small.outputs["Color"],
                             reroute_2.inputs[0])
     mat.node_tree.links.new(reroute_2.outputs[0],
                             reroute_3.inputs[0])
@@ -700,7 +708,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
                             reroute_4.inputs[0])
 
     # --------BEGINNING FINAL CLEANER BRANCH---------
-    initial_shape(pos_x + 4050, pos_y - 500, texture_coordinate, subtract_final_cleaner, reroute_4, mat, mat_nodes, obj, True)
+    initial_shape(pos_x + 4350, pos_y - 500, texture_coordinate, subtract_final_cleaner, reroute_4, mat, mat_nodes, obj, True)
     # -----------END FINAL CLEANER BRANCH------------
 
     # -------------BEGINNING BUMP BRANCH-------------
@@ -711,7 +719,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     # Invert color
     invert_color = mat_nodes.new("ShaderNodeInvert")
     invert_color.parent = frame
-    invert_color.location = (pos_x + 3550, pos_y - 500)
+    invert_color.location = (pos_x + 3850, pos_y - 500)
     mat.node_tree.links.new(invert_color.outputs["Color"],
                             multiply_bump.inputs["Color2"])
     # RGB Overlay - Bump level 3
@@ -719,7 +727,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     overlay_bump_3.parent = frame
     overlay_bump_3.name = "RGB Overlay - Bump level 3"
     overlay_bump_3.label = "RGB Overlay - Bump level 3"
-    overlay_bump_3.location = (pos_x + 3350, pos_y - 500)
+    overlay_bump_3.location = (pos_x + 3650, pos_y - 500)
     overlay_bump_3.blend_type = "OVERLAY"
 
     mat.node_tree.links.new(overlay_bump_3.outputs["Color"],
@@ -730,7 +738,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     overlay_bump_2.parent = frame
     overlay_bump_2.name = "RGB Overlay - Bump level 2"
     overlay_bump_2.label = "RGB Overlay - Bump level 2"
-    overlay_bump_2.location = (pos_x + 3150, pos_y - 500)
+    overlay_bump_2.location = (pos_x + 3450, pos_y - 500)
     overlay_bump_2.blend_type = "OVERLAY"
 
     mat.node_tree.links.new(overlay_bump_2.outputs["Color"],
@@ -752,7 +760,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     voronoi_bump_1.parent = frame
     voronoi_bump_1.name = "Voronoi tex - Bump level 1"
     voronoi_bump_1.label = "Voronoi tex - Bump level 1"
-    voronoi_bump_1.location = (pos_x + 2950, pos_y - 500)
+    voronoi_bump_1.location = (pos_x + 3250, pos_y - 500)
 
     mat.node_tree.links.new(voronoi_bump_1.outputs["Distance"],
                             overlay_bump_2.inputs["Color1"])
@@ -762,7 +770,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     voronoi_bump_2.parent = frame
     voronoi_bump_2.name = "Voronoi tex - Bump level 2"
     voronoi_bump_2.label = "Voronoi tex - Bump level 2"
-    voronoi_bump_2.location = (pos_x + 2950, pos_y - 800)
+    voronoi_bump_2.location = (pos_x + 3250, pos_y - 800)
     voronoi_bump_2.inputs["Scale"].default_value = 10.3
 
     mat.node_tree.links.new(voronoi_bump_2.outputs["Distance"],
@@ -773,7 +781,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     voronoi_bump_3.parent = frame
     voronoi_bump_3.name = "Voronoi tex - Bump level 3"
     voronoi_bump_3.label = "Voronoi tex - Bump level 3"
-    voronoi_bump_3.location = (pos_x + 2950, pos_y - 1100)
+    voronoi_bump_3.location = (pos_x + 3250, pos_y - 1100)
     voronoi_bump_3.inputs["Scale"].default_value = 30.0
 
     mat.node_tree.links.new(voronoi_bump_3.outputs["Distance"],
@@ -784,7 +792,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     add_small_wind.parent = frame
     add_small_wind.name = "RGB Add - Small wind"
     add_small_wind.label = "RGB Add - Small wind"
-    add_small_wind.location = (pos_x + 2750, pos_y - 950)
+    add_small_wind.location = (pos_x + 3050, pos_y - 950)
     add_small_wind.blend_type = "ADD"
     wind = obj.cloud_settings.wind
     add_small_wind.inputs["Fac"].default_value = wind
@@ -799,7 +807,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     # Vector Add - Bump coordinates
     add_coords_bump = mat_nodes.new("ShaderNodeVectorMath")
     add_coords_bump.parent = frame
-    add_coords_bump.location = (pos_x + 2350, pos_y - 800)
+    add_coords_bump.location = (pos_x + 2650, pos_y - 800)
     add_coords_bump.name = "Vector Add - Bump coordinates"
     add_coords_bump.label = "Vector Add - Bump coordinates"
     add_coords_bump.operation = "ADD"
@@ -811,7 +819,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     # Vector Subtract - Small wind domain to -0.5 to 0.5
     domain_adjustment_small_wind = mat_nodes.new("ShaderNodeVectorMath")
     domain_adjustment_small_wind.parent = frame
-    domain_adjustment_small_wind.location = (pos_x + 2550, pos_y - 1100)
+    domain_adjustment_small_wind.location = (pos_x + 2850, pos_y - 1100)
     domain_adjustment_small_wind.name = "Vector Subtract - Small wind domain adjustment"
     domain_adjustment_small_wind.label = "Vector Subtract - Small wind domain adjustment"
     domain_adjustment_small_wind.operation = "SUBTRACT"
@@ -825,7 +833,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     noise_small_wind.parent = frame
     noise_small_wind.name = "Noise Tex - Small wind"
     noise_small_wind.label = "Noise Tex - Small wind"
-    noise_small_wind.location = (pos_x + 2350, pos_y - 1100)
+    noise_small_wind.location = (pos_x + 2650, pos_y - 1100)
     noise_small_wind.inputs["Scale"].default_value = 0.7
     noise_small_wind.inputs["Detail"].default_value = 0.0
     noise_small_wind.inputs["Roughness"].default_value = 0.0
@@ -850,7 +858,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     overlay_noise_combine.parent = frame
     overlay_noise_combine.name = "RGB Overlay - Detail noise combined"
     overlay_noise_combine.label = "RGB Overlay - Detail noise combined"
-    overlay_noise_combine.location = (pos_x + 3550, pos_y - 1500)
+    overlay_noise_combine.location = (pos_x + 3850, pos_y - 1500)
     overlay_noise_combine.blend_type = "OVERLAY"
     overlay_noise_combine.inputs["Fac"].default_value = 1.0
 
@@ -862,7 +870,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     detetail_noise_level_1.parent = frame
     detetail_noise_level_1.name = "Noise Tex - Detail noise level 1"
     detetail_noise_level_1.label = "Noise Tex - Detail noise level 1"
-    detetail_noise_level_1.location = (pos_x + 3350, pos_y - 1500)
+    detetail_noise_level_1.location = (pos_x + 3650, pos_y - 1500)
     detetail_noise_level_1.inputs["Scale"].default_value = 12.4
     detetail_noise_level_1.inputs["Detail"].default_value = 2.6
     detetail_noise_level_1.inputs["Roughness"].default_value = 1.0
@@ -876,7 +884,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     detetail_noise_level_2.parent = frame
     detetail_noise_level_2.name = "Noise Tex - Detail noise level 2"
     detetail_noise_level_2.label = "Noise Tex - Detail noise level 2"
-    detetail_noise_level_2.location = (pos_x + 3350, pos_y - 1800)
+    detetail_noise_level_2.location = (pos_x + 3650, pos_y - 1800)
     detetail_noise_level_2.inputs["Scale"].default_value = 12.4
     detetail_noise_level_2.inputs["Detail"].default_value = 6.0
     detetail_noise_level_2.inputs["Roughness"].default_value = 1.0
@@ -899,7 +907,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     # Invert color
     invert_color = mat_nodes.new("ShaderNodeInvert")
     invert_color.parent = frame
-    invert_color.location = (pos_x + 1700, pos_y - 500)
+    invert_color.location = (pos_x + 2000, pos_y - 500)
     mat.node_tree.links.new(invert_color.outputs["Color"],
                             overlay_roundness.inputs["Color2"])
 
@@ -908,7 +916,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     voronoi_roundness.parent = frame
     voronoi_roundness.name = "Voronoi tex - Roundness"
     voronoi_roundness.label = "Voronoi tex - Roundness"
-    voronoi_roundness.location = (pos_x + 1500, pos_y - 500)
+    voronoi_roundness.location = (pos_x + 1800, pos_y - 500)
     voronoi_roundness.inputs["Scale"].default_value = 2.0
 
     mat.node_tree.links.new(voronoi_roundness.outputs["Distance"],
@@ -917,7 +925,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     # Vector Add - Roundness coord
     add_coords_roundness = mat_nodes.new("ShaderNodeVectorMath")
     add_coords_roundness.parent = frame
-    add_coords_roundness.location = (pos_x + 1300, pos_y - 500)
+    add_coords_roundness.location = (pos_x + 1600, pos_y - 500)
     add_coords_roundness.name = "Vector Add - Roundness coord"
     add_coords_roundness.label = "Vector Add - Roundness coord"
     add_coords_roundness.operation = "ADD"
@@ -941,7 +949,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     color_burn_noises.parent = frame
     color_burn_noises.name = "RGB Color Burn - Combine noises"
     color_burn_noises.label = "RGB Color Burn - Combine noises"
-    color_burn_noises.location = (pos_x + 1700, pos_y - 900)
+    color_burn_noises.location = (pos_x + 2000, pos_y - 900)
     color_burn_noises.blend_type = "BURN"
     color_burn_noises.inputs["Fac"].default_value = 1.0
 
@@ -953,7 +961,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     noise_add_shape_imperfection_1.parent = frame
     noise_add_shape_imperfection_1.name = "Noise Tex - Add shape imperfection 1"
     noise_add_shape_imperfection_1.label = "Noise Tex - Add shape imperfection 1"
-    noise_add_shape_imperfection_1.location = (pos_x + 1500, pos_y - 900)
+    noise_add_shape_imperfection_1.location = (pos_x + 1800, pos_y - 900)
     noise_add_shape_imperfection_1.inputs["Scale"].default_value = 1.9
     noise_add_shape_imperfection_1.inputs["Detail"].default_value = 0.0
     noise_add_shape_imperfection_1.inputs["Roughness"].default_value = 0.0
@@ -966,7 +974,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     noise_add_shape_imperfection_2.parent = frame
     noise_add_shape_imperfection_2.name = "Noise Tex - Add shape imperfection 1"
     noise_add_shape_imperfection_2.label = "Noise Tex - Add shape imperfection 1"
-    noise_add_shape_imperfection_2.location = (pos_x + 1500, pos_y - 1150)
+    noise_add_shape_imperfection_2.location = (pos_x + 1800, pos_y - 1150)
     noise_add_shape_imperfection_2.inputs["Scale"].default_value = 1.9
     noise_add_shape_imperfection_2.inputs["Detail"].default_value = 16.0
     noise_add_shape_imperfection_2.inputs["Roughness"].default_value = 0.0
@@ -978,7 +986,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     # Vector Add - Coords add shape imperfection 1
     coords_add_shape_imperfection_1 = mat_nodes.new("ShaderNodeVectorMath")
     coords_add_shape_imperfection_1.parent = frame
-    coords_add_shape_imperfection_1.location = (pos_x + 1300, pos_y - 900)
+    coords_add_shape_imperfection_1.location = (pos_x + 1600, pos_y - 900)
     coords_add_shape_imperfection_1.name = "Vector Add - Coords add shape imperfection 1"
     coords_add_shape_imperfection_1.label = "Vector Add - Coords add shape imperfection 1"
     coords_add_shape_imperfection_1.operation = "ADD"
@@ -993,7 +1001,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     # Vector Add - Coords add shape imperfection 2
     coords_add_shape_imperfection_2 = mat_nodes.new("ShaderNodeVectorMath")
     coords_add_shape_imperfection_2.parent = frame
-    coords_add_shape_imperfection_2.location = (pos_x + 1300, pos_y - 1150)
+    coords_add_shape_imperfection_2.location = (pos_x + 1600, pos_y - 1150)
     coords_add_shape_imperfection_2.name = "Vector Add - Coords add shape imperfection 2"
     coords_add_shape_imperfection_2.label = "Vector Add - Coords add shape imperfection 2"
     coords_add_shape_imperfection_2.operation = "ADD"
@@ -1016,7 +1024,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     color_burn_noises.parent = frame
     color_burn_noises.name = "RGB Color Burn - Combine noises"
     color_burn_noises.label = "RGB Color Burn - Combine noises"
-    color_burn_noises.location = (pos_x + 1700, pos_y - 1500)
+    color_burn_noises.location = (pos_x + 2000, pos_y - 1500)
     color_burn_noises.blend_type = "BURN"
     color_burn_noises.inputs["Fac"].default_value = 1.0
 
@@ -1028,7 +1036,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     noise_subtract_shape_imperfection_1.parent = frame
     noise_subtract_shape_imperfection_1.name = "Noise Tex - Subtract shape imperfection 1"
     noise_subtract_shape_imperfection_1.label = "Noise Tex - Subtract shape imperfection 1"
-    noise_subtract_shape_imperfection_1.location = (pos_x + 1500, pos_y - 1500)
+    noise_subtract_shape_imperfection_1.location = (pos_x + 1800, pos_y - 1500)
     noise_subtract_shape_imperfection_1.inputs["Scale"].default_value = 1.9
     noise_subtract_shape_imperfection_1.inputs["Detail"].default_value = 0.0
     noise_subtract_shape_imperfection_1.inputs["Roughness"].default_value = 0.0
@@ -1041,7 +1049,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     noise_subtract_shape_imperfection_2.parent = frame
     noise_subtract_shape_imperfection_2.name = "Noise Tex - Subtract shape imperfection 1"
     noise_subtract_shape_imperfection_2.label = "Noise Tex - Subtract shape imperfection 1"
-    noise_subtract_shape_imperfection_2.location = (pos_x + 1500, pos_y - 1750)
+    noise_subtract_shape_imperfection_2.location = (pos_x + 1800, pos_y - 1750)
     noise_subtract_shape_imperfection_2.inputs["Scale"].default_value = 1.9
     noise_subtract_shape_imperfection_2.inputs["Detail"].default_value = 16.0
     noise_subtract_shape_imperfection_2.inputs["Roughness"].default_value = 0.0
@@ -1053,7 +1061,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     # Vector Add - Coods subtract shape imperfection 1
     coords_subtract_shape_imperfection_1 = mat_nodes.new("ShaderNodeVectorMath")
     coords_subtract_shape_imperfection_1.parent = frame
-    coords_subtract_shape_imperfection_1.location = (pos_x + 1300, pos_y - 1500)
+    coords_subtract_shape_imperfection_1.location = (pos_x + 1600, pos_y - 1500)
     coords_subtract_shape_imperfection_1.name = "Vector Add - Coods subtract shape imperfection 1"
     coords_subtract_shape_imperfection_1.label = "Vector Add - Coods subtract shape imperfection 1"
     coords_subtract_shape_imperfection_1.operation = "ADD"
@@ -1068,7 +1076,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     # Vector Add - Add shape imperfection 2
     coords_subtract_shape_imperfection_2 = mat_nodes.new("ShaderNodeVectorMath")
     coords_subtract_shape_imperfection_2.parent = frame
-    coords_subtract_shape_imperfection_2.location = (pos_x + 1300, pos_y - 1750)
+    coords_subtract_shape_imperfection_2.location = (pos_x + 1600, pos_y - 1750)
     coords_subtract_shape_imperfection_2.name = "Vector Add - Coods subtract shape imperfection 2"
     coords_subtract_shape_imperfection_2.label = "Vector Add - Coods subtract shape imperfection 2"
     coords_subtract_shape_imperfection_2.operation = "ADD"
