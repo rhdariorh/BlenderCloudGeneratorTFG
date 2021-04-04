@@ -403,7 +403,7 @@ def initial_shape_cloudscape_cumulus(pos_x, pos_y, texture_coordinate, out_node,
                                 reroute_5.inputs[0])
     else:
         reroute_6 = mat_nodes.new(type='NodeReroute')
-        reroute_6.location = (pos_x + 100, pos_y - 1300)
+        reroute_6.location = (pos_x + 300, pos_y - 1300)
         mat.node_tree.links.new(reroute_6.outputs[0],
                                 reroute_5.inputs[0])
         mat.node_tree.links.new(in_node.outputs["Color"],
@@ -444,6 +444,10 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     obj.active_material = mat
 
     # Initialization
+    obj.cloud_settings.update_properties = False  # Set to false because the nodes do not exist yet
+
+    obj.cloud_settings.wind_big_turbulence = random.uniform(0.2, 1.0)
+    obj.cloud_settings.wind_small_turbulence = random.uniform(0.2, 1.0)
     obj.cloud_settings.amount_of_clouds = random.uniform(0.2, 0.6)
     obj.cloud_settings.detail_bump_strength = random.uniform(0.1, 0.5)
     obj.cloud_settings.subtract_shape_imperfection = random.uniform(0, 1)
@@ -454,22 +458,28 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
                                             random.uniform(0, 200),
                                             random.uniform(0, 200)
                                         )
+    obj.cloud_settings.roundness_simple_seed = obj.cloud_settings.roundness_coords.x
+
     obj.cloud_settings.add_shape_imperfection_coords = (
                                                         random.uniform(0, 200),
                                                         random.uniform(0, 200),
                                                         random.uniform(0, 200)
                                                         )
+    obj.cloud_settings.add_shape_imperfection_simple_seed = obj.cloud_settings.add_shape_imperfection_coords.x
     obj.cloud_settings.subtract_shape_imperfection_coords = (
                                                                 random.uniform(0, 200),
                                                                 random.uniform(0, 200),
                                                                 random.uniform(0, 200)
                                                             )
+    obj.cloud_settings.subtract_shape_imperfection_simple_seed = obj.cloud_settings.subtract_shape_imperfection_coords.x
     obj.cloud_settings.cloudscape_noise_coords = (
                                                     random.uniform(0, 200),
                                                     random.uniform(0, 200),
                                                     random.uniform(0, 200)
                                                 )
+    obj.cloud_settings.cloudscape_noise_simple_seed = obj.cloud_settings.cloudscape_noise_coords.x
 
+    obj.cloud_settings.update_properties = True
     # -----------------------------------------------
     # -------------Material construction-------------
     # -----------------------------------------------
@@ -477,10 +487,10 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
 
     # Reroutes
     reroute_1 = mat_nodes.new(type='NodeReroute')
-    reroute_1.location = (pos_x + 1400, pos_y - 1500)
+    reroute_1.location = (pos_x + 1500, pos_y - 1500)
 
     reroute_2 = mat_nodes.new(type='NodeReroute')
-    reroute_2.location = (pos_x + 1400, pos_y - 2300)
+    reroute_2.location = (pos_x + 1500, pos_y - 2300)
 
     reroute_3 = mat_nodes.new(type='NodeReroute')
     reroute_3.location = (pos_x + 2600, pos_y - 2300)
@@ -637,44 +647,101 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     frame.name = "Wind"
     frame.label = "Wind"
 
+    # RGB Add - Shape wind strength
+    add_shape_wind_strength = mat_nodes.new("ShaderNodeMixRGB")
+    add_shape_wind_strength.parent = frame
+    add_shape_wind_strength.name = "RGB Add - Shape wind strength"
+    add_shape_wind_strength.label = "RGB Add - Shape wind strength"
+    add_shape_wind_strength.location = (pos_x + 1300, pos_y)
+    add_shape_wind_strength.blend_type = "ADD"
+    wind_strength = obj.cloud_settings.wind_strength
+    add_shape_wind_strength.inputs["Fac"].default_value = wind_strength
+
+    mat.node_tree.links.new(add_shape_wind_strength.outputs["Color"],
+                            reroute_1.inputs[0])
+
+    # Wind small turbulence
+
     # RGB Add - Shape wind small turbulence
     add_shape_wind_small = mat_nodes.new("ShaderNodeMixRGB")
     add_shape_wind_small.parent = frame
-    add_shape_wind_small.name = "RGB Add - Shape wind small turbulence"
-    add_shape_wind_small.label = "RGB Add - Shape wind small turbulence"
-    add_shape_wind_small.location = (pos_x + 900, pos_y)
+    add_shape_wind_small.name = "Shape wind small turbulence"
+    add_shape_wind_small.label = "Shape wind small turbulence"
+    add_shape_wind_small.location = (pos_x + 900, pos_y - 150)
     add_shape_wind_small.blend_type = "ADD"
-    wind = obj.cloud_settings.wind
-    add_shape_wind_small.inputs["Fac"].default_value = wind
-
-    mat.node_tree.links.new(add_shape_wind_small.outputs["Color"],
-                            reroute_1.inputs[0])
+    add_shape_wind_small.inputs["Color1"].default_value = (0.0, 0.0, 0.0, 1.0)
+    wind_small_turbulence = obj.cloud_settings.wind_small_turbulence
+    add_shape_wind_small.inputs["Fac"].default_value = wind_small_turbulence
 
     # Vector Subtract - Shape wind small turbulence domain to -0.5 to 0.5
-    domain_adjustment_shape_wind = mat_nodes.new("ShaderNodeVectorMath")
-    domain_adjustment_shape_wind.parent = frame
-    domain_adjustment_shape_wind.location = (pos_x + 700, pos_y - 150)
-    domain_adjustment_shape_wind.name = "Vector Subtract - Shape wind small turbulence domain adjustment"
-    domain_adjustment_shape_wind.label = "Vector Subtract - Shape wind small turbulence domain adjustment"
-    domain_adjustment_shape_wind.operation = "SUBTRACT"
-    domain_adjustment_shape_wind.inputs[1].default_value = (0.5, 0.5, 0.5)
+    domain_adjustment_shape_wind_small = mat_nodes.new("ShaderNodeVectorMath")
+    domain_adjustment_shape_wind_small.parent = frame
+    domain_adjustment_shape_wind_small.location = (pos_x + 700, pos_y - 150)
+    domain_adjustment_shape_wind_small.name = "Vector Subtract - Shape wind small turbulence domain adjustment"
+    domain_adjustment_shape_wind_small.label = "Vector Subtract - Shape wind small turbulence domain adjustment"
+    domain_adjustment_shape_wind_small.operation = "SUBTRACT"
+    domain_adjustment_shape_wind_small.inputs[1].default_value = (0.5, 0.5, 0.5)
 
-    mat.node_tree.links.new(domain_adjustment_shape_wind.outputs["Vector"],
+    mat.node_tree.links.new(domain_adjustment_shape_wind_small.outputs["Vector"],
                             add_shape_wind_small.inputs["Color2"])
 
-    # Noise Tex - Shape wind small turbulence 
-    noise_shape_wind = mat_nodes.new("ShaderNodeTexNoise")
-    noise_shape_wind.parent = frame
-    noise_shape_wind.name = "Noise Tex - Shape wind small turbulence"
-    noise_shape_wind.label = "Noise Tex - Shape wind small turbulence"
-    noise_shape_wind.location = (pos_x + 500, pos_y - 150)
-    noise_shape_wind.inputs["Scale"].default_value = 1.5
-    noise_shape_wind.inputs["Detail"].default_value = 0.0
-    noise_shape_wind.inputs["Roughness"].default_value = 0.0
-    noise_shape_wind.inputs["Distortion"].default_value = 3.0
+    # Noise Tex - Shape wind small turbulence
+    noise_shape_wind_small = mat_nodes.new("ShaderNodeTexNoise")
+    noise_shape_wind_small.parent = frame
+    noise_shape_wind_small.name = "Noise Tex - Shape wind small turbulence"
+    noise_shape_wind_small.label = "Noise Tex - Shape wind small turbulence"
+    noise_shape_wind_small.location = (pos_x + 500, pos_y - 150)
+    noise_shape_wind_small.inputs["Scale"].default_value = 1.5
+    noise_shape_wind_small.inputs["Detail"].default_value = 0.0
+    noise_shape_wind_small.inputs["Roughness"].default_value = 0.0
+    noise_shape_wind_small.inputs["Distortion"].default_value = 3.0
 
-    mat.node_tree.links.new(noise_shape_wind.outputs["Fac"],
-                            domain_adjustment_shape_wind.inputs[0])
+    mat.node_tree.links.new(noise_shape_wind_small.outputs["Fac"],
+                            domain_adjustment_shape_wind_small.inputs[0])
+
+    # Wind big turbulence
+
+    # RGB Add - Shape wind big turbulence
+    add_shape_wind_big = mat_nodes.new("ShaderNodeMixRGB")
+    add_shape_wind_big.parent = frame
+    add_shape_wind_big.name = "Shape wind big turbulence"
+    add_shape_wind_big.label = "Shape wind big turbulence"
+    add_shape_wind_big.location = (pos_x + 1100, pos_y - 250)
+    add_shape_wind_big.blend_type = "ADD"
+    add_shape_wind_big.inputs["Color1"].default_value = (0.0, 0.0, 0.0, 1.0)
+    wind_big_turbulence = obj.cloud_settings.wind_big_turbulence
+    add_shape_wind_big.inputs["Fac"].default_value = wind_big_turbulence
+
+    mat.node_tree.links.new(add_shape_wind_small.outputs["Color"],
+                            add_shape_wind_big.inputs["Color1"])
+    mat.node_tree.links.new(add_shape_wind_big.outputs["Color"],
+                            add_shape_wind_strength.inputs["Color2"])
+
+    # Vector Subtract - Shape wind big turbulence domain to -0.5 to 0.5
+    domain_adjustment_shape_wind_big = mat_nodes.new("ShaderNodeVectorMath")
+    domain_adjustment_shape_wind_big.parent = frame
+    domain_adjustment_shape_wind_big.location = (pos_x + 700, pos_y - 400)
+    domain_adjustment_shape_wind_big.name = "Vector Subtract - Shape wind big turbulence domain adjustment"
+    domain_adjustment_shape_wind_big.label = "Vector Subtract - Shape wind big turbulence domain adjustment"
+    domain_adjustment_shape_wind_big.operation = "SUBTRACT"
+    domain_adjustment_shape_wind_big.inputs[1].default_value = (0.5, 0.5, 0.5)
+
+    mat.node_tree.links.new(domain_adjustment_shape_wind_big.outputs["Vector"],
+                            add_shape_wind_big.inputs["Color2"])
+
+    # Noise Tex - Shape wind big turbulence
+    noise_shape_wind_big = mat_nodes.new("ShaderNodeTexNoise")
+    noise_shape_wind_big.parent = frame
+    noise_shape_wind_big.name = "Noise Tex - Shape wind big turbulence"
+    noise_shape_wind_big.label = "Noise Tex - Shape wind big turbulence"
+    noise_shape_wind_big.location = (pos_x + 500, pos_y - 400)
+    noise_shape_wind_big.inputs["Scale"].default_value = 0.5
+    noise_shape_wind_big.inputs["Detail"].default_value = 0.0
+    noise_shape_wind_big.inputs["Roughness"].default_value = 0.0
+    noise_shape_wind_big.inputs["Distortion"].default_value = 3.0
+
+    mat.node_tree.links.new(noise_shape_wind_big.outputs["Fac"],
+                            domain_adjustment_shape_wind_big.inputs[0])
 
     # END WIND FRAME
 
@@ -686,9 +753,11 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     initial_mapping.inputs["Location"].default_value = domain_cloud_position
 
     mat.node_tree.links.new(initial_mapping.outputs["Vector"],
-                            add_shape_wind_small.inputs["Color1"])
+                            add_shape_wind_strength.inputs["Color1"])
     mat.node_tree.links.new(initial_mapping.outputs["Vector"],
-                            noise_shape_wind.inputs["Vector"])
+                            noise_shape_wind_small.inputs["Vector"])
+    mat.node_tree.links.new(initial_mapping.outputs["Vector"],
+                            noise_shape_wind_big.inputs["Vector"])
 
     # Texture Coordinate
     texture_coordinate = mat_nodes.new("ShaderNodeTexCoord")
@@ -696,11 +765,11 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     mat.node_tree.links.new(texture_coordinate.outputs["Object"],
                             initial_mapping.inputs["Vector"])
 
-    initial_shape(pos_x + 1500, pos_y + 200, texture_coordinate, overlay_roundness, add_shape_wind_small, mat, mat_nodes, obj, False)
+    initial_shape(pos_x + 1500, pos_y + 200, texture_coordinate, overlay_roundness, add_shape_wind_strength, mat, mat_nodes, obj, False)
 
     # ----------------END MAIN BRANCH----------------
 
-    mat.node_tree.links.new(add_shape_wind_small.outputs["Color"],
+    mat.node_tree.links.new(reroute_1.outputs[0],
                             reroute_2.inputs[0])
     mat.node_tree.links.new(reroute_2.outputs[0],
                             reroute_3.inputs[0])
@@ -794,7 +863,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     add_small_wind.label = "RGB Add - Small wind"
     add_small_wind.location = (pos_x + 3050, pos_y - 950)
     add_small_wind.blend_type = "ADD"
-    wind = obj.cloud_settings.wind
+    wind = obj.cloud_settings.wind_strength
     add_small_wind.inputs["Fac"].default_value = wind
 
     mat.node_tree.links.new(add_small_wind.outputs["Color"],

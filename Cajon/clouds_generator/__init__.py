@@ -20,6 +20,21 @@ bl_info = {
 }
 
 
+class CloudGeneratorPreferences(bpy.types.AddonPreferences):
+    """Addon preferences panel."""
+    bl_idname = __name__
+
+    advanced_settings: bpy.props.BoolProperty(
+        name="Advanced settings",
+        description="Add more control over the shape of the clouds",
+        default=False,
+    )
+
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, "advanced_settings")
+
+
 class CloudErrorOperator(bpy.types.Operator):
     """Operator that throws custom errors for clouds.
 
@@ -120,11 +135,38 @@ class OBJECT_PT_cloud_general(bpy.types.Panel):
         if obj.cloud_settings.is_cloud:
             column = layout.column()
             column.prop(cloud_settings, "density", text="Density")
-            column.prop(cloud_settings, "wind", text="Wind")
+
             if cloud_settings.cloud_type == "CLOUDSCAPE_CUMULUS":
                 column.prop(cloud_settings, "amount_of_clouds", text="Amount of clouds")
                 column.prop(cloud_settings, "cloudscape_cloud_size", text="Clouds size")
-                column.prop(cloud_settings, "cloudscape_noise_coords", text="Seed")
+                if (context.preferences.addons[__name__].preferences.advanced_settings):
+                    column.prop(cloud_settings, "cloudscape_noise_coords", text="Seed")
+                else:
+                    column.prop(cloud_settings, "cloudscape_noise_simple_seed", text="Seed")
+
+
+class OBJECT_PT_cloud_general_wind(bpy.types.Panel):
+    """Creates a subpanel within general panel to modify wind properties."""
+
+    bl_label = "Wind"
+    bl_parent_id = "OBJECT_PT_cloud_general"
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "object"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        obj = context.object
+        cloud_settings = obj.cloud_settings
+        if obj.cloud_settings.is_cloud:
+            column = layout.column()
+            column.prop(cloud_settings, "wind_strength", text="Strength")
+            column.prop(cloud_settings, "wind_big_turbulence", text="Big size turbulence")
+            column.prop(cloud_settings, "wind_small_turbulence", text="Small size turbulence")
+            # FALTA AÑADIR SEED DEL VIENTOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
 
 
 class OBJECT_PT_cloud_shape(bpy.types.Panel):
@@ -179,7 +221,10 @@ class OBJECT_PT_cloud_shape_roundness(bpy.types.Panel):
         if obj.cloud_settings.is_cloud:
             column = layout.column()
             column.prop(cloud_settings, "roundness", text="Strength")
-            column.prop(cloud_settings, "roundness_coords", text="Seed")
+            if (context.preferences.addons[__name__].preferences.advanced_settings):
+                column.prop(cloud_settings, "roundness_coords", text="Seed")
+            else:
+                column.prop(cloud_settings, "roundness_simple_seed", text="Seed")
 
 
 class OBJECT_PT_cloud_shape_add_imperfection(bpy.types.Panel):
@@ -203,7 +248,10 @@ class OBJECT_PT_cloud_shape_add_imperfection(bpy.types.Panel):
         if obj.cloud_settings.is_cloud:
             column = layout.column()
             column.prop(cloud_settings, "add_shape_imperfection", text="Strength")
-            column.prop(cloud_settings, "add_shape_imperfection_coords", text="Seed")
+            if (context.preferences.addons[__name__].preferences.advanced_settings):
+                column.prop(cloud_settings, "add_shape_imperfection_coords", text="Seed")
+            else:
+                column.prop(cloud_settings, "add_shape_imperfection_simple_seed", text="Seed")
 
 
 class OBJECT_PT_cloud_shape_subtract_imperfection(bpy.types.Panel):
@@ -227,7 +275,10 @@ class OBJECT_PT_cloud_shape_subtract_imperfection(bpy.types.Panel):
         if obj.cloud_settings.is_cloud:
             column = layout.column()
             column.prop(cloud_settings, "subtract_shape_imperfection", text="Strength")
-            column.prop(cloud_settings, "subtract_shape_imperfection_coords", text="Seed")
+            if (context.preferences.addons[__name__].preferences.advanced_settings):
+                column.prop(cloud_settings, "subtract_shape_imperfection_coords", text="Seed")
+            else:
+                column.prop(cloud_settings, "subtract_shape_imperfection_simple_seed", text="Seed")
 
 
 class OBJECT_PT_cloud_detail(bpy.types.Panel):
@@ -309,12 +360,14 @@ def add_menu_cloud(self, context):
 def register():
     """Register classes and do other necessary tasks when registering the Addon."""
     bpy.utils.register_class(CloudErrorOperator)
+    bpy.utils.register_class(CloudGeneratorPreferences)
     bpy.utils.register_class(CloudSettings)
-    bpy.utils.register_class(OBJECT_OT_cloud_single_cumulus) 
+    bpy.utils.register_class(OBJECT_OT_cloud_single_cumulus)
     bpy.utils.register_class(OBJECT_OT_cloud_cloudscape_cumulus)
 
     bpy.utils.register_class(OBJECT_PT_cloud)
     bpy.utils.register_class(OBJECT_PT_cloud_general)
+    bpy.utils.register_class(OBJECT_PT_cloud_general_wind)
     bpy.utils.register_class(OBJECT_PT_cloud_shape)
     bpy.utils.register_class(OBJECT_PT_cloud_shape_roundness)
     bpy.utils.register_class(OBJECT_PT_cloud_shape_add_imperfection)
@@ -340,12 +393,14 @@ def unregister():
     the Addon.
     """
     bpy.utils.unregister_class(CloudErrorOperator)
+    bpy.utils.unregister_class(CloudGeneratorPreferences)
     bpy.utils.unregister_class(CloudSettings)
     bpy.utils.unregister_class(OBJECT_OT_cloud_single_cumulus)
     bpy.utils.unregister_class(OBJECT_OT_cloud_cloudscape_cumulus)
 
     bpy.utils.unregister_class(OBJECT_PT_cloud)
     bpy.utils.unregister_class(OBJECT_PT_cloud_general)
+    bpy.utils.unregister_class(OBJECT_PT_cloud_general_wind)
     bpy.utils.unregister_class(OBJECT_PT_cloud_shape)
     bpy.utils.unregister_class(OBJECT_PT_cloud_shape_roundness)
     bpy.utils.unregister_class(OBJECT_PT_cloud_shape_add_imperfection)
