@@ -91,6 +91,40 @@ def update_cloud_wind(self, context):
             add_shape_wind_small.inputs["Fac"].default_value = wind_small_turbulence
 
 
+def update_cloud_roundness_wind_turbulence_coords(self, context):
+    """Cloud wind turbulence coords (seed) update function.
+
+    Change the cloud wind turbulence coordinates according to the wind_big_turbulence_coords
+    and wind_small_turbulence_coords custom properties or wind_turbulence_simple_seed custom
+    property. The coordinates act as the seed of the voronoi noise that creates the roundness.
+    """
+
+    obj = context.active_object
+    if (obj.cloud_settings.update_properties):
+        wind_big_turbulence_coords = obj.cloud_settings.wind_big_turbulence_coords
+        wind_small_turbulence_coords = obj.cloud_settings.wind_small_turbulence_coords
+        wind_turbulence_simple_seed = obj.cloud_settings.wind_turbulence_simple_seed
+        material = bpy.context.active_object.active_material
+        if "CloudMaterial_CG" not in material.name:
+            bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
+        else:
+            if (context.preferences.addons["clouds_generator"].preferences.advanced_settings):
+                obj.cloud_settings.wind_turbulence_simple_seed = wind_big_turbulence_coords.x
+                add_coords_wind_small = material.node_tree.nodes.get("Vector Add - Wind small turbulence coords")
+                add_coords_wind_small.inputs[1].default_value = wind_small_turbulence_coords
+                add_coords_wind_big = material.node_tree.nodes.get("Vector Add - Wind big turbulence coords")
+                add_coords_wind_big.inputs[1].default_value = wind_big_turbulence_coords
+            else:
+                wind_turbulence_coords = (wind_turbulence_simple_seed,
+                                          wind_turbulence_simple_seed,
+                                          wind_turbulence_simple_seed)
+
+                add_coords_wind_small = material.node_tree.nodes.get("Vector Add - Wind small turbulence coords")
+                add_coords_wind_small.inputs[1].default_value = wind_turbulence_coords
+                add_coords_wind_big = material.node_tree.nodes.get("Vector Add - Wind big turbulence coords")
+                add_coords_wind_big.inputs[1].default_value = wind_turbulence_coords
+
+
 def update_cloud_color(self, context):
     """Cloud color update function.
 
@@ -128,8 +162,9 @@ def update_cloud_roundness(self, context):
 def update_cloud_roundness_coords(self, context):
     """Cloud roundness coords (seed) update function.
 
-    Change the cloud roundness coordinates according to the roundness_coords custom property.
-    The coordinates act as the seed of the voronoi noise that creates the roundness.
+    Change the cloud roundness coordinates according to the roundness_coords or
+    roundness_simple_seed custom property. The coordinates act as the seed of
+    the voronoi noise that creates the roundness.
     """
 
     obj = context.active_object
@@ -236,8 +271,8 @@ def update_cloud_add_shape_imperfection_coords(self, context):
     """Cloud shape imperfection addition coords (seed) update function.
 
     Change the cloud shape imperfection addition coordinates according
-    to the add_shape_imperfection_coords custom property.
-    The coordinates act as the seed of the noise that is added to the volume.
+    to the add_shape_imperfection_coords  or add_shape_imperfection_simple_seed
+    custom property. The coordinates act as the seed of the noise that is added to the volume.
     """
 
     obj = context.active_object
@@ -283,20 +318,30 @@ def update_cloud_subtract_shape_imperfection_coords(self, context):
     """Cloud shape imperfection subtract coords (seed) update function.
 
     Change the cloud shape imperfection subtract coordinates according
-    to the subtract_shape_imperfection_coords custom property.
-    The coordinates act as the seed of the noise that is subtracted to
+    to the subtract_shape_imperfection_coords or subtract_shape_imperfection_simple_seed
+    custom property. The coordinates act as the seed of the noise that is subtracted to
     the volume.
     """
 
     obj = context.active_object
     if (obj.cloud_settings.update_properties):
         subtract_shape_imperfection_coords = obj.cloud_settings.subtract_shape_imperfection_coords
+        subtract_shape_imperfection_simple_seed = obj.cloud_settings.subtract_shape_imperfection_simple_seed
         material = bpy.context.active_object.active_material
         if "CloudMaterial_CG" not in material.name:
             bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
         else:
-            coords_subtract_shape_imperfection_1 = material.node_tree.nodes.get("Vector Add - Coods subtract shape imperfection 1")
-            coords_subtract_shape_imperfection_1.inputs[1].default_value = subtract_shape_imperfection_coords
+            if (context.preferences.addons["clouds_generator"].preferences.advanced_settings):
+                obj.cloud_settings.subtract_shape_imperfection_simple_seed = subtract_shape_imperfection_coords.x
+                coords_subtract_shape_imperfection_1 = material.node_tree.nodes.get("Vector Add - Coods subtract shape imperfection 1")
+                coords_subtract_shape_imperfection_1.inputs[1].default_value = subtract_shape_imperfection_coords
+            else:
+                subtract_shape_imperfection_coords = (subtract_shape_imperfection_simple_seed,
+                                                      subtract_shape_imperfection_simple_seed,
+                                                      subtract_shape_imperfection_simple_seed)
+                obj.cloud_settings.subtract_shape_imperfection_coords = subtract_shape_imperfection_coords
+                coords_subtract_shape_imperfection_1 = material.node_tree.nodes.get("Vector Add - Coods subtract shape imperfection 1")
+                coords_subtract_shape_imperfection_1.inputs[1].default_value = subtract_shape_imperfection_coords
 
 
 def update_cloud_detail_bump_strength(self, context):
@@ -558,6 +603,15 @@ class CloudSettings(bpy.types.PropertyGroup):
 
         wind_small_turbulence: Amount of small size turbulence in wind
 
+        wind_big_turbulence_coords: Mapping coordinates for wind big turbulence.
+            It is used as a seed.
+
+        wind_small_turbulence_coords: Mapping coordinates for wind small turbulence.
+            It is used as a seed.
+
+        wind_turbulence_simple_seed: Sets the value of this property as the value of the
+        three mapping coordinates for both wind big and small turbulence coordinates.
+
         roundness: Strength of the effect of roughly rounded shapes in
             the cloud.
 
@@ -704,6 +758,32 @@ class CloudSettings(bpy.types.PropertyGroup):
         min=0.0,
         max=1.0,
         update=update_cloud_wind
+    )
+
+    wind_big_turbulence_coords: bpy.props.FloatVectorProperty(
+        name="Cloud wind big turbulence coordinates",
+        description="Mapping coordinates for wind big turbulence. " +
+                    "It is used as a seed.",
+        subtype="XYZ",
+        default=(0.0, 0.0, 0.0),
+        update=update_cloud_roundness_wind_turbulence_coords
+    )
+
+    wind_small_turbulence_coords: bpy.props.FloatVectorProperty(
+        name="Cloud wind small turbulence coordinates",
+        description="Mapping coordinates for wind small turbulence. " +
+                    "It is used as a seed.",
+        subtype="XYZ",
+        default=(0.0, 0.0, 0.0),
+        update=update_cloud_roundness_wind_turbulence_coords
+    )
+
+    wind_turbulence_simple_seed: bpy.props.FloatProperty(
+        name="Cloud wind turbulence simple seed",
+        description="Sets the value of this property as the value of the " +
+        "three mapping coordinates for both wind big and small turbulence coordinates",
+        default=0.0,
+        update=update_cloud_roundness_wind_turbulence_coords
     )
 
     roundness: bpy.props.FloatProperty(

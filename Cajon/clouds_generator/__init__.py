@@ -9,7 +9,7 @@ from .materials import initial_shape_single_cumulus, initial_shape_cloudscape_cu
 bl_info = {
     "name": "Clouds generator",
     "author": "Darío R.H. <rhdariorh@gmail.com>",
-    "version": (0, 0),
+    "version": (2021, 1, 0),
     "blender": (2, 83, 1),
     "category": "Object",
     "location": "Operator Search",
@@ -164,9 +164,14 @@ class OBJECT_PT_cloud_general_wind(bpy.types.Panel):
         if obj.cloud_settings.is_cloud:
             column = layout.column()
             column.prop(cloud_settings, "wind_strength", text="Strength")
-            column.prop(cloud_settings, "wind_big_turbulence", text="Big size turbulence")
-            column.prop(cloud_settings, "wind_small_turbulence", text="Small size turbulence")
-            # FALTA AÑADIR SEED DEL VIENTOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
+            column.prop(cloud_settings, "wind_big_turbulence", text="Big turbulence")
+            if (context.preferences.addons[__name__].preferences.advanced_settings):
+                column.prop(cloud_settings, "wind_big_turbulence_coords", text="Big turbulence seed")
+            column.prop(cloud_settings, "wind_small_turbulence", text="Small turbulence")
+            if (context.preferences.addons[__name__].preferences.advanced_settings):
+                column.prop(cloud_settings, "wind_small_turbulence_coords", text="Small turbulence seed")
+            if not context.preferences.addons[__name__].preferences.advanced_settings:
+                column.prop(cloud_settings, "wind_turbulence_simple_seed", text="Seed")
 
 
 class OBJECT_PT_cloud_shape(bpy.types.Panel):
