@@ -4,7 +4,7 @@ import bpy.utils.previews
 
 from . import materials
 from .cloud_settings import CloudSettings
-from .materials import initial_shape_single_cumulus, initial_shape_cloudscape_cumulus
+from .materials import initial_shape_single_cumulus, initial_shape_cloudscape_cumulus, initial_shape_cloudscape_cirrus
 
 bl_info = {
     "name": "Clouds generator",
@@ -87,6 +87,22 @@ class OBJECT_OT_cloud_cloudscape_cumulus(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class OBJECT_OT_cloud_cloudscape_cirrus(bpy.types.Operator):
+    """Operator that generates and add a cirrus cloudscape to the scene."""
+
+    bl_idname = "object.cloud_add_cloudscape_cirrus"
+    bl_label = "Generate cirrus cloudscape"
+    bl_options = {"REGISTER", "UNDO"}
+
+    @classmethod
+    def poll(cls, context):
+        return context.area.type == "VIEW_3D"
+
+    def execute(self, context):
+        materials.generate_cloud(context, -1000, 0, initial_shape_cloudscape_cirrus)
+        return {'FINISHED'}
+
+
 class OBJECT_PT_cloud(bpy.types.Panel):
     """Creates a Panel in the scene context of the properties editor.
 
@@ -136,7 +152,7 @@ class OBJECT_PT_cloud_general(bpy.types.Panel):
             column = layout.column()
             column.prop(cloud_settings, "density", text="Density")
 
-            if cloud_settings.cloud_type == "CLOUDSCAPE_CUMULUS":
+            if cloud_settings.cloud_type in ["CLOUDSCAPE_CUMULUS", "CLOUDSCAPE_CIRRUS"]:
                 column.prop(cloud_settings, "amount_of_clouds", text="Amount of clouds")
                 column.prop(cloud_settings, "cloudscape_cloud_size", text="Clouds size")
                 if (context.preferences.addons[__name__].preferences.advanced_settings):
@@ -198,7 +214,7 @@ class OBJECT_PT_cloud_shape(bpy.types.Panel):
                 column.prop(cloud_settings, "height_single", text="Height")
                 column.prop(cloud_settings, "width_x", text="Width X")
                 column.prop(cloud_settings, "width_y", text="Width Y")
-            elif(cloud_settings.cloud_type == "CLOUDSCAPE_CUMULUS"):
+            elif(cloud_settings.cloud_type in ["CLOUDSCAPE_CUMULUS", "CLOUDSCAPE_CIRRUS"]):
                 column.prop(cloud_settings, "height_cloudscape", text="Height")
                 column.prop(cloud_settings, "use_shape_texture", text="Use shape texture")
                 if cloud_settings.use_shape_texture:
@@ -318,6 +334,7 @@ class OBJECT_PT_cloud_extra(bpy.types.Panel):
     The properties displayed in this panel do not fit in the rest
     ot the panels.
     """
+
     bl_label = "Extra"
     bl_parent_id = "OBJECT_PT_cloud"
     bl_space_type = 'PROPERTIES'
@@ -343,6 +360,7 @@ class VIEW3D_MT_cloud_add(bpy.types.Menu):
 
     Allows the user to add any type of cloud in a direct way.
     """
+
     bl_idname = "VIEW3D_MT_cloud_add"
     bl_label = "Cloud"
 
@@ -350,25 +368,26 @@ class VIEW3D_MT_cloud_add(bpy.types.Menu):
         layout = self.layout
 
         layout.operator("object.cloud_add_single_cumulus", text="Simple cumulus", icon="OUTLINER_DATA_VOLUME")
-        layout.operator("object.cloud_add_cloudscape_cumulus", text="Cumulus cloudscape", icon="MOD_OCEAN")
-        layout.operator("object.cloud_add_single_cumulus", text="Cirrus", icon="OUTLINER_DATA_VOLUME")
-        layout.operator("object.cloud_add_single_cumulus", text="Cirrocumulus", icon="OUTLINER_DATA_VOLUME")
-        layout.operator("object.cloud_add_single_cumulus", text="Stratus", icon="OUTLINER_DATA_VOLUME")
+        layout.operator("object.cloud_add_cloudscape_cumulus", text="Cumulus cloudscape", icon="OUTLINER_DATA_VOLUME")
+        layout.operator("object.cloud_add_cloudscape_cirrus", text="Cirrus cloudscape", icon="MOD_OCEAN")
 
 
 def add_menu_cloud(self, context):
     """Adds a submenu Cloud"""
+
     self.layout.separator()
     self.layout.menu("VIEW3D_MT_cloud_add", text="Cloud", icon="OUTLINER_OB_VOLUME")
 
 
 def register():
     """Register classes and do other necessary tasks when registering the Addon."""
+
     bpy.utils.register_class(CloudErrorOperator)
     bpy.utils.register_class(CloudGeneratorPreferences)
     bpy.utils.register_class(CloudSettings)
     bpy.utils.register_class(OBJECT_OT_cloud_single_cumulus)
     bpy.utils.register_class(OBJECT_OT_cloud_cloudscape_cumulus)
+    bpy.utils.register_class(OBJECT_OT_cloud_cloudscape_cirrus)
 
     bpy.utils.register_class(OBJECT_PT_cloud)
     bpy.utils.register_class(OBJECT_PT_cloud_general)
@@ -397,11 +416,13 @@ def unregister():
     """Unregister classes and do other necessary tasks when unregistering
     the Addon.
     """
+
     bpy.utils.unregister_class(CloudErrorOperator)
     bpy.utils.unregister_class(CloudGeneratorPreferences)
     bpy.utils.unregister_class(CloudSettings)
     bpy.utils.unregister_class(OBJECT_OT_cloud_single_cumulus)
     bpy.utils.unregister_class(OBJECT_OT_cloud_cloudscape_cumulus)
+    bpy.utils.unregister_class(OBJECT_OT_cloud_cloudscape_cirrus)
 
     bpy.utils.unregister_class(OBJECT_PT_cloud)
     bpy.utils.unregister_class(OBJECT_PT_cloud_general)

@@ -114,7 +114,7 @@ def initial_shape_cloudscape_cumulus(pos_x, pos_y, texture_coordinate, out_node,
     # Este tipo de nube ocupa mas que el resto por lo que para que quepa bien se desplaza
     if not cleaner:
         pos_y = pos_y + 1200
-        pos_x = pos_x - 200
+        pos_x = pos_x - 400
 
     reroute_1 = mat_nodes.new(type='NodeReroute')
     reroute_2 = mat_nodes.new(type='NodeReroute')
@@ -417,6 +417,455 @@ def initial_shape_cloudscape_cumulus(pos_x, pos_y, texture_coordinate, out_node,
                             mapping_noise.inputs["Vector"])
 
 
+def initial_shape_cloudscape_cirrus(pos_x, pos_y, texture_coordinate, out_node, in_node, mat, mat_nodes, obj, cleaner):
+    """
+    out_node: nodo de salida
+    in_node: nodo de entrada
+    """
+    obj.cloud_settings.domain_cloud_position = (0.0, 0.0, 1.0)
+    obj.cloud_settings.amount_of_clouds = 1.0
+
+    obj.cloud_settings.cloud_type = "CLOUDSCAPE_CIRRUS"
+    frame = mat_nodes.new(type='NodeFrame')
+    frame.name = "Initial shape"
+    frame.label = "Initial shape"
+
+    # Este tipo de nube ocupa mas que el resto por lo que para que quepa bien se desplaza
+    if not cleaner:
+        pos_y = pos_y + 1800
+        pos_x = pos_x - 400
+
+    reroute_1 = mat_nodes.new(type='NodeReroute')
+    reroute_2 = mat_nodes.new(type='NodeReroute')
+    reroute_3 = mat_nodes.new(type='NodeReroute')
+    reroute_4 = mat_nodes.new(type='NodeReroute')
+
+    if cleaner:
+        reroute_1.location = (pos_x + 1000, pos_y + 100)
+        reroute_2.location = (pos_x + 1600, pos_y + 100)
+        reroute_3.location = (pos_x, pos_y - 1900)
+        reroute_4.location = (pos_x - 3850, pos_y - 1900)
+    else:
+        reroute_1.location = (pos_x + 900, pos_y - 1950)
+        reroute_2.location = (pos_x + 1900, pos_y - 1950)
+        reroute_3.location = (pos_x + 900, pos_y - 1900)
+        reroute_4.location = (pos_x - 800, pos_y - 1900)
+
+    if cleaner:
+        # Color Ramp
+        color_ramp_cleaner = mat_nodes.new("ShaderNodeValToRGB")
+        color_ramp_cleaner.parent = frame
+        color_ramp_cleaner.name = "Final cleaning range"
+        color_ramp_cleaner.label = "Final cleaning range"
+        color_ramp_cleaner.location = (pos_x + 1300, pos_y)
+        color_ramp_cleaner.color_ramp.interpolation = 'LINEAR'
+        elem = color_ramp_cleaner.color_ramp.elements[0]
+        elem.position = 1.0 - obj.cloud_settings.cleaner_domain_size
+        elem.color = (0, 0, 0, 1)
+        elem = color_ramp_cleaner.color_ramp.elements[1]
+        elem.position = 1.0
+        elem.color = (1.0, 1.0, 1.0, 1)
+
+        mat.node_tree.links.new(color_ramp_cleaner.outputs["Color"],
+                                out_node.inputs["Color2"])
+
+        # Invert color
+        invert_color = mat_nodes.new("ShaderNodeInvert")
+        invert_color.parent = frame
+        invert_color.location = (pos_x + 1100, pos_y)
+        mat.node_tree.links.new(invert_color.outputs["Color"],
+                                color_ramp_cleaner.inputs["Fac"])
+
+    # RGB Multiply - Texture image shape
+    texture_image_shape_multiply = mat_nodes.new("ShaderNodeMixRGB")
+    texture_image_shape_multiply.parent = frame
+    if cleaner:
+        texture_image_shape_multiply.name = "RGB Multiply - Texture image shape Final Cleaner"
+        texture_image_shape_multiply.label = "RGB Multiply - Texture image shape Final Cleaner"
+    else:
+        texture_image_shape_multiply.name = "RGB Multiply - Texture image shape"
+        texture_image_shape_multiply.label = "RGB Multiply - Texture image shape"
+
+    texture_image_shape_multiply.location = (pos_x + 1600, pos_y - 800)
+    texture_image_shape_multiply.blend_type = "MULTIPLY"
+    texture_image_shape_multiply.inputs["Fac"].default_value = 0.0
+
+    if cleaner:
+        mat.node_tree.links.new(texture_image_shape_multiply.outputs["Color"],
+                                invert_color.inputs["Color"])
+        mat.node_tree.links.new(reroute_1.outputs[0],
+                                out_node.inputs["Color2"])
+        mat.node_tree.links.new(reroute_2.outputs[0],
+                                reroute_1.inputs[0])
+        mat.node_tree.links.new(color_ramp_cleaner.outputs["Color"],
+                                reroute_2.inputs[0])
+    else:
+        mat.node_tree.links.new(reroute_1.outputs[0],
+                                out_node.inputs["Color1"])
+        mat.node_tree.links.new(reroute_2.outputs[0],
+                                reroute_1.inputs[0])
+        mat.node_tree.links.new(texture_image_shape_multiply.outputs["Color"],
+                                reroute_2.inputs[0])
+
+    # RGB Multiply - Cirrus shape
+    cirrus_shape_multiply = mat_nodes.new("ShaderNodeMixRGB")
+    cirrus_shape_multiply.parent = frame
+    if cleaner:
+        cirrus_shape_multiply.name = "RGB Multiply - Cirrus shape Final Cleaner"
+        cirrus_shape_multiply.label = "RGB Multiply - Cirrus shape Final Cleaner"
+    else:
+        cirrus_shape_multiply.name = "RGB Multiply - Cirrus shape"
+        cirrus_shape_multiply.label = "RGB Multiply - Cirrus shape"
+
+    cirrus_shape_multiply.location = (pos_x + 1400, pos_y - 800)
+    cirrus_shape_multiply.blend_type = "MULTIPLY"
+    cirrus_shape_multiply.inputs["Fac"].default_value = 1.0
+
+    mat.node_tree.links.new(cirrus_shape_multiply.outputs["Color"],
+                            texture_image_shape_multiply.inputs["Color1"])
+
+    # RGB Subtract - Gradient and Noise
+    subtract_gradient_noise = mat_nodes.new("ShaderNodeMixRGB")
+    subtract_gradient_noise.parent = frame
+    if cleaner:
+        subtract_gradient_noise.name = "RGB Subtract - Gradient and Noise Final Cleaner"
+        subtract_gradient_noise.label = "RGB Subtract - Gradient and Noise Final Cleaner"
+    else:
+        subtract_gradient_noise.name = "RGB Subtract - Gradient and Noise"
+        subtract_gradient_noise.label = "RGB Subtract - Gradient and Noise"
+
+    subtract_gradient_noise.location = (pos_x + 900, pos_y - 300)
+    subtract_gradient_noise.blend_type = "SUBTRACT"
+    amount_of_clouds = 1 - obj.cloud_settings.amount_of_clouds
+    subtract_gradient_noise.inputs["Fac"].default_value = amount_of_clouds
+
+    mat.node_tree.links.new(subtract_gradient_noise.outputs["Color"],
+                            cirrus_shape_multiply.inputs["Color1"])
+
+    # Image texture - Shape of cloud
+    image_texture_shape = mat_nodes.new("ShaderNodeTexImage")
+    image_texture_shape.parent = frame
+    if cleaner:
+        image_texture_shape.name = "Image texture - Shape of cloud Final Cleaner"
+        image_texture_shape.label = "Image texture - Shape of cloud Final Cleaner"
+    else:
+        image_texture_shape.name = "Image texture - Shape of cloud"
+        image_texture_shape.label = "Image texture - Shape of cloud"
+
+    image_texture_shape.location = (pos_x + 1100, pos_y - 1600)
+
+    mat.node_tree.links.new(image_texture_shape.outputs["Color"],
+                            texture_image_shape_multiply.inputs["Color2"])
+
+    mat.node_tree.links.new(reroute_3.outputs[0],
+                            image_texture_shape.inputs["Vector"])
+    mat.node_tree.links.new(reroute_4.outputs[0],
+                            reroute_3.inputs[0])
+    mat.node_tree.links.new(texture_coordinate.outputs["Generated"],
+                            reroute_4.inputs[0])
+
+    # RGB Subtract - Gradient and Gradient
+    subtract_gradient_gradient = mat_nodes.new("ShaderNodeMixRGB")
+    subtract_gradient_gradient.parent = frame
+    if cleaner:
+        subtract_gradient_gradient.name = "RGB Subtract - Gradient and Gradient Final Cleaner"
+        subtract_gradient_gradient.label = "RGB Subtract - Gradient and Gradient Final Cleaner"
+    else:
+        subtract_gradient_gradient.name = "RGB Subtract - Gradient and Gradient"
+        subtract_gradient_gradient.label = "RGB Subtract - Gradient and Gradient"
+
+    subtract_gradient_gradient.location = (pos_x + 700, pos_y)
+    subtract_gradient_gradient.blend_type = "SUBTRACT"
+    subtract_gradient_gradient.inputs["Fac"].default_value = 1.0
+
+    mat.node_tree.links.new(subtract_gradient_gradient.outputs["Color"],
+                            subtract_gradient_noise.inputs["Color1"])
+
+    # Color Ramp - Gradient base
+    color_ramp_gradient_base = mat_nodes.new("ShaderNodeValToRGB")
+    color_ramp_gradient_base.parent = frame
+    if cleaner:
+        color_ramp_gradient_base.name = "ColorRamp - Gradient Base Final Cleaner"
+        color_ramp_gradient_base.label = "ColorRamp - Gradient Base Final Cleaner"
+    else:
+        color_ramp_gradient_base.name = "ColorRamp - Gradient Base"
+        color_ramp_gradient_base.label = "ColorRamp - Gradient Base"
+    color_ramp_gradient_base.location = (pos_x + 400, pos_y)
+    color_ramp_gradient_base.color_ramp.interpolation = 'CONSTANT'
+    elem = color_ramp_gradient_base.color_ramp.elements[0]
+    elem.position = 0.0
+    elem.color = (0, 0, 0, 1)
+    elem = color_ramp_gradient_base.color_ramp.elements[1]
+    elem.position = 0.2
+    elem.color = (1, 1, 1, 1)
+
+    mat.node_tree.links.new(color_ramp_gradient_base.outputs["Color"],
+                            subtract_gradient_gradient.inputs["Color1"])
+
+    # Color Ramp - Gradient subtract
+    color_ramp_gradient_subtract = mat_nodes.new("ShaderNodeValToRGB")
+    color_ramp_gradient_subtract.parent = frame
+    if cleaner:
+        color_ramp_gradient_subtract.name = "ColorRamp - Gradient Subtract Final Cleaner"
+        color_ramp_gradient_subtract.label = "ColorRamp - Gradient Subtract Final Cleaner"
+    else:
+        color_ramp_gradient_subtract.name = "ColorRamp - Gradient Subtract"
+        color_ramp_gradient_subtract.label = "ColorRamp - Gradient Subtract"
+    color_ramp_gradient_subtract.location = (pos_x + 400, pos_y - 400)
+    color_ramp_gradient_subtract.color_ramp.interpolation = 'CONSTANT'
+    elem = color_ramp_gradient_subtract.color_ramp.elements[0]
+    elem.position = 0.0
+    elem.color = (0, 0, 0, 1)
+    elem = color_ramp_gradient_subtract.color_ramp.elements[1]
+    elem.position = 0.5
+    elem.color = (1, 1, 1, 1)
+
+    mat.node_tree.links.new(color_ramp_gradient_subtract.outputs["Color"],
+                            subtract_gradient_gradient.inputs["Color2"])
+
+    # Gradient Texture base
+    gradient_texture_base = mat_nodes.new("ShaderNodeTexGradient")
+    gradient_texture_base.parent = frame
+    if cleaner:
+        gradient_texture_base.name = "Final Cleaner Gradient Texture Base"
+    else:
+        gradient_texture_base.name = "Initial Shape Gradient Texture Base"
+    gradient_texture_base.location = (pos_x + 200, pos_y)
+    gradient_texture_base.gradient_type = "LINEAR"
+
+    mat.node_tree.links.new(gradient_texture_base.outputs["Color"],
+                            color_ramp_gradient_base.inputs["Fac"])
+
+    # Gradient Texture subtract
+    gradient_texture_subtract = mat_nodes.new("ShaderNodeTexGradient")
+    gradient_texture_subtract.parent = frame
+    if cleaner:
+        gradient_texture_subtract.name = "Final Cleaner Gradient Texture Subtract"
+    else:
+        gradient_texture_subtract.name = "Initial Shape Gradient Texture Subtract"
+    gradient_texture_subtract.location = (pos_x + 200, pos_y - 400)
+    gradient_texture_subtract.gradient_type = "LINEAR"
+
+    mat.node_tree.links.new(gradient_texture_subtract.outputs["Color"],
+                            color_ramp_gradient_subtract.inputs["Fac"])
+
+    # Vector Multiply - Noise subtract
+    multiply_noise = mat_nodes.new("ShaderNodeVectorMath")
+    multiply_noise.parent = frame
+    multiply_noise.location = (pos_x + 400, pos_y - 800)
+    if cleaner:
+        multiply_noise.name = "Vector Multiply - Noise subtract Final Cleaner"
+        multiply_noise.label = "Vector Multiply - Noise subtract Final Cleaner"
+    else:
+        multiply_noise.name = "Vector Multiply - Noise subtract"
+        multiply_noise.label = "Vector Multiply - Noise subtract"
+    multiply_noise.operation = "MULTIPLY"
+    multiply_noise.inputs[1].default_value = (3.0, 3.0, 3.0)
+
+    mat.node_tree.links.new(multiply_noise.outputs["Vector"],
+                            subtract_gradient_noise.inputs["Color2"])
+
+    # Mapping base
+    mapping_base = mat_nodes.new("ShaderNodeMapping")
+    mapping_base.parent = frame
+    if cleaner:
+        mapping_base.name = "Final Cleaner Mapping Base"
+    else:
+        mapping_base.name = "Initial Shape Mapping Base"
+    mapping_base.location = (pos_x, pos_y)
+    mapping_base.inputs["Location"].default_value = (0, 0, 0)
+    mapping_base.inputs["Rotation"].default_value = (0, pi/2, 0)
+    mapping_base.inputs["Scale"].default_value = (1, 1, 1)
+
+    mat.node_tree.links.new(mapping_base.outputs["Vector"],
+                            gradient_texture_base.inputs["Vector"])
+
+    # Mapping subtract
+    mapping_subtract = mat_nodes.new("ShaderNodeMapping")
+    mapping_subtract.parent = frame
+    if cleaner:
+        mapping_subtract.name = "Final Cleaner Mapping Subtract"
+    else:
+        mapping_subtract.name = "Initial Shape Mapping Subtract"
+    mapping_subtract.location = (pos_x, pos_y - 400)
+    mapping_subtract.inputs["Location"].default_value = (0.2, 0.0, 0.0)
+    mapping_subtract.inputs["Rotation"].default_value = (0, pi/2, 0)
+    mapping_subtract.inputs["Scale"].default_value = (1, 1, 1)
+
+    mat.node_tree.links.new(mapping_subtract.outputs["Vector"],
+                            gradient_texture_subtract.inputs["Vector"])
+
+    # Mapping noise
+    mapping_noise = mat_nodes.new("ShaderNodeMapping")
+    mapping_noise.parent = frame
+    if cleaner:
+        mapping_noise.name = "Final Cleaner Mapping Noise"
+    else:
+        mapping_noise.name = "Initial Shape Mapping Noise"
+    mapping_noise.location = (pos_x, pos_y - 800)
+    cloudscape_noise_coords = obj.cloud_settings.cloudscape_noise_coords
+    mapping_noise.inputs["Location"].default_value = cloudscape_noise_coords
+    mapping_noise.inputs["Rotation"].default_value = (0, 0, 0)
+    mapping_noise.inputs["Scale"].default_value = (1, 1, 1)
+
+    # Noise Tex - Subtract initial
+    noise_subtract = mat_nodes.new("ShaderNodeTexNoise")
+    noise_subtract.parent = frame
+    if cleaner:
+        noise_subtract.name = "Noise Tex - Subtract initial Final Cleaner"
+        noise_subtract.label = "Noise Tex - Subtract initial Final Cleaner"
+    else:
+        noise_subtract.name = "Noise Tex - Subtract initial"
+        noise_subtract.label = "Noise Tex - Subtract initial"
+    noise_subtract.location = (pos_x + 200, pos_y - 800)
+    cloudscape_cloud_size = 10.1 - obj.cloud_settings.cloudscape_cloud_size
+    noise_subtract.inputs["Scale"].default_value = cloudscape_cloud_size
+    noise_subtract.inputs["Detail"].default_value = 0.0
+    noise_subtract.inputs["Roughness"].default_value = 0.0
+    noise_subtract.inputs["Distortion"].default_value = 0.0
+
+    mat.node_tree.links.new(noise_subtract.outputs["Fac"],
+                            multiply_noise.inputs[0])
+
+    # Vector Subtract - Cirrus shape subtract width
+    subtract_width_operation_cirrus = mat_nodes.new("ShaderNodeVectorMath")
+    subtract_width_operation_cirrus.parent = frame
+    subtract_width_operation_cirrus.location = (pos_x + 1200, pos_y - 1200)
+    if cleaner:
+        subtract_width_operation_cirrus.name = "Vector Subtract - Cirrus shape subtract width Final Cleaner"
+        subtract_width_operation_cirrus.label = "Vector Subtract - Cirrus shape subtract width Final Cleaner"
+    else:
+        subtract_width_operation_cirrus.name = "Vector Subtract - Cirrus shape subtract width"
+        subtract_width_operation_cirrus.label = "Vector Subtract - Cirrus shape subtract width"
+    subtract_width_operation_cirrus.operation = "SUBTRACT"
+
+    mat.node_tree.links.new(subtract_width_operation_cirrus.outputs["Vector"],
+                            cirrus_shape_multiply.inputs["Color2"])
+
+    # Vector Multiply - Cirrus shape width operation
+    multiply_for_width_operation_cirrus = mat_nodes.new("ShaderNodeVectorMath")
+    multiply_for_width_operation_cirrus.parent = frame
+    multiply_for_width_operation_cirrus.location = (pos_x + 1000, pos_y - 1300)
+    if cleaner:
+        multiply_for_width_operation_cirrus.name = "Vector Multiply - Cirrus shape width operation Final Cleaner"
+        multiply_for_width_operation_cirrus.label = "Vector Multiply - Cirrus shape width operation Final Cleaner"
+    else:
+        multiply_for_width_operation_cirrus.name = "Vector Multiply - Cirrus shape width operation"
+        multiply_for_width_operation_cirrus.label = "Vector Multiply - Cirrus shape width operation"
+    multiply_for_width_operation_cirrus.operation = "MULTIPLY"
+    multiply_for_width_operation_cirrus.inputs[1].default_value = (0.7, 0.7, 0.7)
+
+    mat.node_tree.links.new(multiply_for_width_operation_cirrus.outputs["Vector"],
+                            subtract_width_operation_cirrus.inputs[1])
+
+    # Vector Subtract - Cirrus shape invert operation for width (invert value (1 - val))
+    invert_for_width_operation_cirrus = mat_nodes.new("ShaderNodeVectorMath")
+    invert_for_width_operation_cirrus.parent = frame
+    invert_for_width_operation_cirrus.location = (pos_x + 800, pos_y - 1300)
+    if cleaner:
+        invert_for_width_operation_cirrus.name = "Vector Subtract - Cirrus shape invert operation for width Final Cleaner"
+        invert_for_width_operation_cirrus.label = "Vector Subtract - Cirrus shape invert operation for width Final Cleaner"
+    else:
+        invert_for_width_operation_cirrus.name = "Vector Subtract - Cirrus shape invert operation for width"
+        invert_for_width_operation_cirrus.label = "Vector Subtract - Cirrus shape invert operation for width"
+    invert_for_width_operation_cirrus.operation = "SUBTRACT"
+    invert_for_width_operation_cirrus.inputs[0].default_value = (1.0, 1.0, 1.0)
+
+    mat.node_tree.links.new(invert_for_width_operation_cirrus.outputs["Vector"],
+                            multiply_for_width_operation_cirrus.inputs[0])
+
+    # Vector Divide - Cirrus shape between 0 and 1 operation
+    divide_two_operation_cirrus = mat_nodes.new("ShaderNodeVectorMath")
+    divide_two_operation_cirrus.parent = frame
+    divide_two_operation_cirrus.location = (pos_x + 600, pos_y - 1200)
+    if cleaner:
+        divide_two_operation_cirrus.name = "Vector Divide - Cirrus shape between 0 and 1 operation Final Cleaner"
+        divide_two_operation_cirrus.label = "Vector Divide - Cirrus shape between 0 and 1 operation Final Cleaner"
+    else:
+        divide_two_operation_cirrus.name = "Vector Divide - Cirrus shape between 0 and 1 operation"
+        divide_two_operation_cirrus.label = "Vector Divide - Cirrus shape between 0 and 1 operation"
+    divide_two_operation_cirrus.operation = "DIVIDE"
+    divide_two_operation_cirrus.inputs[1].default_value = (2.0, 2.0, 2.0)
+
+    mat.node_tree.links.new(divide_two_operation_cirrus.outputs["Vector"],
+                            invert_for_width_operation_cirrus.inputs[1])
+    mat.node_tree.links.new(divide_two_operation_cirrus.outputs["Vector"],
+                            subtract_width_operation_cirrus.inputs[0])
+
+    # Vector Add - Cirrus shape between 0 and 1 operation
+    add_one_operation_cirrus = mat_nodes.new("ShaderNodeVectorMath")
+    add_one_operation_cirrus.parent = frame
+    add_one_operation_cirrus.location = (pos_x + 400, pos_y - 1200)
+    if cleaner:
+        add_one_operation_cirrus.name = "Vector Add - Cirrus shape between 0 and 1 operation Final Cleaner"
+        add_one_operation_cirrus.label = "Vector Add - Cirrus shape between 0 and 1 operation Final Cleaner"
+    else:
+        add_one_operation_cirrus.name = "Vector Add - Cirrus shape between 0 and 1 operation"
+        add_one_operation_cirrus.label = "Vector Add - Cirrus shape between 0 and 1 operation"
+    add_one_operation_cirrus.operation = "ADD"
+    add_one_operation_cirrus.inputs[1].default_value = (1.0, 1.0, 1.0)
+
+    mat.node_tree.links.new(add_one_operation_cirrus.outputs["Vector"],
+                            divide_two_operation_cirrus.inputs[0])
+
+    # Vector Sine - Cirrus shape
+    sine_cirrus = mat_nodes.new("ShaderNodeVectorMath")
+    sine_cirrus.parent = frame
+    sine_cirrus.location = (pos_x + 200, pos_y - 1200)
+    if cleaner:
+        sine_cirrus.name = "Vector Sine - Cirrus Shape Final Cleaner"
+        sine_cirrus.label = "Vector Sine - Cirrus Shape Final Cleaner"
+    else:
+        sine_cirrus.name = "Vector Sine - Cirrus Shape"
+        sine_cirrus.label = "Vector Sine - Cirrus Shape"
+    sine_cirrus.operation = "SINE"
+
+    mat.node_tree.links.new(sine_cirrus.outputs["Vector"],
+                            add_one_operation_cirrus.inputs[0])
+
+    # Mapping cirrus shape
+    mapping_cirrus_shape = mat_nodes.new("ShaderNodeMapping")
+    mapping_cirrus_shape.parent = frame
+    if cleaner:
+        mapping_cirrus_shape.name = "Final Cleaner Mapping Cirrus Shape"
+    else:
+        mapping_cirrus_shape.name = "Initial Shape Mapping Cirrus Shape"
+    mapping_cirrus_shape.location = (pos_x, pos_y - 1200)
+    mapping_cirrus_shape.inputs["Scale"].default_value = (13, 0, 0)
+
+    mat.node_tree.links.new(mapping_cirrus_shape.outputs["Vector"],
+                            sine_cirrus.inputs[0])
+
+    reroute_5 = mat_nodes.new(type='NodeReroute')
+    if cleaner:
+        reroute_5.location = (pos_x - 100, pos_y - 1300)
+    else:
+        reroute_5.location = (pos_x - 100, pos_y - 1950)
+
+    mat.node_tree.links.new(mapping_noise.outputs[0],
+                            noise_subtract.inputs[0])
+
+    if cleaner:
+        mat.node_tree.links.new(in_node.outputs[0],
+                                reroute_5.inputs[0])
+    else:
+        reroute_6 = mat_nodes.new(type='NodeReroute')
+        reroute_6.location = (pos_x + 600, pos_y - 1950)
+        mat.node_tree.links.new(reroute_6.outputs[0],
+                                reroute_5.inputs[0])
+        mat.node_tree.links.new(in_node.outputs["Color"],
+                                reroute_6.inputs[0])
+
+    mat.node_tree.links.new(reroute_5.outputs[0],
+                            mapping_base.inputs["Vector"])
+    mat.node_tree.links.new(reroute_5.outputs[0],
+                            mapping_subtract.inputs["Vector"])
+    mat.node_tree.links.new(reroute_5.outputs[0],
+                            mapping_noise.inputs["Vector"])
+    mat.node_tree.links.new(reroute_5.outputs[0],
+                            mapping_cirrus_shape.inputs["Vector"])
+
+
 def generate_cloud(context, pos_x, pos_y, initial_shape):
     C = context
     D = bpy.data
@@ -500,27 +949,27 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
 
     # Reroutes
     reroute_1 = mat_nodes.new(type='NodeReroute')
-    reroute_1.location = (pos_x + 1500, pos_y - 1500)
+    reroute_1.location = (pos_x + 1800, pos_y - 1500)
 
     reroute_2 = mat_nodes.new(type='NodeReroute')
-    reroute_2.location = (pos_x + 1500, pos_y - 2300)
+    reroute_2.location = (pos_x + 1800, pos_y - 2300)
 
     reroute_3 = mat_nodes.new(type='NodeReroute')
-    reroute_3.location = (pos_x + 2600, pos_y - 2300)
+    reroute_3.location = (pos_x + 3000, pos_y - 2300)
 
     reroute_4 = mat_nodes.new(type='NodeReroute')
-    reroute_4.location = (pos_x + 4100, pos_y - 2300)
+    reroute_4.location = (pos_x + 4500, pos_y - 2300)
 
     # -------------BEGINNING MAIN BRANCH-------------
     # Material Output
     material_output = mat_nodes.new("ShaderNodeOutputMaterial")
     material_output.name = "Cloud Output"
-    material_output.location = (pos_x + 6350, pos_y)
+    material_output.location = (pos_x + 6850, pos_y)
 
     # Principled Volume
     principled_volume = mat_nodes.new("ShaderNodeVolumePrincipled")
     principled_volume.name = "Cloud Principled Volume"
-    principled_volume.location = (pos_x + 6050, pos_y)
+    principled_volume.location = (pos_x + 6450, pos_y)
     principled_volume.inputs["Color"].default_value = (1, 1, 1, 1)
 
     # Connection between Principled Volume and Material Output.
@@ -531,7 +980,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     color_ramp_density = mat_nodes.new("ShaderNodeValToRGB")
     color_ramp_density.name = "ColorRamp - Cloud Density"
     color_ramp_density.label = "ColorRamp - Cloud Density"
-    color_ramp_density.location = (pos_x + 5750, pos_y)
+    color_ramp_density.location = (pos_x + 6150, pos_y)
     color_ramp_density.color_ramp.interpolation = 'CONSTANT'
     elem = color_ramp_density.color_ramp.elements[0]
     elem.position = 0.2
@@ -548,7 +997,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     subtract_final_cleaner = mat_nodes.new("ShaderNodeMixRGB")
     subtract_final_cleaner.name = "RGB Subtract - Final Cleaner"
     subtract_final_cleaner.label = "RGB Subtract - Final Cleaner"
-    subtract_final_cleaner.location = (pos_x + 5550, pos_y)
+    subtract_final_cleaner.location = (pos_x + 5950, pos_y)
     subtract_final_cleaner.blend_type = "SUBTRACT"
     subtract_final_cleaner.inputs["Fac"].default_value = 1.0
 
@@ -559,7 +1008,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     overlay_detail_noise = mat_nodes.new("ShaderNodeMixRGB")
     overlay_detail_noise.name = "RGB Overlay - Noise"
     overlay_detail_noise.label = "RGB Overlay - Noise"
-    overlay_detail_noise.location = (pos_x + 4350, pos_y)
+    overlay_detail_noise.location = (pos_x + 4750, pos_y)
     overlay_detail_noise.blend_type = "OVERLAY"
     detail_noise = obj.cloud_settings.detail_noise
     overlay_detail_noise.inputs["Fac"].default_value = detail_noise
@@ -571,7 +1020,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     multiply_bump = mat_nodes.new("ShaderNodeMixRGB")
     multiply_bump.name = "RGB Multiply - Bump"
     multiply_bump.label = "RGB Multiply - Bump"
-    multiply_bump.location = (pos_x + 4150, pos_y)
+    multiply_bump.location = (pos_x + 4550, pos_y)
     multiply_bump.blend_type = "MULTIPLY"
     detail_bump_strength = obj.cloud_settings.detail_bump_strength
     multiply_bump.inputs["Fac"].default_value = detail_bump_strength
@@ -581,7 +1030,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
 
     # Vector Multiply - Simple cleaner
     multiply_cleaner = mat_nodes.new("ShaderNodeVectorMath")
-    multiply_cleaner.location = (pos_x + 3500, pos_y)
+    multiply_cleaner.location = (pos_x + 3900, pos_y)
     multiply_cleaner.name = "Vector Multiply - Simple cleaner"
     multiply_cleaner.label = "Vector Multiply - Simple cleaner"
     multiply_cleaner.operation = "MULTIPLY"
@@ -597,7 +1046,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     # Greater Than
     length_greater_than = mat_nodes.new("ShaderNodeMath")
     length_greater_than.parent = frame
-    length_greater_than.location = (pos_x + 3250, pos_y - 200)
+    length_greater_than.location = (pos_x + 3650, pos_y - 200)
     length_greater_than.operation = "GREATER_THAN"
     length_greater_than.inputs[1].default_value = 0.520
 
@@ -606,7 +1055,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     # Vector Length
     lenght = mat_nodes.new("ShaderNodeVectorMath")
     lenght.parent = frame
-    lenght.location = (pos_x + 3050, pos_y - 200)
+    lenght.location = (pos_x + 3450, pos_y - 200)
     lenght.operation = "LENGTH"
 
     mat.node_tree.links.new(lenght.outputs["Value"],
@@ -618,7 +1067,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     subtract_imperfection = mat_nodes.new("ShaderNodeMixRGB")
     subtract_imperfection.name = "RGB Subtract - Shape imperfection"
     subtract_imperfection.label = "RGB Subtract - Shape imperfection"
-    subtract_imperfection.location = (pos_x + 2650, pos_y)
+    subtract_imperfection.location = (pos_x + 3050, pos_y)
     subtract_imperfection.blend_type = "SUBTRACT"
     subtract_shape_imperfection = obj.cloud_settings.subtract_shape_imperfection
     subtract_imperfection.inputs["Fac"].default_value = subtract_shape_imperfection
@@ -632,7 +1081,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     add_imperfection = mat_nodes.new("ShaderNodeMixRGB")
     add_imperfection.name = "RGB Add - Shape imperfection"
     add_imperfection.label = "RGB Add - Shape imperfection"
-    add_imperfection.location = (pos_x + 2450, pos_y)
+    add_imperfection.location = (pos_x + 2850, pos_y)
     add_imperfection.blend_type = "ADD"
     add_shape_imperfection = obj.cloud_settings.add_shape_imperfection
     add_imperfection.inputs["Fac"].default_value = add_shape_imperfection
@@ -644,7 +1093,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     overlay_roundness = mat_nodes.new("ShaderNodeMixRGB")
     overlay_roundness.name = "RGB Overlay - Roundness"
     overlay_roundness.label = "RGB Overlay - Roundness"
-    overlay_roundness.location = (pos_x + 2250, pos_y)
+    overlay_roundness.location = (pos_x + 2650, pos_y)
     overlay_roundness.blend_type = "OVERLAY"
     roundness = obj.cloud_settings.roundness
     overlay_roundness.inputs["Fac"].default_value = roundness
@@ -665,7 +1114,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     add_shape_wind_strength.parent = frame
     add_shape_wind_strength.name = "RGB Add - Shape wind strength"
     add_shape_wind_strength.label = "RGB Add - Shape wind strength"
-    add_shape_wind_strength.location = (pos_x + 1500, pos_y)
+    add_shape_wind_strength.location = (pos_x + 1700, pos_y)
     add_shape_wind_strength.blend_type = "ADD"
     wind_strength = obj.cloud_settings.wind_strength
     add_shape_wind_strength.inputs["Fac"].default_value = wind_strength
@@ -680,11 +1129,23 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     add_shape_wind_small.parent = frame
     add_shape_wind_small.name = "Shape wind small turbulence"
     add_shape_wind_small.label = "Shape wind small turbulence"
-    add_shape_wind_small.location = (pos_x + 1100, pos_y - 150)
+    add_shape_wind_small.location = (pos_x + 1300, pos_y - 150)
     add_shape_wind_small.blend_type = "ADD"
     add_shape_wind_small.inputs["Color1"].default_value = (0.0, 0.0, 0.0, 1.0)
     wind_small_turbulence = obj.cloud_settings.wind_small_turbulence
     add_shape_wind_small.inputs["Fac"].default_value = wind_small_turbulence
+
+    # Vector Multiply - Wind application direction
+    wind_application_direction_small = mat_nodes.new("ShaderNodeVectorMath")
+    wind_application_direction_small.parent = frame
+    wind_application_direction_small.location = (pos_x + 1100, pos_y - 150)
+    wind_application_direction_small.name = "Vector Multiply - Wind application direction small"
+    wind_application_direction_small.label = "Vector Multiply - Wind application direction small"
+    wind_application_direction_small.operation = "MULTIPLY"
+    wind_application_direction_small.inputs[1].default_value = (1.0, 1.0, 1.0)
+
+    mat.node_tree.links.new(wind_application_direction_small.outputs["Vector"],
+                            add_shape_wind_small.inputs["Color2"])
 
     # Vector Subtract - Shape wind small turbulence domain to -0.5 to 0.5
     domain_adjustment_shape_wind_small = mat_nodes.new("ShaderNodeVectorMath")
@@ -696,7 +1157,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     domain_adjustment_shape_wind_small.inputs[1].default_value = (0.5, 0.5, 0.5)
 
     mat.node_tree.links.new(domain_adjustment_shape_wind_small.outputs["Vector"],
-                            add_shape_wind_small.inputs["Color2"])
+                            wind_application_direction_small.inputs[0])
 
     # Noise Tex - Shape wind small turbulence
     noise_shape_wind_small = mat_nodes.new("ShaderNodeTexNoise")
@@ -731,7 +1192,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     add_shape_wind_big.parent = frame
     add_shape_wind_big.name = "Shape wind big turbulence"
     add_shape_wind_big.label = "Shape wind big turbulence"
-    add_shape_wind_big.location = (pos_x + 1300, pos_y - 250)
+    add_shape_wind_big.location = (pos_x + 1500, pos_y - 250)
     add_shape_wind_big.blend_type = "ADD"
     add_shape_wind_big.inputs["Color1"].default_value = (0.0, 0.0, 0.0, 1.0)
     wind_big_turbulence = obj.cloud_settings.wind_big_turbulence
@@ -741,6 +1202,18 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
                             add_shape_wind_big.inputs["Color1"])
     mat.node_tree.links.new(add_shape_wind_big.outputs["Color"],
                             add_shape_wind_strength.inputs["Color2"])
+
+    # Vector Multiply - Wind application direction
+    wind_application_direction_big = mat_nodes.new("ShaderNodeVectorMath")
+    wind_application_direction_big.parent = frame
+    wind_application_direction_big.location = (pos_x + 1100, pos_y - 400)
+    wind_application_direction_big.name = "Vector Multiply - Wind application direction big"
+    wind_application_direction_big.label = "Vector Multiply - Wind application direction big"
+    wind_application_direction_big.operation = "MULTIPLY"
+    wind_application_direction_big.inputs[1].default_value = (1.0, 1.0, 1.0)
+
+    mat.node_tree.links.new(wind_application_direction_big.outputs["Vector"],
+                            add_shape_wind_big.inputs["Color2"])
 
     # Vector Subtract - Shape wind big turbulence domain to -0.5 to 0.5
     domain_adjustment_shape_wind_big = mat_nodes.new("ShaderNodeVectorMath")
@@ -752,7 +1225,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     domain_adjustment_shape_wind_big.inputs[1].default_value = (0.5, 0.5, 0.5)
 
     mat.node_tree.links.new(domain_adjustment_shape_wind_big.outputs["Vector"],
-                            add_shape_wind_big.inputs["Color2"])
+                            wind_application_direction_big.inputs[0])
 
     # Noise Tex - Shape wind big turbulence
     noise_shape_wind_big = mat_nodes.new("ShaderNodeTexNoise")
@@ -802,7 +1275,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     mat.node_tree.links.new(texture_coordinate.outputs["Object"],
                             initial_mapping.inputs["Vector"])
 
-    initial_shape(pos_x + 1500, pos_y + 200, texture_coordinate, overlay_roundness, add_shape_wind_strength, mat, mat_nodes, obj, False)
+    initial_shape(pos_x + 1700, pos_y + 200, texture_coordinate, overlay_roundness, add_shape_wind_strength, mat, mat_nodes, obj, False)
 
     # ----------------END MAIN BRANCH----------------
 
@@ -814,7 +1287,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
                             reroute_4.inputs[0])
 
     # --------BEGINNING FINAL CLEANER BRANCH---------
-    initial_shape(pos_x + 4350, pos_y - 500, texture_coordinate, subtract_final_cleaner, reroute_4, mat, mat_nodes, obj, True)
+    initial_shape(pos_x + 4750, pos_y - 500, texture_coordinate, subtract_final_cleaner, reroute_4, mat, mat_nodes, obj, True)
     # -----------END FINAL CLEANER BRANCH------------
 
     # -------------BEGINNING BUMP BRANCH-------------
@@ -825,7 +1298,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     # Invert color
     invert_color = mat_nodes.new("ShaderNodeInvert")
     invert_color.parent = frame
-    invert_color.location = (pos_x + 3850, pos_y - 500)
+    invert_color.location = (pos_x + 4250, pos_y - 500)
     mat.node_tree.links.new(invert_color.outputs["Color"],
                             multiply_bump.inputs["Color2"])
     # RGB Overlay - Bump level 3
@@ -833,7 +1306,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     overlay_bump_3.parent = frame
     overlay_bump_3.name = "RGB Overlay - Bump level 3"
     overlay_bump_3.label = "RGB Overlay - Bump level 3"
-    overlay_bump_3.location = (pos_x + 3650, pos_y - 500)
+    overlay_bump_3.location = (pos_x + 4050, pos_y - 500)
     overlay_bump_3.blend_type = "OVERLAY"
 
     mat.node_tree.links.new(overlay_bump_3.outputs["Color"],
@@ -844,7 +1317,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     overlay_bump_2.parent = frame
     overlay_bump_2.name = "RGB Overlay - Bump level 2"
     overlay_bump_2.label = "RGB Overlay - Bump level 2"
-    overlay_bump_2.location = (pos_x + 3450, pos_y - 500)
+    overlay_bump_2.location = (pos_x + 3850, pos_y - 500)
     overlay_bump_2.blend_type = "OVERLAY"
 
     mat.node_tree.links.new(overlay_bump_2.outputs["Color"],
@@ -866,7 +1339,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     voronoi_bump_1.parent = frame
     voronoi_bump_1.name = "Voronoi tex - Bump level 1"
     voronoi_bump_1.label = "Voronoi tex - Bump level 1"
-    voronoi_bump_1.location = (pos_x + 3250, pos_y - 500)
+    voronoi_bump_1.location = (pos_x + 3650, pos_y - 500)
 
     mat.node_tree.links.new(voronoi_bump_1.outputs["Distance"],
                             overlay_bump_2.inputs["Color1"])
@@ -876,7 +1349,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     voronoi_bump_2.parent = frame
     voronoi_bump_2.name = "Voronoi tex - Bump level 2"
     voronoi_bump_2.label = "Voronoi tex - Bump level 2"
-    voronoi_bump_2.location = (pos_x + 3250, pos_y - 800)
+    voronoi_bump_2.location = (pos_x + 3650, pos_y - 800)
     voronoi_bump_2.inputs["Scale"].default_value = 10.3
 
     mat.node_tree.links.new(voronoi_bump_2.outputs["Distance"],
@@ -887,7 +1360,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     voronoi_bump_3.parent = frame
     voronoi_bump_3.name = "Voronoi tex - Bump level 3"
     voronoi_bump_3.label = "Voronoi tex - Bump level 3"
-    voronoi_bump_3.location = (pos_x + 3250, pos_y - 1100)
+    voronoi_bump_3.location = (pos_x + 3650, pos_y - 1100)
     voronoi_bump_3.inputs["Scale"].default_value = 30.0
 
     mat.node_tree.links.new(voronoi_bump_3.outputs["Distance"],
@@ -898,7 +1371,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     add_small_wind.parent = frame
     add_small_wind.name = "RGB Add - Small wind"
     add_small_wind.label = "RGB Add - Small wind"
-    add_small_wind.location = (pos_x + 3050, pos_y - 950)
+    add_small_wind.location = (pos_x + 3450, pos_y - 950)
     add_small_wind.blend_type = "ADD"
     wind = obj.cloud_settings.wind_strength
     add_small_wind.inputs["Fac"].default_value = wind
@@ -913,7 +1386,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     # Vector Add - Bump coordinates
     add_coords_bump = mat_nodes.new("ShaderNodeVectorMath")
     add_coords_bump.parent = frame
-    add_coords_bump.location = (pos_x + 2650, pos_y - 800)
+    add_coords_bump.location = (pos_x + 3050, pos_y - 800)
     add_coords_bump.name = "Vector Add - Bump coordinates"
     add_coords_bump.label = "Vector Add - Bump coordinates"
     add_coords_bump.operation = "ADD"
@@ -925,7 +1398,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     # Vector Subtract - Small wind domain to -0.5 to 0.5
     domain_adjustment_small_wind = mat_nodes.new("ShaderNodeVectorMath")
     domain_adjustment_small_wind.parent = frame
-    domain_adjustment_small_wind.location = (pos_x + 2850, pos_y - 1100)
+    domain_adjustment_small_wind.location = (pos_x + 3250, pos_y - 1100)
     domain_adjustment_small_wind.name = "Vector Subtract - Small wind domain adjustment"
     domain_adjustment_small_wind.label = "Vector Subtract - Small wind domain adjustment"
     domain_adjustment_small_wind.operation = "SUBTRACT"
@@ -939,7 +1412,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     noise_small_wind.parent = frame
     noise_small_wind.name = "Noise Tex - Small wind"
     noise_small_wind.label = "Noise Tex - Small wind"
-    noise_small_wind.location = (pos_x + 2650, pos_y - 1100)
+    noise_small_wind.location = (pos_x + 3050, pos_y - 1100)
     noise_small_wind.inputs["Scale"].default_value = 0.7
     noise_small_wind.inputs["Detail"].default_value = 0.0
     noise_small_wind.inputs["Roughness"].default_value = 0.0
@@ -964,7 +1437,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     overlay_noise_combine.parent = frame
     overlay_noise_combine.name = "RGB Overlay - Detail noise combined"
     overlay_noise_combine.label = "RGB Overlay - Detail noise combined"
-    overlay_noise_combine.location = (pos_x + 3850, pos_y - 1500)
+    overlay_noise_combine.location = (pos_x + 4250, pos_y - 1500)
     overlay_noise_combine.blend_type = "OVERLAY"
     overlay_noise_combine.inputs["Fac"].default_value = 1.0
 
@@ -976,7 +1449,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     detetail_noise_level_1.parent = frame
     detetail_noise_level_1.name = "Noise Tex - Detail noise level 1"
     detetail_noise_level_1.label = "Noise Tex - Detail noise level 1"
-    detetail_noise_level_1.location = (pos_x + 3650, pos_y - 1500)
+    detetail_noise_level_1.location = (pos_x + 4050, pos_y - 1500)
     detetail_noise_level_1.inputs["Scale"].default_value = 12.4
     detetail_noise_level_1.inputs["Detail"].default_value = 2.6
     detetail_noise_level_1.inputs["Roughness"].default_value = 1.0
@@ -990,7 +1463,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     detetail_noise_level_2.parent = frame
     detetail_noise_level_2.name = "Noise Tex - Detail noise level 2"
     detetail_noise_level_2.label = "Noise Tex - Detail noise level 2"
-    detetail_noise_level_2.location = (pos_x + 3650, pos_y - 1800)
+    detetail_noise_level_2.location = (pos_x + 4050, pos_y - 1800)
     detetail_noise_level_2.inputs["Scale"].default_value = 12.4
     detetail_noise_level_2.inputs["Detail"].default_value = 6.0
     detetail_noise_level_2.inputs["Roughness"].default_value = 1.0
@@ -1013,7 +1486,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     # Invert color
     invert_color = mat_nodes.new("ShaderNodeInvert")
     invert_color.parent = frame
-    invert_color.location = (pos_x + 2000, pos_y - 500)
+    invert_color.location = (pos_x + 2400, pos_y - 500)
     mat.node_tree.links.new(invert_color.outputs["Color"],
                             overlay_roundness.inputs["Color2"])
 
@@ -1022,7 +1495,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     voronoi_roundness.parent = frame
     voronoi_roundness.name = "Voronoi tex - Roundness"
     voronoi_roundness.label = "Voronoi tex - Roundness"
-    voronoi_roundness.location = (pos_x + 1800, pos_y - 500)
+    voronoi_roundness.location = (pos_x + 2200, pos_y - 500)
     voronoi_roundness.inputs["Scale"].default_value = 2.0
 
     mat.node_tree.links.new(voronoi_roundness.outputs["Distance"],
@@ -1031,7 +1504,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     # Vector Add - Roundness coord
     add_coords_roundness = mat_nodes.new("ShaderNodeVectorMath")
     add_coords_roundness.parent = frame
-    add_coords_roundness.location = (pos_x + 1600, pos_y - 500)
+    add_coords_roundness.location = (pos_x + 2000, pos_y - 500)
     add_coords_roundness.name = "Vector Add - Roundness coord"
     add_coords_roundness.label = "Vector Add - Roundness coord"
     add_coords_roundness.operation = "ADD"
@@ -1055,7 +1528,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     color_burn_noises.parent = frame
     color_burn_noises.name = "RGB Color Burn - Combine noises"
     color_burn_noises.label = "RGB Color Burn - Combine noises"
-    color_burn_noises.location = (pos_x + 2000, pos_y - 900)
+    color_burn_noises.location = (pos_x + 2400, pos_y - 900)
     color_burn_noises.blend_type = "BURN"
     color_burn_noises.inputs["Fac"].default_value = 1.0
 
@@ -1067,7 +1540,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     noise_add_shape_imperfection_1.parent = frame
     noise_add_shape_imperfection_1.name = "Noise Tex - Add shape imperfection 1"
     noise_add_shape_imperfection_1.label = "Noise Tex - Add shape imperfection 1"
-    noise_add_shape_imperfection_1.location = (pos_x + 1800, pos_y - 900)
+    noise_add_shape_imperfection_1.location = (pos_x + 2200, pos_y - 900)
     noise_add_shape_imperfection_1.inputs["Scale"].default_value = 1.9
     noise_add_shape_imperfection_1.inputs["Detail"].default_value = 0.0
     noise_add_shape_imperfection_1.inputs["Roughness"].default_value = 0.0
@@ -1080,7 +1553,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     noise_add_shape_imperfection_2.parent = frame
     noise_add_shape_imperfection_2.name = "Noise Tex - Add shape imperfection 1"
     noise_add_shape_imperfection_2.label = "Noise Tex - Add shape imperfection 1"
-    noise_add_shape_imperfection_2.location = (pos_x + 1800, pos_y - 1150)
+    noise_add_shape_imperfection_2.location = (pos_x + 2200, pos_y - 1150)
     noise_add_shape_imperfection_2.inputs["Scale"].default_value = 1.9
     noise_add_shape_imperfection_2.inputs["Detail"].default_value = 16.0
     noise_add_shape_imperfection_2.inputs["Roughness"].default_value = 0.0
@@ -1092,7 +1565,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     # Vector Add - Coords add shape imperfection 1
     coords_add_shape_imperfection_1 = mat_nodes.new("ShaderNodeVectorMath")
     coords_add_shape_imperfection_1.parent = frame
-    coords_add_shape_imperfection_1.location = (pos_x + 1600, pos_y - 900)
+    coords_add_shape_imperfection_1.location = (pos_x + 2000, pos_y - 900)
     coords_add_shape_imperfection_1.name = "Vector Add - Coords add shape imperfection 1"
     coords_add_shape_imperfection_1.label = "Vector Add - Coords add shape imperfection 1"
     coords_add_shape_imperfection_1.operation = "ADD"
@@ -1107,7 +1580,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     # Vector Add - Coords add shape imperfection 2
     coords_add_shape_imperfection_2 = mat_nodes.new("ShaderNodeVectorMath")
     coords_add_shape_imperfection_2.parent = frame
-    coords_add_shape_imperfection_2.location = (pos_x + 1600, pos_y - 1150)
+    coords_add_shape_imperfection_2.location = (pos_x + 2000, pos_y - 1150)
     coords_add_shape_imperfection_2.name = "Vector Add - Coords add shape imperfection 2"
     coords_add_shape_imperfection_2.label = "Vector Add - Coords add shape imperfection 2"
     coords_add_shape_imperfection_2.operation = "ADD"
@@ -1129,7 +1602,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     color_burn_noises.parent = frame
     color_burn_noises.name = "RGB Color Burn - Combine noises"
     color_burn_noises.label = "RGB Color Burn - Combine noises"
-    color_burn_noises.location = (pos_x + 2000, pos_y - 1500)
+    color_burn_noises.location = (pos_x + 2400, pos_y - 1500)
     color_burn_noises.blend_type = "BURN"
     color_burn_noises.inputs["Fac"].default_value = 1.0
 
@@ -1141,7 +1614,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     noise_subtract_shape_imperfection_1.parent = frame
     noise_subtract_shape_imperfection_1.name = "Noise Tex - Subtract shape imperfection 1"
     noise_subtract_shape_imperfection_1.label = "Noise Tex - Subtract shape imperfection 1"
-    noise_subtract_shape_imperfection_1.location = (pos_x + 1800, pos_y - 1500)
+    noise_subtract_shape_imperfection_1.location = (pos_x + 2200, pos_y - 1500)
     noise_subtract_shape_imperfection_1.inputs["Scale"].default_value = 1.9
     noise_subtract_shape_imperfection_1.inputs["Detail"].default_value = 0.0
     noise_subtract_shape_imperfection_1.inputs["Roughness"].default_value = 0.0
@@ -1154,7 +1627,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     noise_subtract_shape_imperfection_2.parent = frame
     noise_subtract_shape_imperfection_2.name = "Noise Tex - Subtract shape imperfection 1"
     noise_subtract_shape_imperfection_2.label = "Noise Tex - Subtract shape imperfection 1"
-    noise_subtract_shape_imperfection_2.location = (pos_x + 1800, pos_y - 1750)
+    noise_subtract_shape_imperfection_2.location = (pos_x + 2200, pos_y - 1750)
     noise_subtract_shape_imperfection_2.inputs["Scale"].default_value = 1.9
     noise_subtract_shape_imperfection_2.inputs["Detail"].default_value = 16.0
     noise_subtract_shape_imperfection_2.inputs["Roughness"].default_value = 0.0
@@ -1166,7 +1639,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     # Vector Add - Coods subtract shape imperfection 1
     coords_subtract_shape_imperfection_1 = mat_nodes.new("ShaderNodeVectorMath")
     coords_subtract_shape_imperfection_1.parent = frame
-    coords_subtract_shape_imperfection_1.location = (pos_x + 1600, pos_y - 1500)
+    coords_subtract_shape_imperfection_1.location = (pos_x + 2000, pos_y - 1500)
     coords_subtract_shape_imperfection_1.name = "Vector Add - Coods subtract shape imperfection 1"
     coords_subtract_shape_imperfection_1.label = "Vector Add - Coods subtract shape imperfection 1"
     coords_subtract_shape_imperfection_1.operation = "ADD"
@@ -1181,7 +1654,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     # Vector Add - Add shape imperfection 2
     coords_subtract_shape_imperfection_2 = mat_nodes.new("ShaderNodeVectorMath")
     coords_subtract_shape_imperfection_2.parent = frame
-    coords_subtract_shape_imperfection_2.location = (pos_x + 1600, pos_y - 1750)
+    coords_subtract_shape_imperfection_2.location = (pos_x + 2000, pos_y - 1750)
     coords_subtract_shape_imperfection_2.name = "Vector Add - Coods subtract shape imperfection 2"
     coords_subtract_shape_imperfection_2.label = "Vector Add - Coods subtract shape imperfection 2"
     coords_subtract_shape_imperfection_2.operation = "ADD"
