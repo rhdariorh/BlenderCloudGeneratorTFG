@@ -152,42 +152,13 @@ class OBJECT_PT_cloud_general(bpy.types.Panel):
             column = layout.column()
             column.prop(cloud_settings, "density", text="Density")
 
-            if cloud_settings.cloud_type in ["CLOUDSCAPE_CUMULUS", "CLOUDSCAPE_CIRRUS"]:
+            if cloud_settings.cloud_type == "CLOUDSCAPE_CUMULUS":
                 column.prop(cloud_settings, "amount_of_clouds", text="Amount of clouds")
                 column.prop(cloud_settings, "cloudscape_cloud_size", text="Clouds size")
                 if (context.preferences.addons[__name__].preferences.advanced_settings):
                     column.prop(cloud_settings, "cloudscape_noise_coords", text="Seed")
                 else:
                     column.prop(cloud_settings, "cloudscape_noise_simple_seed", text="Seed")
-
-
-class OBJECT_PT_cloud_general_wind(bpy.types.Panel):
-    """Creates a subpanel within general panel to modify wind properties."""
-
-    bl_label = "Wind"
-    bl_parent_id = "OBJECT_PT_cloud_general"
-    bl_space_type = 'PROPERTIES'
-    bl_region_type = 'WINDOW'
-    bl_context = "object"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-
-        obj = context.object
-        cloud_settings = obj.cloud_settings
-        if obj.cloud_settings.is_cloud:
-            column = layout.column()
-            column.prop(cloud_settings, "wind_strength", text="Strength")
-            column.prop(cloud_settings, "wind_big_turbulence", text="Big turbulence")
-            if (context.preferences.addons[__name__].preferences.advanced_settings):
-                column.prop(cloud_settings, "wind_big_turbulence_coords", text="Big turbulence seed")
-            column.prop(cloud_settings, "wind_small_turbulence", text="Small turbulence")
-            if (context.preferences.addons[__name__].preferences.advanced_settings):
-                column.prop(cloud_settings, "wind_small_turbulence_coords", text="Small turbulence seed")
-            if not context.preferences.addons[__name__].preferences.advanced_settings:
-                column.prop(cloud_settings, "wind_turbulence_simple_seed", text="Seed")
 
 
 class OBJECT_PT_cloud_shape(bpy.types.Panel):
@@ -216,9 +187,47 @@ class OBJECT_PT_cloud_shape(bpy.types.Panel):
                 column.prop(cloud_settings, "width_y", text="Width Y")
             elif(cloud_settings.cloud_type in ["CLOUDSCAPE_CUMULUS", "CLOUDSCAPE_CIRRUS"]):
                 column.prop(cloud_settings, "height_cloudscape", text="Height")
+
+                if cloud_settings.cloud_type == "CLOUDSCAPE_CUMULUS":
+                    column.prop(cloud_settings, "bottom_softness_cloudscape", text="Bottom softness")
+                    column.prop(cloud_settings, "top_softness_cloudscape", text="Top softness")
+
+                if cloud_settings.cloud_type == "CLOUDSCAPE_CIRRUS":
+                    column.prop(cloud_settings, "cloudscape_cirrus_cirrus_amount", text="Amount of cirrus")
+                    column.prop(cloud_settings, "cloudscape_cirrus_cirrus_width", text="Cirrus width")
+
                 column.prop(cloud_settings, "use_shape_texture", text="Use shape texture")
                 if cloud_settings.use_shape_texture:
                     column.template_ID(cloud_settings, "shape_texture_image", new="image.new", open="image.open")
+
+
+class OBJECT_PT_cloud_shape_wind(bpy.types.Panel):
+    """Creates a subpanel within shape panel to modify wind properties."""
+
+    bl_label = "Wind"
+    bl_parent_id = "OBJECT_PT_cloud_shape"
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "object"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        obj = context.object
+        cloud_settings = obj.cloud_settings
+        if obj.cloud_settings.is_cloud:
+            column = layout.column()
+            column.prop(cloud_settings, "wind_strength", text="Strength")
+            column.prop(cloud_settings, "wind_big_turbulence", text="Big turbulence")
+            if (context.preferences.addons[__name__].preferences.advanced_settings):
+                column.prop(cloud_settings, "wind_big_turbulence_coords", text="Big turbulence seed")
+            column.prop(cloud_settings, "wind_small_turbulence", text="Small turbulence")
+            if (context.preferences.addons[__name__].preferences.advanced_settings):
+                column.prop(cloud_settings, "wind_small_turbulence_coords", text="Small turbulence seed")
+            if not context.preferences.addons[__name__].preferences.advanced_settings:
+                column.prop(cloud_settings, "wind_turbulence_simple_seed", text="Seed")
 
 
 class OBJECT_PT_cloud_shape_roundness(bpy.types.Panel):
@@ -325,6 +334,7 @@ class OBJECT_PT_cloud_detail(bpy.types.Panel):
             column.prop(cloud_settings, "detail_bump_strength", text="Bump strength")
             column.prop(cloud_settings, "detail_bump_levels", text="Bump levels")
             column.prop(cloud_settings, "detail_noise", text="Noise")
+            column.prop(cloud_settings, "detail_wind_strength", text="Wind strength")
 
 
 class OBJECT_PT_cloud_extra(bpy.types.Panel):
@@ -391,8 +401,8 @@ def register():
 
     bpy.utils.register_class(OBJECT_PT_cloud)
     bpy.utils.register_class(OBJECT_PT_cloud_general)
-    bpy.utils.register_class(OBJECT_PT_cloud_general_wind)
     bpy.utils.register_class(OBJECT_PT_cloud_shape)
+    bpy.utils.register_class(OBJECT_PT_cloud_shape_wind)
     bpy.utils.register_class(OBJECT_PT_cloud_shape_roundness)
     bpy.utils.register_class(OBJECT_PT_cloud_shape_add_imperfection)
     bpy.utils.register_class(OBJECT_PT_cloud_shape_subtract_imperfection)
@@ -426,8 +436,8 @@ def unregister():
 
     bpy.utils.unregister_class(OBJECT_PT_cloud)
     bpy.utils.unregister_class(OBJECT_PT_cloud_general)
-    bpy.utils.unregister_class(OBJECT_PT_cloud_general_wind)
     bpy.utils.unregister_class(OBJECT_PT_cloud_shape)
+    bpy.utils.unregister_class(OBJECT_PT_cloud_shape_wind)
     bpy.utils.unregister_class(OBJECT_PT_cloud_shape_roundness)
     bpy.utils.unregister_class(OBJECT_PT_cloud_shape_add_imperfection)
     bpy.utils.unregister_class(OBJECT_PT_cloud_shape_subtract_imperfection)

@@ -213,12 +213,6 @@ def update_cloud_height_single(self, context):
             vector_curves.mapping.curves[2].points[2].location = (last_point.x, last_point.y)
             vector_curves.mapping.update()
 
-            vector_curves = material.node_tree.nodes.get("Final Cleaner Vector Curves")
-            join_point = vector_curves.mapping.curves[2].points[1].location
-            last_point = join_point + direction
-            vector_curves.mapping.curves[2].points[2].location = (last_point.x, last_point.y)
-            vector_curves.mapping.update()
-
             # Blender is bugged and when the vector curves changes the shader is not updated
             # so I update another property to update the shader:
             roundness = obj.cloud_settings.roundness
@@ -243,9 +237,6 @@ def update_cloud_width(self, context):
             bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
         elif (cloud_type == "SINGLE_CUMULUS"):
             mapping = material.node_tree.nodes.get("Initial Shape Mapping")
-            mapping.inputs["Scale"].default_value = (width_x, width_y, 0.7)
-
-            mapping = material.node_tree.nodes.get("Final Cleaner Shape Mapping")
             mapping.inputs["Scale"].default_value = (width_x, width_y, 0.7)
 
 
@@ -392,6 +383,22 @@ def update_cloud_detail_bump_levels(self, context):
             overlay_bump_3.inputs["Fac"].default_value = 1
 
 
+def update_cloud_detail_wind_strength(self, context):
+    """Cloud detail wind update function.
+
+    Change the strength of wind effect in the details.
+    """
+    obj = context.active_object
+    if (obj.cloud_settings.update_properties):
+        detail_wind_strength = obj.cloud_settings.detail_wind_strength
+        material = bpy.context.active_object.active_material
+        if "CloudMaterial_CG" not in material.name:
+            bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
+        else:
+            add_small_wind = material.node_tree.nodes.get("RGB Add - Small wind")
+            add_small_wind.inputs["Fac"].default_value = detail_wind_strength
+
+
 def update_cloud_detail_noise(self, context):
     """Cloud detail noise update function.
 
@@ -445,8 +452,6 @@ def update_cloud_amount_of_clouds(self, context):
         else:
             subtract_gradient_noise = material.node_tree.nodes.get("RGB Subtract - Gradient and Noise")
             subtract_gradient_noise.inputs["Fac"].default_value = amount_of_clouds
-            subtract_gradient_noise = material.node_tree.nodes.get("RGB Subtract - Gradient and Noise Final Cleaner")
-            subtract_gradient_noise.inputs["Fac"].default_value = amount_of_clouds
 
 
 def update_cloud_cloudscape_cloud_size(self, context):
@@ -464,8 +469,6 @@ def update_cloud_cloudscape_cloud_size(self, context):
             bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
         else:
             noise_subtract = material.node_tree.nodes.get("Noise Tex - Subtract initial")
-            noise_subtract.inputs["Scale"].default_value = cloudscape_cloud_size
-            noise_subtract = material.node_tree.nodes.get("Noise Tex - Subtract initial Final Cleaner")
             noise_subtract.inputs["Scale"].default_value = cloudscape_cloud_size
 
 
@@ -490,9 +493,6 @@ def update_cloud_cloudscape_noise_coords(self, context):
                 obj.cloud_settings.cloudscape_noise_simple_seed = cloudscape_noise_coords.x
                 mapping_noise = material.node_tree.nodes.get("Initial Shape Mapping Noise")
                 mapping_noise.inputs["Location"].default_value = cloudscape_noise_coords
-
-                mapping_noise = material.node_tree.nodes.get("Final Cleaner Mapping Noise")
-                mapping_noise.inputs["Location"].default_value = cloudscape_noise_coords
             else:
                 cloudscape_noise_coords = (cloudscape_noise_simple_seed,
                                            cloudscape_noise_simple_seed,
@@ -500,9 +500,6 @@ def update_cloud_cloudscape_noise_coords(self, context):
                 obj.cloud_settings.cloudscape_noise_coords = cloudscape_noise_coords
 
                 mapping_noise = material.node_tree.nodes.get("Initial Shape Mapping Noise")
-                mapping_noise.inputs["Location"].default_value = cloudscape_noise_coords
-
-                mapping_noise = material.node_tree.nodes.get("Final Cleaner Mapping Noise")
                 mapping_noise.inputs["Location"].default_value = cloudscape_noise_coords
 
 
@@ -520,12 +517,33 @@ def update_cloud_height_cloudscape(self, context):
         material = bpy.context.active_object.active_material
         if "CloudMaterial_CG" not in material.name:
             bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
-        elif (cloud_type == "CLOUDSCAPE_CUMULUS"):
+        elif (cloud_type in ["CLOUDSCAPE_CUMULUS", "CLOUDSCAPE_CIRRUS"]):
             mapping_subtract = material.node_tree.nodes.get("Initial Shape Mapping Subtract")
             mapping_subtract.inputs["Location"].default_value = (-height_cloudscape, 0.0, 0.0)
 
-            mapping_subtract = material.node_tree.nodes.get("Final Cleaner Mapping Subtract")
-            mapping_subtract.inputs["Location"].default_value = (-height_cloudscape, 0.0, 0.0)
+
+def update_cloud_cut_softness_cloudscape(self, context):
+    """Cloudscape cut softness update function.
+
+    Change the softness in the top and bottom cloud cuts.
+    """
+
+    obj = context.active_object
+    if (obj.cloud_settings.update_properties):
+        cloud_type = obj.cloud_settings.cloud_type
+        bottom_softness_cloudscape = obj.cloud_settings.bottom_softness_cloudscape
+        top_softness_cloudscape = obj.cloud_settings.top_softness_cloudscape
+        material = bpy.context.active_object.active_material
+        if "CloudMaterial_CG" not in material.name:
+            bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
+        elif cloud_type == "CLOUDSCAPE_CUMULUS":
+            color_ramp_gradient_base = material.node_tree.nodes.get("ColorRamp - Gradient Base")
+            elem = color_ramp_gradient_base.color_ramp.elements[1]
+            elem.position = bottom_softness_cloudscape
+
+            color_ramp_gradient_subtract = material.node_tree.nodes.get("ColorRamp - Gradient Subtract")
+            elem = color_ramp_gradient_subtract.color_ramp.elements[1]
+            elem.position = top_softness_cloudscape
 
 
 def update_cloud_use_shape_texture(self, context):
@@ -543,13 +561,10 @@ def update_cloud_use_shape_texture(self, context):
             bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
         elif (cloud_type == "CLOUDSCAPE_CUMULUS"):
             use_shape_texture = obj.cloud_settings.use_shape_texture
-            texture_image_shape_multiply_cl = material.node_tree.nodes.get("RGB Multiply - Texture image shape Final Cleaner")
             texture_image_shape_multiply = material.node_tree.nodes.get("RGB Multiply - Texture image shape")
             if use_shape_texture:
-                texture_image_shape_multiply_cl.inputs["Fac"].default_value = 1.0
                 texture_image_shape_multiply.inputs["Fac"].default_value = 1.0
             else:
-                texture_image_shape_multiply_cl.inputs["Fac"].default_value = 0.0
                 texture_image_shape_multiply.inputs["Fac"].default_value = 0.0
 
 
@@ -570,8 +585,27 @@ def update_cloud_shape_texture_image(self, context):
             shape_texture_image = obj.cloud_settings.shape_texture_image
             image_texture_shape = material.node_tree.nodes.get("Image texture - Shape of cloud")
             image_texture_shape.image = shape_texture_image
-            image_texture_shape = material.node_tree.nodes.get("Image texture - Shape of cloud Final Cleaner")
-            image_texture_shape.image = shape_texture_image
+
+
+def update_cloud_cirrus(self, context):
+    """Cirrus properties update function."""
+
+    obj = context.active_object
+    if (obj.cloud_settings.update_properties):
+        cloud_type = obj.cloud_settings.cloud_type
+        material = bpy.context.active_object.active_material
+        if "CloudMaterial_CG" not in material.name:
+            bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
+        elif (cloud_type == "CLOUDSCAPE_CIRRUS"):
+            cloudscape_cirrus_cirrus_amount = obj.cloud_settings.cloudscape_cirrus_cirrus_amount
+            mapping_cirrus_shape = material.node_tree.nodes.get("Initial Shape Mapping Cirrus Shape")
+            mapping_cirrus_shape.inputs["Scale"].default_value = (cloudscape_cirrus_cirrus_amount, 0, 0)
+
+            cloudscape_cirrus_cirrus_width = 1 - obj.cloud_settings.cloudscape_cirrus_cirrus_width
+            multiply_for_width_operation_cirrus = material.node_tree.nodes.get("Vector Multiply - Cirrus shape width operation")
+            multiply_for_width_operation_cirrus.inputs[1].default_value = (cloudscape_cirrus_cirrus_width,
+                                                                           cloudscape_cirrus_cirrus_width,
+                                                                           cloudscape_cirrus_cirrus_width)
 
 
 class CloudSettings(bpy.types.PropertyGroup):
@@ -645,6 +679,8 @@ class CloudSettings(bpy.types.PropertyGroup):
         detail_bump_levels: Number of bump levels. Each level adds a
             smaller bump.
 
+        detail_wind_strength: Strength of wind effect in the details.
+
         detail_noise: Amount of noise added to the entire cloud.
 
         cleaner_domain_size: Cleaning domain size.
@@ -654,6 +690,10 @@ class CloudSettings(bpy.types.PropertyGroup):
             of clouds, the more noise is subtracted from the volume.
 
         height_cloudscape: Vertical length of clouds for cloudscapes.
+
+        bottom_softness_cloudscape: Softness in the cloud cut at the bottom.
+
+        top_softness_cloudscape: Softness in the cloud cut at the top.
 
         cloudscape_cloud_size: Size of the clouds in the cloudscape.
 
@@ -667,6 +707,11 @@ class CloudSettings(bpy.types.PropertyGroup):
             the cloudscape.
 
         shape_texture_image: Image used to shape a cloud with a Image Texture.
+
+        cloudscape_cirrus_cirrus_amount: Amount of cirrus. A higher value will increase the
+            density of cirrus clouds in the cloudscape.
+
+        cloudscape_cirrus_cirrus_width: Width of the cirrus in a cloudscape.
 
     """
 
@@ -917,6 +962,15 @@ class CloudSettings(bpy.types.PropertyGroup):
         update=update_cloud_detail_bump_levels
     )
 
+    detail_wind_strength: bpy.props.FloatProperty(
+        name="Cloud detail wind strength",
+        description="Strength of wind effect in the details",
+        default=0.5,
+        min=0.0,
+        max=1.0,
+        update=update_cloud_detail_wind_strength
+    )
+
     detail_noise: bpy.props.FloatProperty(
         name="Detail noise",
         description="Amount of noise added to the entire cloud",
@@ -953,6 +1007,24 @@ class CloudSettings(bpy.types.PropertyGroup):
         min=0.0,
         soft_max=10.0,
         update=update_cloud_height_cloudscape
+    )
+
+    bottom_softness_cloudscape: bpy.props.FloatProperty(
+        name="Cloudscape bottom softness",
+        description="Softness in the cloud cut at the bottom",
+        default=0.2,
+        min=0.1,
+        max=1.0,
+        update=update_cloud_cut_softness_cloudscape
+    )
+
+    top_softness_cloudscape: bpy.props.FloatProperty(
+        name="Cloudscape top softness",
+        description="Softness in the cloud cut at the top",
+        default=0.5,
+        min=0.1,
+        max=1.0,
+        update=update_cloud_cut_softness_cloudscape
     )
 
     cloudscape_cloud_size: bpy.props.FloatProperty(
@@ -994,4 +1066,22 @@ class CloudSettings(bpy.types.PropertyGroup):
         description="Image used to shape a cloud with a Image Texture",
         type=bpy.types.Image,
         update=update_cloud_shape_texture_image
+    )
+
+    cloudscape_cirrus_cirrus_amount: bpy.props.FloatProperty(
+        name="Amount of cirrus",
+        description="Amount of cirrus. A higher value will increase the " +
+        "density of cirrus clouds in the cloudscape",
+        default=10.0,
+        min=0.0,
+        update=update_cloud_cirrus
+    )
+
+    cloudscape_cirrus_cirrus_width: bpy.props.FloatProperty(
+        name="Cirrus width",
+        description="Width of the cirrus in a cloudscape",
+        default=0.5,
+        min=0.0,
+        max=1.0,
+        update=update_cloud_cirrus
     )
