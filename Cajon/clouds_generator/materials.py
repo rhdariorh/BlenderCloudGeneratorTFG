@@ -80,7 +80,7 @@ def initial_shape_single_cumulus(pos_x, pos_y, texture_coordinate, cleaner_out, 
     mat.node_tree.links.new(mapping.outputs["Vector"],
                             vector_curves.inputs["Vector"])
 
-    mat.node_tree.links.new(in_node.outputs["Color"],
+    mat.node_tree.links.new(in_node.outputs["Vector"],
                             mapping.inputs[0])
 
 
@@ -332,7 +332,7 @@ def initial_shape_cloudscape_cumulus(pos_x, pos_y, texture_coordinate, cleaner_o
     reroute_6.location = (pos_x + 300, pos_y - 1300)
     mat.node_tree.links.new(reroute_6.outputs[0],
                             reroute_5.inputs[0])
-    mat.node_tree.links.new(in_node.outputs["Color"],
+    mat.node_tree.links.new(in_node.outputs["Vector"],
                             reroute_6.inputs[0])
 
     mat.node_tree.links.new(reroute_5.outputs[0],
@@ -688,7 +688,7 @@ def initial_shape_cloudscape_cirrus(pos_x, pos_y, texture_coordinate, cleaner_ou
     reroute_6.location = (pos_x + 600, pos_y - 1950)
     mat.node_tree.links.new(reroute_6.outputs[0],
                             reroute_5.inputs[0])
-    mat.node_tree.links.new(in_node.outputs["Color"],
+    mat.node_tree.links.new(in_node.outputs["Vector"],
                             reroute_6.inputs[0])
 
     mat.node_tree.links.new(reroute_5.outputs[0],
@@ -943,6 +943,16 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     frame.label = "Wind"
 
     # RGB Add - Shape wind strength
+    add_shape_wind = mat_nodes.new("ShaderNodeVectorMath")
+    add_shape_wind.parent = frame
+    add_shape_wind.name = "RGB Add - Add shape wind"
+    add_shape_wind.label = "RGB Add - Add shape wind"
+    add_shape_wind.location = (pos_x + 1900, pos_y)
+    add_shape_wind.operation = "ADD"
+
+    #mat.node_tree.links.new(add_shape_wind.outputs["Vector"],
+    #                        reroute_1.inputs[0])
+    """
     add_shape_wind_strength = mat_nodes.new("ShaderNodeMixRGB")
     add_shape_wind_strength.parent = frame
     add_shape_wind_strength.name = "RGB Add - Shape wind strength"
@@ -951,9 +961,24 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     add_shape_wind_strength.blend_type = "ADD"
     wind_strength = obj.cloud_settings.wind_strength
     add_shape_wind_strength.inputs["Fac"].default_value = wind_strength
-
+    """
     # mat.node_tree.links.new(add_shape_wind_strength.outputs["Color"],
     #                        reroute_1.inputs[0])
+
+    # Wind strength
+    # add_shape_wind_strength.name = "RGB Add - Shape wind strength"
+    # (pos_x + 1500, pos_y - 250)
+    wind_strength = mat_nodes.new("ShaderNodeVectorMath")
+    wind_strength.parent = frame
+    wind_strength.name = "RGB Add - Shape wind strength"
+    wind_strength.label = "RGB Add - Shape wind strength"
+    wind_strength.location = (pos_x + 1700, pos_y - 250)
+    wind_strength.operation = "MULTIPLY"
+    wind_strength_value = obj.cloud_settings.wind_strength
+    wind_strength.inputs[1].default_value = (wind_strength_value, wind_strength_value, wind_strength_value)
+
+    mat.node_tree.links.new(wind_strength.outputs["Vector"],
+                            add_shape_wind.inputs[1])
 
     # Wind small turbulence
 
@@ -1034,7 +1059,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     mat.node_tree.links.new(add_shape_wind_small.outputs["Color"],
                             add_shape_wind_big.inputs["Color1"])
     mat.node_tree.links.new(add_shape_wind_big.outputs["Color"],
-                            add_shape_wind_strength.inputs["Color2"])
+                            wind_strength.inputs[0])
 
     # Vector Multiply - Wind application direction
     wind_application_direction_big = mat_nodes.new("ShaderNodeVectorMath")
@@ -1096,7 +1121,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     initial_mapping.inputs["Location"].default_value = domain_cloud_position
 
     mat.node_tree.links.new(initial_mapping.outputs["Vector"],
-                            add_shape_wind_strength.inputs["Color1"])
+                            add_shape_wind.inputs[0])
     mat.node_tree.links.new(initial_mapping.outputs["Vector"],
                             add_coords_wind_small.inputs[0])
     mat.node_tree.links.new(initial_mapping.outputs["Vector"],
@@ -1110,7 +1135,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     mat.node_tree.links.new(texture_coordinate.outputs["Object"],
                             initial_mapping.inputs["Vector"])
 
-    initial_shape(pos_x + 2000, pos_y, texture_coordinate, subtract_final_cleaner, overlay_roundness, add_shape_wind_strength, mat, mat_nodes, obj)
+    initial_shape(pos_x + 2000, pos_y, texture_coordinate, subtract_final_cleaner, overlay_roundness, add_shape_wind, mat, mat_nodes, obj)
 
     # ----------------END MAIN BRANCH----------------
 
