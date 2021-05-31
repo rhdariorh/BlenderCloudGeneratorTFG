@@ -1,3 +1,19 @@
+"""
+    __init__.py is part of Cloud Generator Blender Addon.
+
+    Foobar is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    any later version.
+
+    Foobar is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Foobar.  If not, see <https://www.gnu.org/licenses/>.
+"""
 import bpy
 from mathutils import Vector
 import bpy.utils.previews
@@ -12,7 +28,7 @@ bl_info = {
     "version": (2021, 1, 0),
     "blender": (2, 83, 1),
     "category": "Object",
-    "location": "Operator Search",
+    "location": "View 3D > Add > Volume",
     "description": "Automatic creation of different types of clouds.",
     "warning": "Development version",
     "doc_url": "",
@@ -33,6 +49,9 @@ class CloudGeneratorPreferences(bpy.types.AddonPreferences):
     def draw(self, context):
         layout = self.layout
         layout.prop(self, "advanced_settings")
+        column = layout.column_flow(columns=2, align=True)
+        column.operator("object.cloud_edit_settings", text="Set edition settings")
+        column.operator("object.cloud_render_settings", text="Set render settings")
 
 
 class CloudErrorOperator(bpy.types.Operator):
@@ -55,8 +74,42 @@ class CloudErrorOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class OBJECT_OT_cloud_edit_settings(bpy.types.Operator):
+    """Operator that sets the Blender settings for a more comfortable and faster cloud editing"""
+
+    bl_idname = "object.cloud_edit_settings"
+    bl_label = "Set settings to cloud edit mode"
+    bl_options = {"REGISTER", "UNDO"}
+
+    def execute(self, context):
+        context.scene.eevee.volumetric_tile_size = '8'
+        context.scene.eevee.volumetric_samples = 64
+        context.scene.eevee.use_volumetric_lights = True
+        context.scene.eevee.use_volumetric_shadows = True
+        context.scene.eevee.volumetric_end = 200.0
+        self.report({'INFO'}, "Blender settings adapted for editing atmospheric clouds.")
+        return {'FINISHED'}
+
+
+class OBJECT_OT_cloud_render_settings(bpy.types.Operator):
+    """Operator that sets the optimal Blender settings for rendering clouds"""
+
+    bl_idname = "object.cloud_render_settings"
+    bl_label = "Set settings to render clouds"
+    bl_options = {"REGISTER", "UNDO"}
+
+    def execute(self, context):
+        context.scene.eevee.volumetric_tile_size = '2'
+        context.scene.eevee.volumetric_samples = 64
+        context.scene.eevee.use_volumetric_lights = True
+        context.scene.eevee.use_volumetric_shadows = True
+        context.scene.eevee.volumetric_end = 500.0
+        self.report({'INFO'}, "Blender settings adapted for rendering clouds.")
+        return {'FINISHED'}
+
+
 class OBJECT_OT_cloud_single_cumulus(bpy.types.Operator):
-    """Operator that generates and add a single cumulus cloud to the scene."""
+    """Operator that generates and add a single cumulus cloud to the scene"""
 
     bl_idname = "object.cloud_add_single_cumulus"
     bl_label = "Generate single cumulus"
@@ -72,7 +125,7 @@ class OBJECT_OT_cloud_single_cumulus(bpy.types.Operator):
 
 
 class OBJECT_OT_cloud_cloudscape_cumulus(bpy.types.Operator):
-    """Operator that generates and add a cumulus cloudscape to the scene."""
+    """Operator that generates and add a cumulus cloudscape to the scene"""
 
     bl_idname = "object.cloud_add_cloudscape_cumulus"
     bl_label = "Generate cumulus cloudscape"
@@ -88,7 +141,7 @@ class OBJECT_OT_cloud_cloudscape_cumulus(bpy.types.Operator):
 
 
 class OBJECT_OT_cloud_cloudscape_cirrus(bpy.types.Operator):
-    """Operator that generates and add a cirrus cloudscape to the scene."""
+    """Operator that generates and add a cirrus cloudscape to the scene"""
 
     bl_idname = "object.cloud_add_cloudscape_cirrus"
     bl_label = "Generate cirrus cloudscape"
@@ -151,7 +204,7 @@ class OBJECT_PT_cloud_general(bpy.types.Panel):
         if obj.cloud_settings.is_cloud:
             column = layout.column()
             column.prop(cloud_settings, "density", text="Density")
-
+            column.prop(cloud_settings, "color", text="Color")
             if cloud_settings.cloud_type == "CLOUDSCAPE_CUMULUS":
                 column.prop(cloud_settings, "amount_of_clouds", text="Amount of clouds")
                 column.prop(cloud_settings, "cloudscape_cloud_size", text="Clouds size")
@@ -360,7 +413,6 @@ class OBJECT_PT_cloud_extra(bpy.types.Panel):
         cloud_settings = obj.cloud_settings
         if obj.cloud_settings.is_cloud:
             column = layout.column()
-            column.prop(cloud_settings, "color", text="Color")
             column.prop(cloud_settings, "domain_cloud_position", text="Cloud position")
             column.prop(cloud_settings, "cleaner_domain_size", text="Clean strengh")
 
@@ -394,6 +446,8 @@ def register():
 
     bpy.utils.register_class(CloudErrorOperator)
     bpy.utils.register_class(CloudGeneratorPreferences)
+    bpy.utils.register_class(OBJECT_OT_cloud_edit_settings)
+    bpy.utils.register_class(OBJECT_OT_cloud_render_settings)
     bpy.utils.register_class(CloudSettings)
     bpy.utils.register_class(OBJECT_OT_cloud_single_cumulus)
     bpy.utils.register_class(OBJECT_OT_cloud_cloudscape_cumulus)
@@ -414,6 +468,14 @@ def register():
 
     bpy.types.Object.cloud_settings = bpy.props.PointerProperty(type=CloudSettings)
 
+    print("\n_____________________________________________________\n")
+    print("Cloud Generator is a free and open source Add-on following the GNU General Public License.\n")
+    print("If you are an addon developer and you can afford to create GNU-GPL addons, do so " +
+          "(if you want). Blender has given you a lot for free, give a little bit back " +
+          "to the community. :)")
+    print("\nDario R.H.")
+    print("_____________________________________________________\n")
+
     """
     preview_coll = bpy.utils.previews.new()
     icon_dir = os.path.join(os.path.dirname(__file__), "icons")
@@ -429,6 +491,8 @@ def unregister():
 
     bpy.utils.unregister_class(CloudErrorOperator)
     bpy.utils.unregister_class(CloudGeneratorPreferences)
+    bpy.utils.unregister_class(OBJECT_OT_cloud_edit_settings)
+    bpy.utils.unregister_class(OBJECT_OT_cloud_render_settings)
     bpy.utils.unregister_class(CloudSettings)
     bpy.utils.unregister_class(OBJECT_OT_cloud_single_cumulus)
     bpy.utils.unregister_class(OBJECT_OT_cloud_cloudscape_cumulus)
