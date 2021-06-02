@@ -575,7 +575,7 @@ def update_cloud_use_shape_texture(self, context):
         material = bpy.context.active_object.active_material
         if "CloudMaterial_CG" not in material.name:
             bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
-        elif (cloud_type == "CLOUDSCAPE_CUMULUS"):
+        elif (cloud_type in ["CLOUDSCAPE_CUMULUS", "CLOUDSCAPE_CIRRUS"]):
             use_shape_texture = obj.cloud_settings.use_shape_texture
             texture_image_shape_multiply = material.node_tree.nodes.get("RGB Multiply - Texture image shape")
             if use_shape_texture:
@@ -597,7 +597,7 @@ def update_cloud_shape_texture_image(self, context):
         material = bpy.context.active_object.active_material
         if "CloudMaterial_CG" not in material.name:
             bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
-        elif (cloud_type == "CLOUDSCAPE_CUMULUS"):
+        elif (cloud_type in ["CLOUDSCAPE_CUMULUS", "CLOUDSCAPE_CIRRUS"]):
             shape_texture_image = obj.cloud_settings.shape_texture_image
             image_texture_shape = material.node_tree.nodes.get("Image texture - Shape of cloud")
             image_texture_shape.image = shape_texture_image
