@@ -50,8 +50,8 @@ class CloudGeneratorPreferences(bpy.types.AddonPreferences):
         layout = self.layout
         layout.prop(self, "advanced_settings")
         column = layout.column_flow(columns=2, align=True)
-        column.operator("object.cloud_edit_settings", text="Set edition settings")
-        column.operator("object.cloud_render_settings", text="Set render settings")
+        column.operator("render.cloud_edit_settings", text="Set edition settings")
+        column.operator("render.cloud_render_settings", text="Set render settings")
 
 
 class CloudErrorOperator(bpy.types.Operator):
@@ -74,10 +74,10 @@ class CloudErrorOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class OBJECT_OT_cloud_edit_settings(bpy.types.Operator):
+class RENDER_OT_cloud_edit_settings(bpy.types.Operator):
     """Operator that sets the Blender settings for a more comfortable and faster cloud editing"""
 
-    bl_idname = "object.cloud_edit_settings"
+    bl_idname = "render.cloud_edit_settings"
     bl_label = "Set settings to cloud edit mode"
     bl_options = {"REGISTER", "UNDO"}
 
@@ -91,10 +91,10 @@ class OBJECT_OT_cloud_edit_settings(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class OBJECT_OT_cloud_render_settings(bpy.types.Operator):
+class RENDER_OT_cloud_render_settings(bpy.types.Operator):
     """Operator that sets the optimal Blender settings for rendering clouds"""
 
-    bl_idname = "object.cloud_render_settings"
+    bl_idname = "render.cloud_render_settings"
     bl_label = "Set settings to render clouds"
     bl_options = {"REGISTER", "UNDO"}
 
@@ -446,8 +446,8 @@ def register():
 
     bpy.utils.register_class(CloudErrorOperator)
     bpy.utils.register_class(CloudGeneratorPreferences)
-    bpy.utils.register_class(OBJECT_OT_cloud_edit_settings)
-    bpy.utils.register_class(OBJECT_OT_cloud_render_settings)
+    bpy.utils.register_class(RENDER_OT_cloud_edit_settings)
+    bpy.utils.register_class(RENDER_OT_cloud_render_settings)
     bpy.utils.register_class(CloudSettings)
     bpy.utils.register_class(OBJECT_OT_cloud_single_cumulus)
     bpy.utils.register_class(OBJECT_OT_cloud_cloudscape_cumulus)
@@ -491,8 +491,8 @@ def unregister():
 
     bpy.utils.unregister_class(CloudErrorOperator)
     bpy.utils.unregister_class(CloudGeneratorPreferences)
-    bpy.utils.unregister_class(OBJECT_OT_cloud_edit_settings)
-    bpy.utils.unregister_class(OBJECT_OT_cloud_render_settings)
+    bpy.utils.unregister_class(RENDER_OT_cloud_edit_settings)
+    bpy.utils.unregister_class(RENDER_OT_cloud_render_settings)
     bpy.utils.unregister_class(CloudSettings)
     bpy.utils.unregister_class(OBJECT_OT_cloud_single_cumulus)
     bpy.utils.unregister_class(OBJECT_OT_cloud_cloudscape_cumulus)

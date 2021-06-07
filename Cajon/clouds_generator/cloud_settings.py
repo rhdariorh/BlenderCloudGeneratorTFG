@@ -107,7 +107,7 @@ def update_cloud_wind(self, context):
             add_shape_wind_small.inputs["Fac"].default_value = wind_small_turbulence
 
 
-def update_cloud_roundness_wind_turbulence_coords(self, context):
+def update_cloud_wind_turbulence_coords(self, context):
     """Cloud wind turbulence coords (seed) update function.
 
     Change the cloud wind turbulence coordinates according to the wind_big_turbulence_coords
@@ -827,7 +827,7 @@ class CloudSettings(bpy.types.PropertyGroup):
                     "It is used as a seed.",
         subtype="XYZ",
         default=(0.0, 0.0, 0.0),
-        update=update_cloud_roundness_wind_turbulence_coords
+        update=update_cloud_wind_turbulence_coords
     )
 
     wind_small_turbulence_coords: bpy.props.FloatVectorProperty(
@@ -836,7 +836,7 @@ class CloudSettings(bpy.types.PropertyGroup):
                     "It is used as a seed.",
         subtype="XYZ",
         default=(0.0, 0.0, 0.0),
-        update=update_cloud_roundness_wind_turbulence_coords
+        update=update_cloud_wind_turbulence_coords
     )
 
     wind_turbulence_simple_seed: bpy.props.FloatProperty(
@@ -844,12 +844,12 @@ class CloudSettings(bpy.types.PropertyGroup):
         description="Sets the value of this property as the value of the " +
         "three mapping coordinates for both wind big and small turbulence coordinates",
         default=0.0,
-        update=update_cloud_roundness_wind_turbulence_coords
+        update=update_cloud_wind_turbulence_coords
     )
 
     roundness: bpy.props.FloatProperty(
         name="Cloud roundness",
-        description="Strength of the effect of roughly rounded shapes " +
+        description="Strength of the effect of rounded shapes " +
                     "in the cloud",
         default=0.5,
         min=0.0,
