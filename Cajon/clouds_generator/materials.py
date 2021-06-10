@@ -57,7 +57,7 @@ def initial_shape_single_cumulus(pos_x, pos_y, texture_coordinate, cleaner_out, 
     gradient_texture = mat_nodes.new("ShaderNodeTexGradient")
     gradient_texture.parent = frame
     gradient_texture.name = "Initial Shape Gradient Texture"
-    gradient_texture.location = (pos_x + 500, pos_y)
+    gradient_texture.location = (pos_x + 700, pos_y)
     gradient_texture.gradient_type = "SPHERICAL"
 
     mat.node_tree.links.new(gradient_texture.outputs["Color"],
@@ -70,7 +70,7 @@ def initial_shape_single_cumulus(pos_x, pos_y, texture_coordinate, cleaner_out, 
     vector_curves = mat_nodes.new("ShaderNodeVectorCurve")
     vector_curves.parent = frame
     vector_curves.name = "Initial Shape Vector Curves"
-    vector_curves.location = (pos_x + 200, pos_y)
+    vector_curves.location = (pos_x + 400, pos_y)
     vector_curves.mapping.curves[2].points[0].location = (-0.77, -1.0)
     join_point = Vector((-0.6, -0.25))
     vector_curves.mapping.curves[2].points.new(join_point.x, join_point.y)
@@ -89,7 +89,7 @@ def initial_shape_single_cumulus(pos_x, pos_y, texture_coordinate, cleaner_out, 
     mapping = mat_nodes.new("ShaderNodeMapping")
     mapping.parent = frame
     mapping.name = "Initial Shape Mapping"
-    mapping.location = (pos_x, pos_y)
+    mapping.location = (pos_x + 200, pos_y)
     mapping.inputs["Location"].default_value = (0.0, 0.0, 0)
     mapping.inputs["Scale"].default_value = (0.7, 0.7, 0.7)
 
@@ -809,6 +809,9 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     reroute_3 = mat_nodes.new(type='NodeReroute')
     reroute_3.location = (pos_x + 3000, pos_y - 2300)
 
+    reroute_4 = mat_nodes.new(type='NodeReroute')
+    reroute_4.location = (pos_x + 500, pos_y - 1500)
+
     # -------------BEGINNING MAIN BRANCH-------------
     # Material Output
     material_output = mat_nodes.new("ShaderNodeOutputMaterial")
@@ -1143,7 +1146,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     mat.node_tree.links.new(initial_mapping.outputs["Vector"],
                             add_coords_wind_big.inputs[0])
     mat.node_tree.links.new(initial_mapping.outputs["Vector"],
-                            reroute_1.inputs[0])
+                            reroute_4.inputs[0])
 
     # Texture Coordinate
     texture_coordinate = mat_nodes.new("ShaderNodeTexCoord")
@@ -1155,6 +1158,8 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
 
     # ----------------END MAIN BRANCH----------------
 
+    mat.node_tree.links.new(reroute_4.outputs[0],
+                            reroute_1.inputs[0])
     mat.node_tree.links.new(reroute_1.outputs[0],
                             reroute_2.inputs[0])
     mat.node_tree.links.new(reroute_2.outputs[0],
