@@ -246,8 +246,16 @@ class OBJECT_PT_cloud_shape(bpy.types.Panel):
                     column.prop(cloud_settings, "top_softness_cloudscape", text="Top softness")
 
                 if cloud_settings.cloud_type == "CLOUDSCAPE_CIRRUS":
+                    column.separator()
                     column.prop(cloud_settings, "cloudscape_cirrus_cirrus_amount", text="Amount of cirrus")
                     column.prop(cloud_settings, "cloudscape_cirrus_cirrus_width", text="Cirrus width")
+                    column.separator()
+                    column.prop(cloud_settings, "amount_of_clouds", text="Amount of cumulus")
+                    column.prop(cloud_settings, "cloudscape_cloud_size", text="Cumulus size")
+                    if (context.preferences.addons[__name__].preferences.advanced_settings):
+                        column.prop(cloud_settings, "cloudscape_noise_coords", text="Seed")
+                    else:
+                        column.prop(cloud_settings, "cloudscape_noise_simple_seed", text="Seed")
 
                 column.prop(cloud_settings, "use_shape_texture", text="Use shape texture")
                 if cloud_settings.use_shape_texture:
