@@ -97,7 +97,7 @@ def update_cloud_wind(self, context):
         if "CloudMaterial_CG" not in material.name:
             bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
         else:
-            wind_strength = material.node_tree.nodes.get("RGB Add - Shape wind strength")
+            wind_strength = material.node_tree.nodes.get("Vector Multiply - Shape wind strength")
             wind_strength.inputs[1].default_value = (wind_strength_value, wind_strength_value, wind_strength_value)
 
             add_shape_wind_big = material.node_tree.nodes.get("Shape wind big turbulence")
@@ -798,7 +798,7 @@ class CloudSettings(bpy.types.PropertyGroup):
         name="Cloud wind strength",
         description="Amount of wind effect added to the cloud",
         default=1.0,
-        min=1.0,
+        min=0.0,
         soft_max=5.0,
         update=update_cloud_wind
     )

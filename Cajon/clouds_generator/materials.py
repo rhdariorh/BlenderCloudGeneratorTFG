@@ -283,7 +283,7 @@ def initial_shape_cloudscape_cumulus(pos_x, pos_y, texture_coordinate, cleaner_o
     multiply_noise.name = "Vector Multiply - Noise subtract"
     multiply_noise.label = "Vector Multiply - Noise subtract"
     multiply_noise.operation = "MULTIPLY"
-    multiply_noise.inputs[1].default_value = (3.0, 3.0, 3.0)
+    multiply_noise.inputs[1].default_value = (5.0, 5.0, 5.0)
 
     mat.node_tree.links.new(multiply_noise.outputs["Vector"],
                             subtract_gradient_noise.inputs["Color2"])
@@ -552,7 +552,7 @@ def initial_shape_cloudscape_cirrus(pos_x, pos_y, texture_coordinate, cleaner_ou
     multiply_noise.name = "Vector Multiply - Noise subtract"
     multiply_noise.label = "Vector Multiply - Noise subtract"
     multiply_noise.operation = "MULTIPLY"
-    multiply_noise.inputs[1].default_value = (3.0, 3.0, 3.0)
+    multiply_noise.inputs[1].default_value = (5.0, 5.0, 5.0)
 
     mat.node_tree.links.new(multiply_noise.outputs["Vector"],
                             subtract_gradient_noise.inputs["Color2"])
@@ -964,33 +964,16 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     # RGB Add - Shape wind strength
     add_shape_wind = mat_nodes.new("ShaderNodeVectorMath")
     add_shape_wind.parent = frame
-    add_shape_wind.name = "RGB Add - Add shape wind"
-    add_shape_wind.label = "RGB Add - Add shape wind"
+    add_shape_wind.name = "Vector Add - Add shape wind"
+    add_shape_wind.label = "Vector Add - Add shape wind"
     add_shape_wind.location = (pos_x + 1900, pos_y)
     add_shape_wind.operation = "ADD"
 
-    #mat.node_tree.links.new(add_shape_wind.outputs["Vector"],
-    #                        reroute_1.inputs[0])
-    """
-    add_shape_wind_strength = mat_nodes.new("ShaderNodeMixRGB")
-    add_shape_wind_strength.parent = frame
-    add_shape_wind_strength.name = "RGB Add - Shape wind strength"
-    add_shape_wind_strength.label = "RGB Add - Shape wind strength"
-    add_shape_wind_strength.location = (pos_x + 1700, pos_y)
-    add_shape_wind_strength.blend_type = "ADD"
-    wind_strength = obj.cloud_settings.wind_strength
-    add_shape_wind_strength.inputs["Fac"].default_value = wind_strength
-    """
-    # mat.node_tree.links.new(add_shape_wind_strength.outputs["Color"],
-    #                        reroute_1.inputs[0])
-
     # Wind strength
-    # add_shape_wind_strength.name = "RGB Add - Shape wind strength"
-    # (pos_x + 1500, pos_y - 250)
     wind_strength = mat_nodes.new("ShaderNodeVectorMath")
     wind_strength.parent = frame
-    wind_strength.name = "RGB Add - Shape wind strength"
-    wind_strength.label = "RGB Add - Shape wind strength"
+    wind_strength.name = "Vector Multiply - Shape wind strength"
+    wind_strength.label = "Vector Multiply - Shape wind strength"
     wind_strength.location = (pos_x + 1700, pos_y - 250)
     wind_strength.operation = "MULTIPLY"
     wind_strength_value = obj.cloud_settings.wind_strength
@@ -1110,7 +1093,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     noise_shape_wind_big.name = "Noise Tex - Shape wind big turbulence"
     noise_shape_wind_big.label = "Noise Tex - Shape wind big turbulence"
     noise_shape_wind_big.location = (pos_x + 700, pos_y - 400)
-    noise_shape_wind_big.inputs["Scale"].default_value = 0.5
+    noise_shape_wind_big.inputs["Scale"].default_value = 0.2
     noise_shape_wind_big.inputs["Detail"].default_value = 0.0
     noise_shape_wind_big.inputs["Roughness"].default_value = 0.0
     noise_shape_wind_big.inputs["Distortion"].default_value = 3.0
@@ -1225,7 +1208,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     voronoi_bump_2.name = "Voronoi tex - Bump level 2"
     voronoi_bump_2.label = "Voronoi tex - Bump level 2"
     voronoi_bump_2.location = (pos_x + 3950, pos_y - 800)
-    voronoi_bump_2.inputs["Scale"].default_value = 10.3
+    voronoi_bump_2.inputs["Scale"].default_value = 10
 
     mat.node_tree.links.new(voronoi_bump_2.outputs["Distance"],
                             overlay_bump_2.inputs["Color2"])
