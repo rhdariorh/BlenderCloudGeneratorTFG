@@ -608,21 +608,10 @@ def initial_shape_cloudscape_cirrus(pos_x, pos_y, texture_coordinate, cleaner_ou
     mat.node_tree.links.new(noise_subtract.outputs["Fac"],
                             multiply_noise.inputs[0])
 
-    # Vector Subtract - Cirrus shape subtract width
-    subtract_width_operation_cirrus = mat_nodes.new("ShaderNodeVectorMath")
-    subtract_width_operation_cirrus.parent = frame
-    subtract_width_operation_cirrus.location = (pos_x + 1200, pos_y - 1200)
-    subtract_width_operation_cirrus.name = "Vector Subtract - Cirrus shape subtract width"
-    subtract_width_operation_cirrus.label = "Vector Subtract - Cirrus shape subtract width"
-    subtract_width_operation_cirrus.operation = "SUBTRACT"
-
-    mat.node_tree.links.new(subtract_width_operation_cirrus.outputs["Vector"],
-                            cirrus_shape_multiply.inputs["Color2"])
-
     # Vector Multiply - Cirrus shape width operation
     multiply_for_width_operation_cirrus = mat_nodes.new("ShaderNodeVectorMath")
     multiply_for_width_operation_cirrus.parent = frame
-    multiply_for_width_operation_cirrus.location = (pos_x + 1000, pos_y - 1300)
+    multiply_for_width_operation_cirrus.location = (pos_x + 800, pos_y - 1200)
     multiply_for_width_operation_cirrus.name = "Vector Multiply - Cirrus shape width operation"
     multiply_for_width_operation_cirrus.label = "Vector Multiply - Cirrus shape width operation"
     multiply_for_width_operation_cirrus.operation = "MULTIPLY"
@@ -632,19 +621,7 @@ def initial_shape_cloudscape_cirrus(pos_x, pos_y, texture_coordinate, cleaner_ou
                                                                    cloudscape_cirrus_cirrus_width)
 
     mat.node_tree.links.new(multiply_for_width_operation_cirrus.outputs["Vector"],
-                            subtract_width_operation_cirrus.inputs[1])
-
-    # Vector Subtract - Cirrus shape invert operation for width (invert value (1 - val))
-    invert_for_width_operation_cirrus = mat_nodes.new("ShaderNodeVectorMath")
-    invert_for_width_operation_cirrus.parent = frame
-    invert_for_width_operation_cirrus.location = (pos_x + 800, pos_y - 1300)
-    invert_for_width_operation_cirrus.name = "Vector Subtract - Cirrus shape invert operation for width"
-    invert_for_width_operation_cirrus.label = "Vector Subtract - Cirrus shape invert operation for width"
-    invert_for_width_operation_cirrus.operation = "SUBTRACT"
-    invert_for_width_operation_cirrus.inputs[0].default_value = (1.0, 1.0, 1.0)
-
-    mat.node_tree.links.new(invert_for_width_operation_cirrus.outputs["Vector"],
-                            multiply_for_width_operation_cirrus.inputs[0])
+                            cirrus_shape_multiply.inputs["Color2"])
 
     # Vector Divide - Cirrus shape between 0 and 1 operation
     divide_two_operation_cirrus = mat_nodes.new("ShaderNodeVectorMath")
@@ -656,9 +633,7 @@ def initial_shape_cloudscape_cirrus(pos_x, pos_y, texture_coordinate, cleaner_ou
     divide_two_operation_cirrus.inputs[1].default_value = (2.0, 2.0, 2.0)
 
     mat.node_tree.links.new(divide_two_operation_cirrus.outputs["Vector"],
-                            invert_for_width_operation_cirrus.inputs[1])
-    mat.node_tree.links.new(divide_two_operation_cirrus.outputs["Vector"],
-                            subtract_width_operation_cirrus.inputs[0])
+                            multiply_for_width_operation_cirrus.inputs[0])
 
     # Vector Add - Cirrus shape between 0 and 1 operation
     add_one_operation_cirrus = mat_nodes.new("ShaderNodeVectorMath")
@@ -1002,7 +977,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     wind_application_direction_small.name = "Vector Multiply - Wind application direction small"
     wind_application_direction_small.label = "Vector Multiply - Wind application direction small"
     wind_application_direction_small.operation = "MULTIPLY"
-    wind_application_direction_small.inputs[1].default_value = (1.0, 1.0, 1.0)
+    wind_application_direction_small.inputs[1].default_value = (1.0, 1.0, 0.5)
 
     mat.node_tree.links.new(wind_application_direction_small.outputs["Vector"],
                             add_shape_wind_small.inputs["Color2"])
@@ -1070,7 +1045,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     wind_application_direction_big.name = "Vector Multiply - Wind application direction big"
     wind_application_direction_big.label = "Vector Multiply - Wind application direction big"
     wind_application_direction_big.operation = "MULTIPLY"
-    wind_application_direction_big.inputs[1].default_value = (1.0, 1.0, 1.0)
+    wind_application_direction_big.inputs[1].default_value = (1.0, 1.0, 0.5)
 
     mat.node_tree.links.new(wind_application_direction_big.outputs["Vector"],
                             add_shape_wind_big.inputs["Color2"])

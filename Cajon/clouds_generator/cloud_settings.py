@@ -617,7 +617,7 @@ def update_cloud_cirrus(self, context):
             mapping_cirrus_shape = material.node_tree.nodes.get("Initial Shape Mapping Cirrus Shape")
             mapping_cirrus_shape.inputs["Scale"].default_value = (cloudscape_cirrus_cirrus_amount, 0, 0)
 
-            cloudscape_cirrus_cirrus_width = 1 - obj.cloud_settings.cloudscape_cirrus_cirrus_width
+            cloudscape_cirrus_cirrus_width = obj.cloud_settings.cloudscape_cirrus_cirrus_width
             multiply_for_width_operation_cirrus = material.node_tree.nodes.get("Vector Multiply - Cirrus shape width operation")
             multiply_for_width_operation_cirrus.inputs[1].default_value = (cloudscape_cirrus_cirrus_width,
                                                                            cloudscape_cirrus_cirrus_width,
