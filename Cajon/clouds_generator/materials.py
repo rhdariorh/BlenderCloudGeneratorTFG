@@ -45,7 +45,7 @@ def initial_shape_single_cumulus(pos_x, pos_y, texture_coordinate, cleaner_out, 
     elem.color = (1.0, 1.0, 1.0, 1)
 
     mat.node_tree.links.new(color_ramp_cleaner.outputs["Color"],
-                            cleaner_out.inputs["Color2"])
+                            cleaner_out.inputs[1])
 
     # Invert color
     invert_color = mat_nodes.new("ShaderNodeInvert")
@@ -140,7 +140,7 @@ def initial_shape_cloudscape_cumulus(pos_x, pos_y, texture_coordinate, cleaner_o
     elem.color = (1.0, 1.0, 1.0, 1)
 
     mat.node_tree.links.new(color_ramp_cleaner.outputs["Color"],
-                            cleaner_out.inputs["Color2"])
+                            cleaner_out.inputs[1])
 
     # Invert color
     invert_color = mat_nodes.new("ShaderNodeInvert")
@@ -405,7 +405,7 @@ def initial_shape_cloudscape_cirrus(pos_x, pos_y, texture_coordinate, cleaner_ou
     elem.color = (1.0, 1.0, 1.0, 1)
 
     mat.node_tree.links.new(color_ramp_cleaner.outputs["Color"],
-                            cleaner_out.inputs["Color2"])
+                            cleaner_out.inputs[1])
 
     # Invert color cleaner
     invert_color = mat_nodes.new("ShaderNodeInvert")
@@ -820,15 +820,14 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     mat.node_tree.links.new(color_ramp_density.outputs["Color"],
                             principled_volume.inputs["Density"])
 
-    # RGB Subtract - Final Cleaner
-    subtract_final_cleaner = mat_nodes.new("ShaderNodeMixRGB")
-    subtract_final_cleaner.name = "RGB Subtract - Final Cleaner"
-    subtract_final_cleaner.label = "RGB Subtract - Final Cleaner"
+    # Vector Subtract - Final Cleaner
+    subtract_final_cleaner = mat_nodes.new("ShaderNodeVectorMath")
+    subtract_final_cleaner.name = "Vector Subtract - Final Cleaner"
+    subtract_final_cleaner.label = "Vector Subtract - Final Cleaner"
     subtract_final_cleaner.location = (pos_x + 5450, pos_y)
-    subtract_final_cleaner.blend_type = "SUBTRACT"
-    subtract_final_cleaner.inputs["Fac"].default_value = 1.0
+    subtract_final_cleaner.operation = "SUBTRACT"
 
-    mat.node_tree.links.new(subtract_final_cleaner.outputs["Color"],
+    mat.node_tree.links.new(subtract_final_cleaner.outputs[0],
                             color_ramp_density.inputs["Fac"])
 
     # RGB Overlay - Detail noise
@@ -841,7 +840,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     overlay_detail_noise.inputs["Fac"].default_value = detail_noise
 
     mat.node_tree.links.new(overlay_detail_noise.outputs["Color"],
-                            subtract_final_cleaner.inputs["Color1"])
+                            subtract_final_cleaner.inputs[0])
 
     # RGB Multiply - Bump
     multiply_bump = mat_nodes.new("ShaderNodeMixRGB")
@@ -1265,50 +1264,22 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     frame.name = "Detail noise"
     frame.label = "Detail noise"
 
-    # RGB Overlay - Detail noise combined
-    overlay_noise_combine = mat_nodes.new("ShaderNodeMixRGB")
-    overlay_noise_combine.parent = frame
-    overlay_noise_combine.name = "RGB Overlay - Detail noise combined"
-    overlay_noise_combine.label = "RGB Overlay - Detail noise combined"
-    overlay_noise_combine.location = (pos_x + 4550, pos_y - 1500)
-    overlay_noise_combine.blend_type = "OVERLAY"
-    overlay_noise_combine.inputs["Fac"].default_value = 1.0
+    # Noise Tex - Detail noise level
+    detetail_noise = mat_nodes.new("ShaderNodeTexNoise")
+    detetail_noise.parent = frame
+    detetail_noise.name = "Noise Tex - Detail noise level 1"
+    detetail_noise.label = "Noise Tex - Detail noise level 1"
+    detetail_noise.location = (pos_x + 4550, pos_y - 1500)
+    detetail_noise.inputs["Scale"].default_value = 12.0
+    detetail_noise.inputs["Detail"].default_value = 4.0
+    detetail_noise.inputs["Roughness"].default_value = 1.0
+    detetail_noise.inputs["Distortion"].default_value = 0.0
 
-    mat.node_tree.links.new(overlay_noise_combine.outputs["Color"],
+    mat.node_tree.links.new(detetail_noise.outputs["Fac"],
                             overlay_detail_noise.inputs["Color2"])
 
-    # Noise Tex - Detail noise level 1
-    detetail_noise_level_1 = mat_nodes.new("ShaderNodeTexNoise")
-    detetail_noise_level_1.parent = frame
-    detetail_noise_level_1.name = "Noise Tex - Detail noise level 1"
-    detetail_noise_level_1.label = "Noise Tex - Detail noise level 1"
-    detetail_noise_level_1.location = (pos_x + 4350, pos_y - 1500)
-    detetail_noise_level_1.inputs["Scale"].default_value = 12.4
-    detetail_noise_level_1.inputs["Detail"].default_value = 2.6
-    detetail_noise_level_1.inputs["Roughness"].default_value = 1.0
-    detetail_noise_level_1.inputs["Distortion"].default_value = 0.0
-
-    mat.node_tree.links.new(detetail_noise_level_1.outputs["Fac"],
-                            overlay_noise_combine.inputs["Color1"])
-
-    # Noise Tex - Detail noise level 2
-    detetail_noise_level_2 = mat_nodes.new("ShaderNodeTexNoise")
-    detetail_noise_level_2.parent = frame
-    detetail_noise_level_2.name = "Noise Tex - Detail noise level 2"
-    detetail_noise_level_2.label = "Noise Tex - Detail noise level 2"
-    detetail_noise_level_2.location = (pos_x + 4350, pos_y - 1800)
-    detetail_noise_level_2.inputs["Scale"].default_value = 12.4
-    detetail_noise_level_2.inputs["Detail"].default_value = 6.0
-    detetail_noise_level_2.inputs["Roughness"].default_value = 1.0
-    detetail_noise_level_2.inputs["Distortion"].default_value = 0.0
-
-    mat.node_tree.links.new(detetail_noise_level_2.outputs["Fac"],
-                            overlay_noise_combine.inputs["Color2"])
-
     mat.node_tree.links.new(reroute_3.outputs[0],
-                            detetail_noise_level_1.inputs["Vector"])
-    mat.node_tree.links.new(reroute_3.outputs[0],
-                            detetail_noise_level_2.inputs["Vector"])
+                            detetail_noise.inputs["Vector"])
     # -----------END DETAIL NOISE BRANCH-------------
 
     # ----------BEGINNING ROUNDNESS BRANCH-----------
