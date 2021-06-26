@@ -82,11 +82,16 @@ class RENDER_OT_cloud_edit_settings(bpy.types.Operator):
     bl_options = {"REGISTER", "UNDO"}
 
     def execute(self, context):
-        context.scene.eevee.volumetric_tile_size = '8'
+        context.scene.eevee.volumetric_tile_size = '4'
         context.scene.eevee.volumetric_samples = 64
         context.scene.eevee.use_volumetric_lights = True
         context.scene.eevee.use_volumetric_shadows = True
-        context.scene.eevee.volumetric_end = 200.0
+        context.scene.eevee.volumetric_end = 300.0
+
+        context.scene.cycles.volume_bounces = 0
+        context.scene.cycles.volume_step_rate = 0.2
+        context.scene.cycles.volume_preview_step_rate = 1.0
+        context.scene.cycles.volume_max_steps = 2048
         self.report({'INFO'}, "Blender settings adapted for editing atmospheric clouds.")
         return {'FINISHED'}
 
@@ -100,10 +105,15 @@ class RENDER_OT_cloud_render_settings(bpy.types.Operator):
 
     def execute(self, context):
         context.scene.eevee.volumetric_tile_size = '2'
-        context.scene.eevee.volumetric_samples = 64
+        context.scene.eevee.volumetric_samples = 256
         context.scene.eevee.use_volumetric_lights = True
         context.scene.eevee.use_volumetric_shadows = True
-        context.scene.eevee.volumetric_end = 500.0
+        context.scene.eevee.volumetric_end = 2000.0
+
+        context.scene.cycles.volume_bounces = 10
+        context.scene.cycles.volume_step_rate = 0.2
+        context.scene.cycles.volume_preview_step_rate = 1.0
+        context.scene.cycles.volume_max_steps = 2048
         self.report({'INFO'}, "Blender settings adapted for rendering clouds.")
         return {'FINISHED'}
 
@@ -250,7 +260,7 @@ class OBJECT_PT_cloud_shape(bpy.types.Panel):
                     column.prop(cloud_settings, "cloudscape_cirrus_cirrus_amount", text="Amount of cirrus")
                     column.prop(cloud_settings, "cloudscape_cirrus_cirrus_width", text="Cirrus width")
                     column.separator()
-                    column.prop(cloud_settings, "amount_of_clouds", text="Amount of cumulus")
+                    column.prop(cloud_settings, "amount_of_clouds", text="Amount of clouds")
                     column.prop(cloud_settings, "cloudscape_cloud_size", text="Cumulus size")
                     if (context.preferences.addons[__name__].preferences.advanced_settings):
                         column.prop(cloud_settings, "cloudscape_noise_coords", text="Seed")
