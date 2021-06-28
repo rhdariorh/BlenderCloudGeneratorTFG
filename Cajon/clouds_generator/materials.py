@@ -20,11 +20,22 @@ from math import sin, cos, pi
 import random
 
 
-def initial_shape_single_cumulus(pos_x, pos_y, texture_coordinate, cleaner_out, out_node, in_node, mat, mat_nodes, obj):
+def initial_shape_single_cumulus(pos_x, pos_y, texture_coordinate, cleaner_out, out_node, in_node, mat, obj):
     """
+    pos_x: relative x position of nodes in the material node graph
+    pos_y: relative y position of nodes in the material node graph
+    texture_coordinate: texture coordinate in for image shape texture 
+    cleaner_out: out for final cleaner
+    out_node: out for the initial shape values
+    in_node: coordinates used for initial shape
+    mat: material to include nodes
     out_node: nodo de salida
     in_node: nodo de entrada
+    mat: material. Used to access node_tree and insert connections and nodes
+    obj: cloud object that has the material applied
     """
+
+    mat_nodes = mat.node_tree.nodes # Fast access to nodes
 
     obj.cloud_settings.cloud_type = "SINGLE_CUMULUS"
     frame = mat_nodes.new(type='NodeFrame')
@@ -100,11 +111,23 @@ def initial_shape_single_cumulus(pos_x, pos_y, texture_coordinate, cleaner_out, 
                             mapping.inputs[0])
 
 
-def initial_shape_cloudscape_cumulus(pos_x, pos_y, texture_coordinate, cleaner_out, out_node, in_node, mat, mat_nodes, obj):
+def initial_shape_cloudscape_cumulus(pos_x, pos_y, texture_coordinate, cleaner_out, out_node, in_node, mat, obj):
     """
+    pos_x: relative x position of nodes in the material node graph
+    pos_y: relative y position of nodes in the material node graph
+    texture_coordinate: texture coordinate in for image shape texture 
+    cleaner_out: out for final cleaner
+    out_node: out for the initial shape values
+    in_node: coordinates used for initial shape
+    mat: material to include nodes
     out_node: nodo de salida
     in_node: nodo de entrada
+    mat: material. Used to access node_tree and insert connections and nodes
+    obj: cloud object that has the material applied
     """
+
+    mat_nodes = mat.node_tree.nodes # Fast access to nodes
+
     obj.cloud_settings.domain_cloud_position = (0.0, 0.0, 1.0)
 
     obj.cloud_settings.cloud_type = "CLOUDSCAPE_CUMULUS"
@@ -359,17 +382,28 @@ def initial_shape_cloudscape_cumulus(pos_x, pos_y, texture_coordinate, cleaner_o
                             mapping_noise.inputs["Vector"])
 
 
-def initial_shape_cloudscape_cirrus(pos_x, pos_y, texture_coordinate, cleaner_out, out_node, in_node, mat, mat_nodes, obj):
+def initial_shape_cloudscape_cirrus(pos_x, pos_y, texture_coordinate, cleaner_out, out_node, in_node, mat, obj):
     """
+    pos_x: relative x position of nodes in the material node graph
+    pos_y: relative y position of nodes in the material node graph
+    texture_coordinate: texture coordinate in for image shape texture 
+    cleaner_out: out for final cleaner
+    out_node: out for the initial shape values
+    in_node: coordinates used for initial shape
+    mat: material to include nodes
     out_node: nodo de salida
     in_node: nodo de entrada
+    mat: material. Used to access node_tree and insert connections and nodes
+    obj: cloud object that has the material applied
     """
+
+    mat_nodes = mat.node_tree.nodes # Fast access to nodes
+
     obj.cloud_settings.domain_cloud_position = (0.0, 0.0, 1.0)
     obj.cloud_settings.amount_of_clouds = 1.0
-    material = bpy.context.active_object.active_material
-    wind_application_direction_big = material.node_tree.nodes.get("Vector Multiply - Wind application direction big")
+    wind_application_direction_big = mat_nodes.get("Vector Multiply - Wind application direction big")
     wind_application_direction_big.inputs[1].default_value = (1.0, 1.0, 0.4)
-    wind_application_direction_small = material.node_tree.nodes.get("Vector Multiply - Wind application direction small")
+    wind_application_direction_small = mat_nodes.get("Vector Multiply - Wind application direction small")
     wind_application_direction_small.inputs[1].default_value = (1.0, 1.0, 0.4)
 
     obj.cloud_settings.cloud_type = "CLOUDSCAPE_CIRRUS"
@@ -693,6 +727,12 @@ def initial_shape_cloudscape_cirrus(pos_x, pos_y, texture_coordinate, cleaner_ou
 
 
 def generate_cloud(context, pos_x, pos_y, initial_shape):
+    """
+    pos_x: x position of the material node graph
+    pos_y: y position of the material node graph
+    initial_shape: function that generates the part of the material 
+        corresponding to the initial base shape of the clouds
+    """
     C = context
     D = bpy.data
     # ---------------------------------------
@@ -1111,7 +1151,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     mat.node_tree.links.new(texture_coordinate.outputs["Object"],
                             initial_mapping.inputs["Vector"])
 
-    initial_shape(pos_x + 2000, pos_y, texture_coordinate, subtract_final_cleaner, overlay_roundness, add_shape_wind, mat, mat_nodes, obj)
+    initial_shape(pos_x + 2000, pos_y, texture_coordinate, subtract_final_cleaner, overlay_roundness, add_shape_wind, mat, obj)
 
     # ----------------END MAIN BRANCH----------------
 
