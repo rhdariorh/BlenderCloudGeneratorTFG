@@ -579,6 +579,37 @@ def initial_shape_cloudscape_cirrus(pos_x, pos_y, texture_coordinate, cleaner_ou
     mat.node_tree.links.new(gradient_texture_subtract.outputs["Color"],
                             color_ramp_gradient_subtract.inputs["Fac"])
 
+
+    # Vector Multiply - Cirrus coverage
+    multiply_coverage = mat_nodes.new("ShaderNodeVectorMath")
+    multiply_coverage.parent = frame
+    multiply_coverage.location = (pos_x + 1000, pos_y - 700)
+    multiply_coverage.name = "Vector Multiply - Cirrus coverage"
+    multiply_coverage.label = "Vector Multiply - Cirrus coverage"
+    multiply_coverage.operation = "MULTIPLY"
+
+    mat.node_tree.links.new(multiply_coverage.outputs["Vector"],
+                            subtract_gradient_noise.inputs["Color2"])
+
+    # Greater Than
+    length_greater_than_2 = mat_nodes.new("ShaderNodeMath")
+    length_greater_than_2.parent = frame
+    length_greater_than_2.location = (pos_x + 800, pos_y - 900)
+    length_greater_than_2.operation = "GREATER_THAN"
+    length_greater_than_2.inputs[1].default_value = 5.2
+
+    mat.node_tree.links.new(length_greater_than_2.outputs["Value"],
+                            multiply_coverage.inputs[1])
+    # Vector Length
+    lenght_2 = mat_nodes.new("ShaderNodeVectorMath")
+    lenght_2.parent = frame
+    lenght_2.location = (pos_x + 600, pos_y - 900)
+    lenght_2.operation = "LENGTH"
+
+    mat.node_tree.links.new(lenght_2.outputs["Value"],
+                            length_greater_than_2.inputs["Value"])
+
+
     # Vector Multiply - Noise subtract
     multiply_noise = mat_nodes.new("ShaderNodeVectorMath")
     multiply_noise.parent = frame
@@ -589,7 +620,10 @@ def initial_shape_cloudscape_cirrus(pos_x, pos_y, texture_coordinate, cleaner_ou
     multiply_noise.inputs[1].default_value = (5.0, 5.0, 5.0)
 
     mat.node_tree.links.new(multiply_noise.outputs["Vector"],
-                            subtract_gradient_noise.inputs["Color2"])
+                            lenght_2.inputs[0])
+
+    mat.node_tree.links.new(multiply_noise.outputs["Vector"],
+                            multiply_coverage.inputs[0])
 
     # Mapping base
     mapping_base = mat_nodes.new("ShaderNodeMapping")
@@ -894,8 +928,14 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     mat.node_tree.links.new(multiply_bump.outputs["Color"],
                             overlay_detail_noise.inputs["Color1"])
 
+    # BEGINNING SIMPLE CLEANER FRAME
+    frame = mat_nodes.new(type='NodeFrame')
+    frame.name = "Simple cleaner"
+    frame.label = "Simple cleaner"
+
     # Vector Multiply - Simple cleaner
     multiply_cleaner = mat_nodes.new("ShaderNodeVectorMath")
+    multiply_cleaner.parent = frame
     multiply_cleaner.location = (pos_x + 4200, pos_y)
     multiply_cleaner.name = "Vector Multiply - Simple cleaner"
     multiply_cleaner.label = "Vector Multiply - Simple cleaner"
@@ -903,11 +943,6 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
 
     mat.node_tree.links.new(multiply_cleaner.outputs["Vector"],
                             multiply_bump.inputs["Color1"])
-
-    # BEGINNING SIMPLE CLEANER FRAME
-    frame = mat_nodes.new(type='NodeFrame')
-    frame.name = "Not Visible To 0"
-    frame.label = "If not visible then 0"
 
     # Greater Than
     length_greater_than = mat_nodes.new("ShaderNodeMath")

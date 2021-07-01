@@ -456,7 +456,7 @@ def update_cloud_amount_of_clouds(self, context):
     """Amount of clouds in cloudscape update function.
 
     Change the amount of clouds in cloudscape according
-    to the amount_of_clouds custom property.
+    to the amount_of_clouds custom property. Sky coverage.
     """
 
     obj = context.active_object
@@ -504,7 +504,7 @@ def update_cloud_cloudscape_noise_coords(self, context):
         material = bpy.context.active_object.active_material
         if "CloudMaterial_CG" not in material.name:
             bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
-        elif (cloud_type == "CLOUDSCAPE_CUMULUS"):
+        elif (cloud_type in ["CLOUDSCAPE_CUMULUS", "CLOUDSCAPE_CIRRUS"]):
             if (context.preferences.addons["clouds_generator"].preferences.advanced_settings):
                 obj.cloud_settings.cloudscape_noise_simple_seed = cloudscape_noise_coords.x
                 mapping_noise = material.node_tree.nodes.get("Initial Shape Mapping Noise")
@@ -703,7 +703,7 @@ class CloudSettings(bpy.types.PropertyGroup):
             Useful to clean unwanted noise from areas outside the cloud.
 
         amount_of_clouds: Amount of clouds in a cloudscape. The less amount
-            of clouds, the more noise is subtracted from the volume.
+            of clouds, the more noise is subtracted from the volume. Sky coverage.
 
         height_cloudscape: Vertical length of clouds for cloudscapes.
 
@@ -711,7 +711,8 @@ class CloudSettings(bpy.types.PropertyGroup):
 
         top_softness_cloudscape: Softness in the cloud cut at the top.
 
-        cloudscape_cloud_size: Size of the clouds in the cloudscape.
+        cloudscape_cloud_size: Size of the clouds in the cloudscape. Size of the
+            gaps in the coverage.
 
         cloudscape_noise_coords: Mapping coordinates for cloudscape shape.
             Used as a seed for the noise that shapes the cloudscaoe.
@@ -1039,16 +1040,16 @@ class CloudSettings(bpy.types.PropertyGroup):
         description="Softness in the cloud cut at the top",
         default=0.5,
         min=0.1,
-        max=1.0,
+        soft_max=1.0,
         update=update_cloud_cut_softness_cloudscape
     )
 
     cloudscape_cloud_size: bpy.props.FloatProperty(
         name="Cloudscape cloud size",
-        description="Size of the clouds in the cloudscape",
+        description="Size of the gaps in the sky coverage",
         default=8.5,
         min=0.0,
-        max=10.0,
+        max=15.0,
         update=update_cloud_cloudscape_cloud_size
     )
 
