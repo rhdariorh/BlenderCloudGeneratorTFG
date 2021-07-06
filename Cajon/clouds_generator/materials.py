@@ -402,9 +402,12 @@ def initial_shape_cloudscape_cirrus(pos_x, pos_y, texture_coordinate, cleaner_ou
     obj.cloud_settings.domain_cloud_position = (0.0, 0.0, 1.0)
     obj.cloud_settings.amount_of_clouds = 1.0
     wind_application_direction_big = mat_nodes.get("Vector Multiply - Wind application direction big")
-    wind_application_direction_big.inputs[1].default_value = (1.0, 1.0, 0.4)
+    wind_application_direction_big.inputs[1].default_value = (10.0, 10.0, 0.4)
     wind_application_direction_small = mat_nodes.get("Vector Multiply - Wind application direction small")
     wind_application_direction_small.inputs[1].default_value = (1.0, 1.0, 0.4)
+
+    noise_shape_wind_big =  mat_nodes.get("Noise Tex - Shape wind big turbulence")
+    noise_shape_wind_big.inputs["Scale"].default_value = 0.1
 
     obj.cloud_settings.cloud_type = "CLOUDSCAPE_CIRRUS"
     frame = mat_nodes.new(type='NodeFrame')

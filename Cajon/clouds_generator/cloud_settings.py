@@ -87,7 +87,7 @@ def update_cloud_wind(self, context):
 
     Change the cloud wind according to the wind custom properties.
     """
-
+    
     obj = context.active_object
     if (obj.cloud_settings.update_properties):
         wind_strength_value = obj.cloud_settings.wind_strength

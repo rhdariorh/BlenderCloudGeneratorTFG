@@ -29,7 +29,7 @@ bl_info = {
     "blender": (2, 83, 1),
     "category": "Object",
     "location": "View 3D > Add > Volume",
-    "description": "Automatic creation of different types of clouds.",
+    "description": "Automatic creation of atmospheric clouds.",
     "warning": "Development version",
     "doc_url": "",
     "tracker_url": "",
@@ -86,10 +86,10 @@ class RENDER_OT_cloud_edit_settings(bpy.types.Operator):
         context.scene.eevee.volumetric_samples = 64
         context.scene.eevee.use_volumetric_lights = True
         context.scene.eevee.use_volumetric_shadows = True
-        context.scene.eevee.volumetric_end = 300.0
+        context.scene.eevee.volumetric_end = 500.0
 
         context.scene.cycles.volume_bounces = 0
-        context.scene.cycles.volume_step_rate = 0.2
+        context.scene.cycles.volume_step_rate = 0.4
         context.scene.cycles.volume_preview_step_rate = 1.0
         context.scene.cycles.volume_max_steps = 2048
         self.report({'INFO'}, "Blender settings adapted for editing atmospheric clouds.")
@@ -111,10 +111,10 @@ class RENDER_OT_cloud_render_settings(bpy.types.Operator):
         context.scene.eevee.volumetric_end = 2000.0
 
         context.scene.cycles.volume_bounces = 10
-        context.scene.cycles.volume_step_rate = 0.2
+        context.scene.cycles.volume_step_rate = 0.15
         context.scene.cycles.volume_preview_step_rate = 1.0
         context.scene.cycles.volume_max_steps = 2048
-        self.report({'INFO'}, "Blender settings adapted for rendering clouds.")
+        self.report({'INFO'}, "Blender settings adapted for rendering atmospheric clouds.")
         return {'FINISHED'}
 
 
