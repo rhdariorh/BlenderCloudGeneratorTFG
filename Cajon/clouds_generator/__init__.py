@@ -30,7 +30,7 @@ bl_info = {
     "category": "Object",
     "location": "View 3D > Add > Volume",
     "description": "Automatic creation of atmospheric clouds.",
-    "warning": "Development version",
+    # "warning": "Development version",
     "doc_url": "",
     "tracker_url": "",
 }
@@ -86,7 +86,7 @@ class RENDER_OT_cloud_edit_settings(bpy.types.Operator):
         context.scene.eevee.volumetric_samples = 64
         context.scene.eevee.use_volumetric_lights = True
         context.scene.eevee.use_volumetric_shadows = True
-        context.scene.eevee.volumetric_end = 500.0
+        context.scene.eevee.volumetric_end = 1000.0
 
         context.scene.cycles.volume_bounces = 0
         context.scene.cycles.volume_step_rate = 0.4
