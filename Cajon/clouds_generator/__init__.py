@@ -92,6 +92,9 @@ class RENDER_OT_cloud_edit_settings(bpy.types.Operator):
         context.scene.cycles.volume_step_rate = 0.4
         context.scene.cycles.volume_preview_step_rate = 1.0
         context.scene.cycles.volume_max_steps = 2048
+        context.scene.cycles.use_adaptive_sampling = True
+        context.scene.cycles.adaptive_threshold = 0.01
+        context.scene.cycles.adaptive_min_samples = 1
         self.report({'INFO'}, "Blender settings adapted for editing atmospheric clouds.")
         return {'FINISHED'}
 
@@ -114,6 +117,9 @@ class RENDER_OT_cloud_render_settings(bpy.types.Operator):
         context.scene.cycles.volume_step_rate = 0.15
         context.scene.cycles.volume_preview_step_rate = 1.0
         context.scene.cycles.volume_max_steps = 2048
+        context.scene.cycles.use_adaptive_sampling = True
+        context.scene.cycles.adaptive_threshold = 0.01
+        context.scene.cycles.adaptive_min_samples = 1
         self.report({'INFO'}, "Blender settings adapted for rendering atmospheric clouds.")
         return {'FINISHED'}
 
