@@ -87,7 +87,7 @@ def update_cloud_wind(self, context):
 
     Change the cloud wind according to the wind custom properties.
     """
-    
+
     obj = context.active_object
     if (obj.cloud_settings.update_properties):
         wind_strength_value = obj.cloud_settings.wind_strength
@@ -125,7 +125,7 @@ def update_cloud_wind_turbulence_coords(self, context):
             bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
         else:
             if (context.preferences.addons["clouds_generator"].preferences.advanced_settings):
-                obj.cloud_settings.wind_turbulence_simple_seed = wind_big_turbulence_coords.x
+                # obj.cloud_settings.wind_turbulence_simple_seed = wind_big_turbulence_coords[0]
                 add_coords_wind_small = material.node_tree.nodes.get("Vector Add - Wind small turbulence coords")
                 add_coords_wind_small.inputs[1].default_value = wind_small_turbulence_coords
                 add_coords_wind_big = material.node_tree.nodes.get("Vector Add - Wind big turbulence coords")
@@ -192,12 +192,12 @@ def update_cloud_roundness_coords(self, context):
             bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
         else:
             if (context.preferences.addons["clouds_generator"].preferences.advanced_settings):
-                obj.cloud_settings.roundness_simple_seed = roundness_coords.x
+                # obj.cloud_settings.roundness_simple_seed = roundness_coords[0]
                 add_coords_roundness = material.node_tree.nodes.get("Vector Add - Roundness coord")
                 add_coords_roundness.inputs[1].default_value = roundness_coords
             else:
                 roundness_coords = (roundness_simple_seed, roundness_simple_seed, roundness_simple_seed)
-                obj.cloud_settings.roundness_coords = roundness_coords
+                # obj.cloud_settings.roundness_coords = roundness_coords
                 add_coords_roundness = material.node_tree.nodes.get("Vector Add - Roundness coord")
                 add_coords_roundness.inputs[1].default_value = roundness_coords
 
@@ -285,22 +285,30 @@ def update_cloud_add_shape_imperfection_coords(self, context):
     obj = context.active_object
     if (obj.cloud_settings.update_properties):
         add_shape_imperfection_coords = obj.cloud_settings.add_shape_imperfection_coords
+        add_shape_imperfection_coords_2 = (add_shape_imperfection_coords[0] + 15,
+                                           add_shape_imperfection_coords[1] + 15,
+                                           add_shape_imperfection_coords[2] + 15)
         add_shape_imperfection_simple_seed = obj.cloud_settings.add_shape_imperfection_simple_seed
         material = bpy.context.active_object.active_material
         if "CloudMaterial_CG" not in material.name:
             bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
         else:
+            coords_add_shape_imperfection_1 = material.node_tree.nodes.get("Vector Add - Coords add shape imperfection 1")
+            coords_add_shape_imperfection_2 = material.node_tree.nodes.get("Vector Add - Coords add shape imperfection 2")
             if (context.preferences.addons["clouds_generator"].preferences.advanced_settings):
-                obj.cloud_settings.add_shape_imperfection_simple_seed = add_shape_imperfection_coords.x
-                coords_add_shape_imperfection_1 = material.node_tree.nodes.get("Vector Add - Coords add shape imperfection 1")
+                # obj.cloud_settings.add_shape_imperfection_simple_seed = add_shape_imperfection_coords[0]
                 coords_add_shape_imperfection_1.inputs[1].default_value = add_shape_imperfection_coords
+                coords_add_shape_imperfection_2.inputs[1].default_value = add_shape_imperfection_coords_2
             else:
                 add_shape_imperfection_coords = (add_shape_imperfection_simple_seed,
                                                  add_shape_imperfection_simple_seed,
                                                  add_shape_imperfection_simple_seed)
-                obj.cloud_settings.add_shape_imperfection_coords = add_shape_imperfection_coords
-                coords_add_shape_imperfection_1 = material.node_tree.nodes.get("Vector Add - Coords add shape imperfection 1")
+                add_shape_imperfection_coords_2 = (add_shape_imperfection_coords[0] + 15,
+                                                   add_shape_imperfection_coords[1] + 15,
+                                                   add_shape_imperfection_coords[2] + 15)
+                # obj.cloud_settings.add_shape_imperfection_coords = add_shape_imperfection_coords
                 coords_add_shape_imperfection_1.inputs[1].default_value = add_shape_imperfection_coords
+                coords_add_shape_imperfection_2.inputs[1].default_value = add_shape_imperfection_coords_2
 
 
 def update_cloud_subtract_shape_imperfection(self, context):
@@ -333,22 +341,30 @@ def update_cloud_subtract_shape_imperfection_coords(self, context):
     obj = context.active_object
     if (obj.cloud_settings.update_properties):
         subtract_shape_imperfection_coords = obj.cloud_settings.subtract_shape_imperfection_coords
+        subtract_shape_imperfection_coords_2 = (subtract_shape_imperfection_coords[0] + 15,
+                                                subtract_shape_imperfection_coords[1] + 15,
+                                                subtract_shape_imperfection_coords[2] + 15)
         subtract_shape_imperfection_simple_seed = obj.cloud_settings.subtract_shape_imperfection_simple_seed
         material = bpy.context.active_object.active_material
         if "CloudMaterial_CG" not in material.name:
             bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
         else:
+            coords_subtract_shape_imperfection_1 = material.node_tree.nodes.get("Vector Add - Coords subtract shape imperfection 1")
+            coords_subtract_shape_imperfection_2 = material.node_tree.nodes.get("Vector Add - Coords subtract shape imperfection 2")
             if (context.preferences.addons["clouds_generator"].preferences.advanced_settings):
-                obj.cloud_settings.subtract_shape_imperfection_simple_seed = subtract_shape_imperfection_coords.x
-                coords_subtract_shape_imperfection_1 = material.node_tree.nodes.get("Vector Add - Coods subtract shape imperfection 1")
+                # obj.cloud_settings.subtract_shape_imperfection_simple_seed = subtract_shape_imperfection_coords[0]
                 coords_subtract_shape_imperfection_1.inputs[1].default_value = subtract_shape_imperfection_coords
+                coords_subtract_shape_imperfection_2.inputs[1].default_value = subtract_shape_imperfection_coords_2
             else:
                 subtract_shape_imperfection_coords = (subtract_shape_imperfection_simple_seed,
                                                       subtract_shape_imperfection_simple_seed,
                                                       subtract_shape_imperfection_simple_seed)
-                obj.cloud_settings.subtract_shape_imperfection_coords = subtract_shape_imperfection_coords
-                coords_subtract_shape_imperfection_1 = material.node_tree.nodes.get("Vector Add - Coods subtract shape imperfection 1")
+                subtract_shape_imperfection_coords_2 = (subtract_shape_imperfection_coords[0] + 15,
+                                                        subtract_shape_imperfection_coords[1] + 15,
+                                                        subtract_shape_imperfection_coords[2] + 15)
+                # obj.cloud_settings.subtract_shape_imperfection_coords = subtract_shape_imperfection_coords
                 coords_subtract_shape_imperfection_1.inputs[1].default_value = subtract_shape_imperfection_coords
+                coords_subtract_shape_imperfection_2.inputs[1].default_value = subtract_shape_imperfection_coords_2
 
 
 def update_cloud_detail_bump_strength(self, context):
@@ -479,7 +495,7 @@ def update_cloud_cloudscape_cloud_size(self, context):
 
     obj = context.active_object
     if (obj.cloud_settings.update_properties):
-        cloudscape_cloud_size = 10.1 - obj.cloud_settings.cloudscape_cloud_size
+        cloudscape_cloud_size = 15.1 - obj.cloud_settings.cloudscape_cloud_size
         material = bpy.context.active_object.active_material
         if "CloudMaterial_CG" not in material.name:
             bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
@@ -506,14 +522,14 @@ def update_cloud_cloudscape_noise_coords(self, context):
             bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
         elif (cloud_type in ["CLOUDSCAPE_CUMULUS", "CLOUDSCAPE_CIRRUS"]):
             if (context.preferences.addons["clouds_generator"].preferences.advanced_settings):
-                obj.cloud_settings.cloudscape_noise_simple_seed = cloudscape_noise_coords.x
+                # obj.cloud_settings.cloudscape_noise_simple_seed = cloudscape_noise_coords[0]
                 mapping_noise = material.node_tree.nodes.get("Initial Shape Mapping Noise")
                 mapping_noise.inputs["Location"].default_value = cloudscape_noise_coords
             else:
                 cloudscape_noise_coords = (cloudscape_noise_simple_seed,
                                            cloudscape_noise_simple_seed,
                                            cloudscape_noise_simple_seed)
-                obj.cloud_settings.cloudscape_noise_coords = cloudscape_noise_coords
+                # obj.cloud_settings.cloudscape_noise_coords = cloudscape_noise_coords
 
                 mapping_noise = material.node_tree.nodes.get("Initial Shape Mapping Noise")
                 mapping_noise.inputs["Location"].default_value = cloudscape_noise_coords

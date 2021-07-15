@@ -24,7 +24,7 @@ def initial_shape_single_cumulus(pos_x, pos_y, texture_coordinate, cleaner_out, 
     """
     pos_x: relative x position of nodes in the material node graph
     pos_y: relative y position of nodes in the material node graph
-    texture_coordinate: texture coordinate in for image shape texture 
+    texture_coordinate: texture coordinate in for image shape texture
     cleaner_out: out for final cleaner
     out_node: out for the initial shape values
     in_node: coordinates used for initial shape
@@ -35,7 +35,7 @@ def initial_shape_single_cumulus(pos_x, pos_y, texture_coordinate, cleaner_out, 
     obj: cloud object that has the material applied
     """
 
-    mat_nodes = mat.node_tree.nodes # Fast access to nodes
+    mat_nodes = mat.node_tree.nodes  # Fast access to nodes
 
     obj.cloud_settings.cloud_type = "SINGLE_CUMULUS"
     frame = mat_nodes.new(type='NodeFrame')
@@ -115,7 +115,7 @@ def initial_shape_cloudscape_cumulus(pos_x, pos_y, texture_coordinate, cleaner_o
     """
     pos_x: relative x position of nodes in the material node graph
     pos_y: relative y position of nodes in the material node graph
-    texture_coordinate: texture coordinate in for image shape texture 
+    texture_coordinate: texture coordinate in for image shape texture
     cleaner_out: out for final cleaner
     out_node: out for the initial shape values
     in_node: coordinates used for initial shape
@@ -126,7 +126,7 @@ def initial_shape_cloudscape_cumulus(pos_x, pos_y, texture_coordinate, cleaner_o
     obj: cloud object that has the material applied
     """
 
-    mat_nodes = mat.node_tree.nodes # Fast access to nodes
+    mat_nodes = mat.node_tree.nodes  # Fast access to nodes
 
     obj.cloud_settings.domain_cloud_position = (0.0, 0.0, 1.0)
 
@@ -352,7 +352,7 @@ def initial_shape_cloudscape_cumulus(pos_x, pos_y, texture_coordinate, cleaner_o
     noise_subtract.name = "Noise Tex - Subtract initial"
     noise_subtract.label = "Noise Tex - Subtract initial"
     noise_subtract.location = (pos_x + 200, pos_y - 800)
-    cloudscape_cloud_size = 10.1 - obj.cloud_settings.cloudscape_cloud_size
+    cloudscape_cloud_size = 15.1 - obj.cloud_settings.cloudscape_cloud_size
     noise_subtract.inputs["Scale"].default_value = cloudscape_cloud_size
     noise_subtract.inputs["Detail"].default_value = 0.0
     noise_subtract.inputs["Roughness"].default_value = 0.0
@@ -386,7 +386,7 @@ def initial_shape_cloudscape_cirrus(pos_x, pos_y, texture_coordinate, cleaner_ou
     """
     pos_x: relative x position of nodes in the material node graph
     pos_y: relative y position of nodes in the material node graph
-    texture_coordinate: texture coordinate in for image shape texture 
+    texture_coordinate: texture coordinate in for image shape texture
     cleaner_out: out for final cleaner
     out_node: out for the initial shape values
     in_node: coordinates used for initial shape
@@ -397,16 +397,20 @@ def initial_shape_cloudscape_cirrus(pos_x, pos_y, texture_coordinate, cleaner_ou
     obj: cloud object that has the material applied
     """
 
-    mat_nodes = mat.node_tree.nodes # Fast access to nodes
+    mat_nodes = mat.node_tree.nodes  # Fast access to nodes
 
     obj.cloud_settings.domain_cloud_position = (0.0, 0.0, 1.0)
+
+    obj.cloud_settings.update_properties = False
     obj.cloud_settings.amount_of_clouds = 1.0
+    obj.cloud_settings.update_properties = True
+
     wind_application_direction_big = mat_nodes.get("Vector Multiply - Wind application direction big")
     wind_application_direction_big.inputs[1].default_value = (10.0, 10.0, 0.4)
     wind_application_direction_small = mat_nodes.get("Vector Multiply - Wind application direction small")
     wind_application_direction_small.inputs[1].default_value = (1.0, 1.0, 0.4)
 
-    noise_shape_wind_big =  mat_nodes.get("Noise Tex - Shape wind big turbulence")
+    noise_shape_wind_big = mat_nodes.get("Noise Tex - Shape wind big turbulence")
     noise_shape_wind_big.inputs["Scale"].default_value = 0.1
 
     obj.cloud_settings.cloud_type = "CLOUDSCAPE_CIRRUS"
@@ -582,7 +586,6 @@ def initial_shape_cloudscape_cirrus(pos_x, pos_y, texture_coordinate, cleaner_ou
     mat.node_tree.links.new(gradient_texture_subtract.outputs["Color"],
                             color_ramp_gradient_subtract.inputs["Fac"])
 
-
     # Vector Multiply - Cirrus coverage
     multiply_coverage = mat_nodes.new("ShaderNodeVectorMath")
     multiply_coverage.parent = frame
@@ -611,7 +614,6 @@ def initial_shape_cloudscape_cirrus(pos_x, pos_y, texture_coordinate, cleaner_ou
 
     mat.node_tree.links.new(lenght_2.outputs["Value"],
                             length_greater_than_2.inputs["Value"])
-
 
     # Vector Multiply - Noise subtract
     multiply_noise = mat_nodes.new("ShaderNodeVectorMath")
@@ -670,7 +672,7 @@ def initial_shape_cloudscape_cirrus(pos_x, pos_y, texture_coordinate, cleaner_ou
     noise_subtract.name = "Noise Tex - Subtract initial"
     noise_subtract.label = "Noise Tex - Subtract initial"
     noise_subtract.location = (pos_x + 200, pos_y - 800)
-    cloudscape_cloud_size = 10.1 - obj.cloud_settings.cloudscape_cloud_size
+    cloudscape_cloud_size = 15.1 - obj.cloud_settings.cloudscape_cloud_size
     noise_subtract.inputs["Scale"].default_value = cloudscape_cloud_size
     noise_subtract.inputs["Detail"].default_value = 0.0
     noise_subtract.inputs["Roughness"].default_value = 0.0
@@ -767,7 +769,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     """
     pos_x: x position of the material node graph
     pos_y: y position of the material node graph
-    initial_shape: function that generates the part of the material 
+    initial_shape: function that generates the part of the material
         corresponding to the initial base shape of the clouds
     """
     C = context
@@ -1433,11 +1435,11 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     # Noise Tex - Add shape imperfection 2
     noise_add_shape_imperfection_2 = mat_nodes.new("ShaderNodeTexNoise")
     noise_add_shape_imperfection_2.parent = frame
-    noise_add_shape_imperfection_2.name = "Noise Tex - Add shape imperfection 1"
-    noise_add_shape_imperfection_2.label = "Noise Tex - Add shape imperfection 1"
+    noise_add_shape_imperfection_2.name = "Noise Tex - Add shape imperfection 2"
+    noise_add_shape_imperfection_2.label = "Noise Tex - Add shape imperfection 2"
     noise_add_shape_imperfection_2.location = (pos_x + 2500, pos_y - 1150)
     noise_add_shape_imperfection_2.inputs["Scale"].default_value = 1.9
-    noise_add_shape_imperfection_2.inputs["Detail"].default_value = 16.0
+    noise_add_shape_imperfection_2.inputs["Detail"].default_value = 0.0
     noise_add_shape_imperfection_2.inputs["Roughness"].default_value = 0.0
     noise_add_shape_imperfection_2.inputs["Distortion"].default_value = 0.0
 
@@ -1466,7 +1468,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     coords_add_shape_imperfection_2.name = "Vector Add - Coords add shape imperfection 2"
     coords_add_shape_imperfection_2.label = "Vector Add - Coords add shape imperfection 2"
     coords_add_shape_imperfection_2.operation = "ADD"
-    coords_add_shape_imperfection_2.inputs[1].default_value = (5.0, 5.0, 5.0)
+    coords_add_shape_imperfection_2.inputs[1].default_value = obj.cloud_settings.add_shape_imperfection_coords + Vector((15, 15, 15))
 
     mat.node_tree.links.new(coords_add_shape_imperfection_2.outputs["Vector"],
                             noise_add_shape_imperfection_2.inputs["Vector"])
@@ -1507,11 +1509,11 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     # Noise Tex - Subtract shape imperfection 2
     noise_subtract_shape_imperfection_2 = mat_nodes.new("ShaderNodeTexNoise")
     noise_subtract_shape_imperfection_2.parent = frame
-    noise_subtract_shape_imperfection_2.name = "Noise Tex - Subtract shape imperfection 1"
-    noise_subtract_shape_imperfection_2.label = "Noise Tex - Subtract shape imperfection 1"
+    noise_subtract_shape_imperfection_2.name = "Noise Tex - Subtract shape imperfection 2"
+    noise_subtract_shape_imperfection_2.label = "Noise Tex - Subtract shape imperfection 2"
     noise_subtract_shape_imperfection_2.location = (pos_x + 2500, pos_y - 1750)
     noise_subtract_shape_imperfection_2.inputs["Scale"].default_value = 1.9
-    noise_subtract_shape_imperfection_2.inputs["Detail"].default_value = 16.0
+    noise_subtract_shape_imperfection_2.inputs["Detail"].default_value = 0.0
     noise_subtract_shape_imperfection_2.inputs["Roughness"].default_value = 0.0
     noise_subtract_shape_imperfection_2.inputs["Distortion"].default_value = 0.0
 
@@ -1522,8 +1524,8 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     coords_subtract_shape_imperfection_1 = mat_nodes.new("ShaderNodeVectorMath")
     coords_subtract_shape_imperfection_1.parent = frame
     coords_subtract_shape_imperfection_1.location = (pos_x + 2300, pos_y - 1500)
-    coords_subtract_shape_imperfection_1.name = "Vector Add - Coods subtract shape imperfection 1"
-    coords_subtract_shape_imperfection_1.label = "Vector Add - Coods subtract shape imperfection 1"
+    coords_subtract_shape_imperfection_1.name = "Vector Add - Coords subtract shape imperfection 1"
+    coords_subtract_shape_imperfection_1.label = "Vector Add - Coords subtract shape imperfection 1"
     coords_subtract_shape_imperfection_1.operation = "ADD"
     subtract_shape_imperfection_coords = obj.cloud_settings.subtract_shape_imperfection_coords
     coords_subtract_shape_imperfection_1.inputs[1].default_value = subtract_shape_imperfection_coords
@@ -1537,10 +1539,10 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     coords_subtract_shape_imperfection_2 = mat_nodes.new("ShaderNodeVectorMath")
     coords_subtract_shape_imperfection_2.parent = frame
     coords_subtract_shape_imperfection_2.location = (pos_x + 2300, pos_y - 1750)
-    coords_subtract_shape_imperfection_2.name = "Vector Add - Coods subtract shape imperfection 2"
-    coords_subtract_shape_imperfection_2.label = "Vector Add - Coods subtract shape imperfection 2"
+    coords_subtract_shape_imperfection_2.name = "Vector Add - Coords subtract shape imperfection 2"
+    coords_subtract_shape_imperfection_2.label = "Vector Add - Coords subtract shape imperfection 2"
     coords_subtract_shape_imperfection_2.operation = "ADD"
-    coords_subtract_shape_imperfection_2.inputs[1].default_value = (5.0, 5.0, 5.0)
+    coords_subtract_shape_imperfection_2.inputs[1].default_value = subtract_shape_imperfection_coords + Vector((15, 15, 15))
 
     mat.node_tree.links.new(coords_subtract_shape_imperfection_2.outputs["Vector"],
                             noise_subtract_shape_imperfection_2.inputs["Vector"])
