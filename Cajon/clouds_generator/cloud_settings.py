@@ -1063,7 +1063,7 @@ class CloudSettings(bpy.types.PropertyGroup):
     cloudscape_cloud_size: bpy.props.FloatProperty(
         name="Cloudscape cloud size",
         description="Size of the gaps in the sky coverage",
-        default=8.5,
+        default=13.0,
         min=0.0,
         max=15.0,
         update=update_cloud_cloudscape_cloud_size
