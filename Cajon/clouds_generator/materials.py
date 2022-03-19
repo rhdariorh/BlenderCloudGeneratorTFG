@@ -1084,7 +1084,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     noise_shape_wind_small.inputs["Roughness"].default_value = 0.0
     noise_shape_wind_small.inputs["Distortion"].default_value = 3.0
 
-    mat.node_tree.links.new(noise_shape_wind_small.outputs["Fac"],
+    mat.node_tree.links.new(noise_shape_wind_small.outputs["Color"],
                             domain_adjustment_shape_wind_small.inputs[0])
 
     # Vector Add - Wind small coords
@@ -1152,7 +1152,7 @@ def generate_cloud(context, pos_x, pos_y, initial_shape):
     noise_shape_wind_big.inputs["Roughness"].default_value = 0.0
     noise_shape_wind_big.inputs["Distortion"].default_value = 3.0
 
-    mat.node_tree.links.new(noise_shape_wind_big.outputs["Fac"],
+    mat.node_tree.links.new(noise_shape_wind_big.outputs["Color"],
                             domain_adjustment_shape_wind_big.inputs[0])
 
     # Vector Add - Wind big coords
