@@ -594,8 +594,8 @@ def initial_shape_cloudscape_cirrus(pos_x, pos_y, texture_coordinate, cleaner_ou
     multiply_coverage.label = "Vector Multiply - Cirrus coverage"
     multiply_coverage.operation = "MULTIPLY"
 
-    mat.node_tree.links.new(multiply_coverage.outputs["Vector"],
-                            subtract_gradient_noise.inputs["Color2"])
+    #mat.node_tree.links.new(multiply_coverage.outputs["Vector"],
+    #                        subtract_gradient_noise.inputs["Color2"])
 
     # Greater Than
     length_greater_than_2 = mat_nodes.new("ShaderNodeMath")
@@ -623,12 +623,15 @@ def initial_shape_cloudscape_cirrus(pos_x, pos_y, texture_coordinate, cleaner_ou
     multiply_noise.label = "Vector Multiply - Noise subtract"
     multiply_noise.operation = "MULTIPLY"
     multiply_noise.inputs[1].default_value = (5.0, 5.0, 5.0)
-
+    
     mat.node_tree.links.new(multiply_noise.outputs["Vector"],
                             lenght_2.inputs[0])
 
     mat.node_tree.links.new(multiply_noise.outputs["Vector"],
                             multiply_coverage.inputs[0])
+    
+    mat.node_tree.links.new(multiply_noise.outputs["Vector"],
+                            subtract_gradient_noise.inputs["Color2"])
 
     # Mapping base
     mapping_base = mat_nodes.new("ShaderNodeMapping")
