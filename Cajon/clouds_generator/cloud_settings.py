@@ -477,13 +477,17 @@ def update_cloud_amount_of_clouds(self, context):
 
     obj = context.active_object
     if (obj.cloud_settings.update_properties):
-        amount_of_clouds = 1 - obj.cloud_settings.amount_of_clouds
+        cloud_type = obj.cloud_settings.cloud_type
+        amount_of_clouds = obj.cloud_settings.amount_of_clouds
         material = bpy.context.active_object.active_material
         if "CloudMaterial_CG" not in material.name:
             bpy.ops.error.cloud_error("INVOKE_DEFAULT", error_type="MATERIAL_WRONG_NAME")
+        elif (cloud_type in ["CLOUDSCAPE_CIRRUS"]):
+            length_greater_than_2 = material.node_tree.nodes.get("Greater than - Coverage cirrus")
+            length_greater_than_2.inputs[1].default_value = amount_of_clouds * 10
         else:
             subtract_gradient_noise = material.node_tree.nodes.get("RGB Subtract - Gradient and Noise")
-            subtract_gradient_noise.inputs["Fac"].default_value = amount_of_clouds
+            subtract_gradient_noise.inputs["Fac"].default_value = 1 - amount_of_clouds
 
 
 def update_cloud_cloudscape_cloud_size(self, context):

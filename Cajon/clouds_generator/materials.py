@@ -495,8 +495,7 @@ def initial_shape_cloudscape_cirrus(pos_x, pos_y, texture_coordinate, cleaner_ou
 
     subtract_gradient_noise.location = (pos_x + 900, pos_y - 300)
     subtract_gradient_noise.blend_type = "SUBTRACT"
-    amount_of_clouds = 1 - obj.cloud_settings.amount_of_clouds
-    subtract_gradient_noise.inputs["Fac"].default_value = amount_of_clouds
+    subtract_gradient_noise.inputs["Fac"].default_value = 1.0
 
     mat.node_tree.links.new(subtract_gradient_noise.outputs["Color"],
                             cirrus_shape_multiply.inputs["Color1"])
@@ -594,15 +593,18 @@ def initial_shape_cloudscape_cirrus(pos_x, pos_y, texture_coordinate, cleaner_ou
     multiply_coverage.label = "Vector Multiply - Cirrus coverage"
     multiply_coverage.operation = "MULTIPLY"
 
-    #mat.node_tree.links.new(multiply_coverage.outputs["Vector"],
-    #                        subtract_gradient_noise.inputs["Color2"])
+    mat.node_tree.links.new(multiply_coverage.outputs["Vector"],
+                            subtract_gradient_noise.inputs["Color2"])
 
     # Greater Than
     length_greater_than_2 = mat_nodes.new("ShaderNodeMath")
     length_greater_than_2.parent = frame
     length_greater_than_2.location = (pos_x + 800, pos_y - 900)
     length_greater_than_2.operation = "GREATER_THAN"
-    length_greater_than_2.inputs[1].default_value = 5.2
+    length_greater_than_2.name = "Greater than - Coverage cirrus"
+    length_greater_than_2.label = "Greater than - Coverage cirrus"
+    amount_of_clouds = obj.cloud_settings.amount_of_clouds
+    length_greater_than_2.inputs[1].default_value = amount_of_clouds * 10
 
     mat.node_tree.links.new(length_greater_than_2.outputs["Value"],
                             multiply_coverage.inputs[1])
@@ -630,8 +632,8 @@ def initial_shape_cloudscape_cirrus(pos_x, pos_y, texture_coordinate, cleaner_ou
     mat.node_tree.links.new(multiply_noise.outputs["Vector"],
                             multiply_coverage.inputs[0])
     
-    mat.node_tree.links.new(multiply_noise.outputs["Vector"],
-                            subtract_gradient_noise.inputs["Color2"])
+    #mat.node_tree.links.new(multiply_noise.outputs["Vector"],
+    #                        subtract_gradient_noise.inputs["Color2"])
 
     # Mapping base
     mapping_base = mat_nodes.new("ShaderNodeMapping")
