@@ -485,6 +485,8 @@ def register():
 
     bpy.types.Object.cloud_settings = bpy.props.PointerProperty(type=CloudSettings)
 
+
+    '''
     print("\n_____________________________________________________\n")
     print("Cloud Generator is a free and open source Add-on following the GNU General Public License.\n")
     print("If you are an addon developer and you can afford to create GNU-GPL addons, do so " +
@@ -492,6 +494,7 @@ def register():
           "to the community. :)")
     print("\nDario R.H.")
     print("_____________________________________________________\n")
+    '''
 
     """
     preview_coll = bpy.utils.previews.new()
